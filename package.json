@@ -41,7 +41,8 @@
     "remark-gfm": "^4.0.0",
     "remark-math": "^6.0.0",
     "tailwindcss": "^3.4.3",
-    "unist-util-visit": "^5.0.0"
+    "unist-util-visit": "^5.0.0",
+    "valine": "^1.5.1"
   },
   "devDependencies": {
     "@svgr/webpack": "^8.0.1",

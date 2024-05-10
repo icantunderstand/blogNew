@@ -1,3 +1,11 @@
+/*
+ * @Author: sunhao12 sunhao12@kuaishou.com
+ * @Date: 2024-05-09 15:25:57
+ * @LastEditors: sunhao12 sunhao12@kuaishou.com
+ * @LastEditTime: 2024-05-10 11:16:09
+ * @FilePath: /blogNew/app/Main.tsx
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import Link from '@/components/Link'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
@@ -12,7 +20,7 @@ export default function Home({ posts }) {
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
         <div className="space-y-2 pb-8 pt-6 md:space-y-5">
           <h1 className="text-3xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14">
-            Latest
+            最新内容
           </h1>
           <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
             {siteMetadata.description}
@@ -59,7 +67,7 @@ export default function Home({ posts }) {
                           className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
                           aria-label={`Read more: "${title}"`}
                         >
-                          Read more &rarr;
+                          查看 &rarr;
                         </Link>
                       </div>
                     </div>
@@ -77,7 +85,7 @@ export default function Home({ posts }) {
             className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
             aria-label="All posts"
           >
-            All Posts &rarr;
+            所有文章 &rarr;
           </Link>
         </div>
       )}

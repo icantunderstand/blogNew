@@ -142,3 +142,9 @@
 .token.table {
   display: inline;
 }
+
+
+#vcomment > .vempty {
+  display: none !important;
+}
+
