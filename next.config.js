@@ -74,6 +74,7 @@ module.exports = () => {
       ],
       unoptimized: true,
     },
+    basePath: '/blogNew',
     output: 'export',
     // async headers() {
     //   return [
