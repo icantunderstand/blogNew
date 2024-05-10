@@ -62,17 +62,15 @@ wookLoop是实现任务调用的核心逻辑,它主要实现了如下几件事:
 
 ## MessageChannel的使用方式
 Scheduler使用MessageChannel完成当前上下文的切换-react的调度任务和浏览器其他任务的切换
-
+```javascript
     const channel = new MessageChannel();
     const port = channel.port2;
     channel.port1.onmessage = (message) => { console.log(message.data) };
     port.postMessage(111)
-
+```
 
 ## 对scheduler包的理解
 Scheduler是一个实现任务调度的库，它里面实现了多种环境的任务调度能力。可以理解它赋予了JavaScript'多线程'的能力，可以完成当前执行任务的上下文切换和恢复执行。在一些细节考量上也非常细致，比如每帧任务最大的执行时间是5ms/setTimeout的使用等。
-
-
 
 ## 参考链接
 [isInputPending的实现背景](https://engineering.fb.com/2019/04/22/developer-tools/isinputpending-api/)    
