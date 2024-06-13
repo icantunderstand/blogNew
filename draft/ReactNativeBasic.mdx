@@ -4,7 +4,15 @@ date: "2024-06-11"
 tags: ["crossPlatform"]
 ---
 
-## react native新架构
+## react native架构
+
+### react native旧架构的问题
+原有的架构下js侧和native侧通过Bridge(桥)来实现通信。桥有一些固有的限制:
+* 异步 
+* 单线程 js是单线程的,在js侧的计算也是在单线程中进行
+* 带来了额外的开销 需要进行数据序列化
+
+
 * 线程模型更新 JavaScript层引入JSI(JavaScript Interface),JSI作为JSC上一层的抽象，可以实现引擎的替换，JavaScript拥有了只有C++对象引用的能力，从而实现直接调用Native代码
 * Bridge层划分成Fabric 和 TurboModules 两部分，分别负责 UI 渲染与 Native 模块
 * Native层核心模块精简,将非核心模块拆离到社区维护
@@ -66,7 +74,8 @@ FlatList数据渲染的原理是通过数据项和底层容器ScrollView的布�
 
 ## 参考
 
-[React Native架构演进](http://www.ayqy.net/blog/react-native-new-architecture/)  
+[React Native架构演进](http://www.ayqy.net/blog/react-native-new-architecture/) 
+[为何要设计新架构](https://reactnative.cn/docs/the-new-architecture/why) 
 
 
 
