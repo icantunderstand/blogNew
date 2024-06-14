@@ -11,16 +11,15 @@ tags: ["crossPlatform"]
 * 异步 
 * 单线程 js是单线程的,在js侧的计算也是在单线程中进行
 * 带来了额外的开销 需要进行数据序列化
-
-
-* 线程模型更新 JavaScript层引入JSI(JavaScript Interface),JSI作为JSC上一层的抽象，可以实现引擎的替换，JavaScript拥有了只有C++对象引用的能力，从而实现直接调用Native代码
-* Bridge层划分成Fabric 和 TurboModules 两部分，分别负责 UI 渲染与 Native 模块
-* Native层核心模块精简,将非核心模块拆离到社区维护
+### react native新架构
+* JavaScript层引入JSI(JavaScript Interface),JSI作为JSC上一层的抽象可以实现引擎的替换,JavaScript拥有了持有C++对象引用的能力,从而实现直接调用Native代码
+* Turbo Modules 新的模块系统 - 通过JSI通信/可异步加载/类型
+* Fabric 新的渲染器
 
 ## react native交互的线程
-* UI Thread: Android/iOS（或其它平台）应用中的主线程
-* Shadow Thread：进行布局计算和构造 UI 界面的线程
-* JS Thread：React 等 JavaScript 代码都在这个线程执行
+* UI Thread: Android/iOS(或其它平台)应用中的主线程
+* Shadow Thread:进行布局计算和构造 UI 界面的线程
+* JS Thread:React 等 JavaScript 代码都在这个线程执行
 * Native Modules 线程
 
 ## react native启动流程
