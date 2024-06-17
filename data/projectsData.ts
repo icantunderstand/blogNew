@@ -6,14 +6,12 @@ interface Project {
 }
 
 const projectsData: Project[] = [
-  // {
-  //   title: 'A Search Engine',
-  //   description: `What if you could look up any information in the world? Webpages, images, videos
-  //   and more. Google has many features to help you find exactly what you're looking
-  //   for.`,
-  //   imgSrc: '/static/images/google.png',
-  //   href: 'https://www.google.com',
-  // },
+  {
+    title: 'react hooks lint插件',
+    description: `一个对项目中react hooks使用数目限制的eslint插件`,
+    imgSrc: '/static/images/project/lint.png',
+    href: 'https://www.npmjs.com/package/eslint-plugin-hooks-limit',
+  },
   // {
   //   title: 'The Time Machine',
   //   description: `Imagine being able to travel back in time or to the future. Simple turn the knob
