@@ -55,7 +55,7 @@ a pitch => b pitch => a loader normal execution
 
 ##### 同步loader
 
-    // content 内容
+    // content 同步loader会阻塞webpack编译
     module.exports = function(content, map, meta) {
       return someDealFunc(content) // 直接返回同步执行逻辑
     }
@@ -78,15 +78,6 @@ a pitch => b pitch => a loader normal execution
 
 ### Plugin
 Plugin主要职责 基于webpack构建的hooks来增强构建能力
-* compiler暴露的webpack整个生命周期相关的钩子
-  * beforeRun 在开始构建任务之前触发
-  * run 在开始构建任务时触发
-  * beforeCompile 在开始编译之前触发
-  * compile 在创建新的Compilation对象之前触发
-  * make 在开始创建chunk之前出发
-  * emit 输出文件前hook
-  * afterEmit 在完成资源输出之后触发
-
 
 #### 开发plugin
 * 插件必须是一个函数或者一个包含apply方法的对象

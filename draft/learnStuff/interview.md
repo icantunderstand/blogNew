@@ -74,7 +74,7 @@ categories:
     Function.prototype.clone = function clone() {
       const that = this;
       const temp = function(...args) { return that.apply(this,...args) };
-      for(let key in this) {
+      for(const key in this) {
         temp[key] = this[key];
       }
       return temp;
@@ -92,7 +92,7 @@ categories:
         let cloneObj = new obj.constructor(); // 这里注意
         // 找到的是所属类原型上的constructor,而原型上的 constructor指向的是当前类本身
         hash.set(obj, cloneObj);
-        for (let key in obj) {
+        for (const key in obj) {
           if (obj.hasOwnProperty(key)) {
             // 实现一个递归拷贝
             cloneObj[key] = deepClone(obj[key], hash);
@@ -202,14 +202,14 @@ categories:
     const a = new A();
     a.a(); // 无法执行 原型链顺序 A.prototype (__proto__) => Object.prototype (__proto__) => null 
     a.b();
-    // 重新理解这里
+    
     // https://juejin.cn/post/6844903839070421000
 
     function Function() {}
     Function.prototype (__proto__) => Object.prototype
 
     构造函数的__proto__(包括Function和Object)都指向Function.prototype。
-    对象的__proto__都指向Object.prototype  在理解一次
+    对象的__proto__都指向Object.prototype 
 
 ## 实现继承的几种方式
 
@@ -352,17 +352,10 @@ categories:
 
 
 
-## 移动端事件 
-touchstart 当用户在触摸平面上放置了一个触点时触发
-touchend 当一个触点被用户从触摸平面上移除（即用户的一个手指或手写笔离开触摸平面）时触发
-touchmove 当用户在触摸平面上移动触点时触发
-touchcancel 当触点由于某些原因被中断时触发
-
 禁止缩放 并且是响应式可以解决
 <meta name="viewport" content="user-scalable=no">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 
-fastclick的原理 是在touchend之后出发一个click事件
 
 ## js中0.1 + 0.2 !== 0.3的问题
 JavaScript使用Number类型表示数字（整数和浮点数），遵循 IEEE 754 标准 通过64位来表示一个数字
