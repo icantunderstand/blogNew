@@ -56,8 +56,11 @@ React通过SyntheticEvent来模拟底层事件实现,通过React传入对象的n
 React的事件响应过程其实就是在冒泡阶段处理不同优先级事件分发逻辑的过程,假设我们有下面这样的页面结构:  
 ![绑定事件逻辑](/static/images/reactStatic/reactEvent/pageStruct.png)  
 在上面的页面结构中,App组件的div中绑定了click点击事件.那下面从这个div的click事件响应的触发逻辑来梳理react事件系统的响应过程.  
-click事件在响应过程中的优先级对应的是[DiscreteEventPriority](https://github.com/facebook/react/blob/5f21a9fca455069bc1e986e1528963a5055a8f21/packages/react-dom/src/events/ReactDOMEventListener.js#L368),对应的事件分发函数是[dispatchDiscreteEvent](https://github.com/facebook/react/blob/5f21a9fca455069bc1e986e1528963a5055a8f21/packages/react-dom/src/events/ReactDOMEventListener.js#L122),在dispatchDiscreteEvent中调用[dispatchEvent](https://github.com/facebook/react/blob/5f21a9fca455069bc1e986e1528963a5055a8f21/packages/react-dom/src/events/ReactDOMEventListener.js#L160)来完成对事件的派发处理.在dispatchEvent中主要调用[attemptToDispatchEvent](https://github.com/facebook/react/blob/5f21a9fca455069bc1e986e1528963a5055a8f21/packages/react-dom/src/events/ReactDOMEventListener.js#L195)来实现事件的派发处理
-![触发事件逻辑](/static/images/reactStatic/reactEvent/dispatcheEvent.png)  
+click事件在响应过程中的优先级对应的是[DiscreteEventPriority](https://github.com/facebook/react/blob/5f21a9fca455069bc1e986e1528963a5055a8f21/packages/react-dom/src/events/ReactDOMEventListener.js#L368),对应的事件分发函数是[dispatchDiscreteEvent](https://github.com/facebook/react/blob/5f21a9fca455069bc1e986e1528963a5055a8f21/packages/react-dom/src/events/ReactDOMEventListener.js#L122),
+在dispatchDiscreteEvent中调用[dispatchEvent](https://github.com/facebook/react/blob/5f21a9fca455069bc1e986e1528963a5055a8f21/packages/react-dom/src/events/ReactDOMEventListener.js#L160)来完成对事件的派发处理.在dispatchEvent中主要调用[attemptToDispatchEvent](https://github.com/facebook/react/blob/5f21a9fca455069bc1e986e1528963a5055a8f21/packages/react-dom/src/events/ReactDOMEventListener.js#L195)来实现事件的派发处理  
+
+![触发事件逻辑](/static/images/reactStatic/reactEvent/dispatchEvent.png)  
+
 [attemptToDispatchEvent](https://github.com/facebook/react/blob/5f21a9fca455069bc1e986e1528963a5055a8f21/packages/react-dom/src/events/ReactDOMEventListener.js#L250)主要通过原生的事件对象获取到实际触发事件的元素和fiber节点然后发起事件处理逻辑. 
 [dispatchEventForPluginEventSystem](https://github.com/facebook/react/blob/5f21a9fca455069bc1e986e1528963a5055a8f21/packages/react-dom/src/events/DOMPluginEventSystem.js#L534)中最后调用dispatchEventsForPlugins完成事件的触发逻辑.  
 ![触发事件逻辑](/static/images/reactStatic/reactEvent/dispatchEventSystem.png)  

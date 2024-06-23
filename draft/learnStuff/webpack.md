@@ -1,6 +1,6 @@
 ---
 title: webpack资料总结 
-date: "2021-4-1"
+date: "2021-04-01"
 tags: webpack
 categories: webpack
 ---
@@ -55,9 +55,9 @@ a pitch => b pitch => a loader normal execution
 
 ##### 同步loader
 
-    // content 同步loader会阻塞webpack编译
-    module.exports = function(content, map, meta) {
-      return someDealFunc(content) // 直接返回同步执行逻辑
+    // content 
+    module.exports = function(content, map, meta) { 
+      return someDealFunc(content) // 直接返回同步执行逻辑 同步loader会阻塞webpack编译
     }
     module.exports = function(content, map, meta) {
       // 通过callback触发
@@ -102,7 +102,7 @@ Plugin主要职责 基于webpack构建的hooks来增强构建能力
           compiler.hooks.run.tapAsync('MyPlugin', (compilation, callback) => {
               // compilation: 当前打包构建流程的上下文
               console.log(compilation);
-              // do something...
+              // 这里调用这个callback 表示这个异步操作结束了
               callback()
           })
           compiler.hooks.run.tapPromise('MyPlugin', (compilation) => {
@@ -153,7 +153,6 @@ Plugin主要职责 基于webpack构建的hooks来增强构建能力
 * ChunkHash 与chunk有关 不同entry生成不同的chunk
 * ContentHash 根据文件内容确定
 
-
 ## webpack的path
 
 * output.publicPath
@@ -164,8 +163,6 @@ Plugin主要职责 基于webpack构建的hooks来增强构建能力
 
 * devServer publicPath
 在开发模式下，通过webpack-dev-server启动一个本地服务器，在内存中动态打包文件，用于控制开发模式下的资源访问，默认‘/’
-
-
 
 ## 打包工具对比
 parcel 内置插件 + 并行编译  小型项目,缺乏灵活性

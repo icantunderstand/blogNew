@@ -177,6 +177,7 @@ categories:
       // 这里需要注意
       const obj = Object.create(Con.prototype);
       const ret = Con.call(obj, ...args);
+      // instanceof 注意
       if(ret instanceof Object && ret !== null) {
         return ret;
       }
@@ -297,7 +298,7 @@ categories:
     }
 
 ## 实现compose函数
-
+    // 函数执行顺序是从右往左
     function compose(...funcs) {
       if(funcs.length === 0) {
         return arg => arg
@@ -359,9 +360,7 @@ categories:
 
 ## js中0.1 + 0.2 !== 0.3的问题
 JavaScript使用Number类型表示数字（整数和浮点数），遵循 IEEE 754 标准 通过64位来表示一个数字
-0.1 + 0.2 转换成2进制 然后对阶运算
-
-
+转化成整数 在转化回来
 
 ## 相关题  
 
