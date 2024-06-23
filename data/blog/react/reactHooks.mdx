@@ -31,15 +31,15 @@ React为了实现更新可中断等特性,在具体的渲染过程中会维护�
 ![hook的数据结构](/static/images/reactStatic/reactHooks/hook.png)
 
 ## Hooks实现思路
-Hooks在组件初次挂载和组件更新阶段是调用的不同的[实现逻辑](https://github.com/facebook/react/blob/1d1e49cfa453b58769e87c3c8d321024d58c948f/packages/react-reconciler/src/ReactFiberHooks.new.js#L389)
-![挂载不同的hook](/static/images/reactStatic/reactHooks/different_hook.png)
+Hooks在组件初次挂载和组件更新阶段是调用的不同的[实现逻辑](https://github.com/facebook/react/blob/1d1e49cfa453b58769e87c3c8d321024d58c948f/packages/react-reconciler/src/ReactFiberHooks.new.js#L389)  
+![挂载不同的hook](/static/images/reactStatic/reactHooks/differentHook.png)
 ![mount阶段hook](/static/images/reactStatic/reactHooks/mountHookCode.png)
 ![update阶段hook](/static/images/reactStatic/reactHooks/updateHookCode.png)
 下面先整体的介绍不同阶段Hooks的实现过程然后在深入到源码中看具体的实现.
 
 ### 图解hooks的实现思路
 Mount阶段Hooks的实现逻辑
-![Mount阶段hook逻辑](/static/images/reactStatic/reactHooks/MountHook.jpg)  
+![Mount阶段hook逻辑](/static/images/reactStatic/reactHooks/mountHook.jpg)  
 Update阶段Hooks的实现逻辑  
 ![Mount阶段hook逻辑](/static/images/reactStatic/reactHooks/updateHook.jpg)  
 
