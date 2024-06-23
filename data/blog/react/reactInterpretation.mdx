@@ -13,7 +13,7 @@ tags: ["React"]
 
 ### react渲染阶段
 1. render阶段  基于已有的Fiber树(current)构建workInprogress树 在workInprogress记录了需要进行更新的操作(effectList)
-2. commit阶段  commit分为以下三个阶段:
+2. commit阶段  以下三个阶段:
   * before mutation  此时dom节点还没有渲染到页面中,执行getSnapshotBeforeUpdate周期函数和useEffect钩子函数
   * mutation  渲染DOM 根据effectList的tag标注进行dom元素的更新,删除,替换等
   * layout 执行useLayoutEffect等相关逻辑  进行current和workInprogress的替换  
@@ -24,9 +24,9 @@ tags: ["React"]
 ![画的模板](/static/images/reactStatic/reactInterpretation/draft.png)  
 React大师稍加思索(babel)就把画的模板构想出下面的两张蓝图:  
 元素的语言表达
-![语言表达](/static/images/reactStatic/reactInterpretation/structDraft.png)
+![语言表达](/static/images/reactStatic/reactInterpretation/struct.png)
 元素结构
-![元素结构](/static/images/reactStatic/reactInterpretation/draw.png)
+![元素结构](/static/images/reactStatic/reactInterpretation/drawStruct.png)
 React真的是一个画术大师,他有两个最出色的技能:
 1. 在脑海里面构想画图(workInprogress)然后一次画到画板上,画出的画大家都称赞道奇(首次渲染)
 2. 在已有的画上修改(current => workInprogress) 画出的画既有原来画的痕迹又有新的神韵(触发更新)  
