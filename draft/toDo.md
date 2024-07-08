@@ -1,8 +1,7 @@
 
-如何实现一个表单编辑器 前后端 尝试学习下 
-动态表单 编辑 渲染 
-form  schema form  https://github.com/rjsf-team/react-jsonschema-form
 报表系统
+@formily/path 去看看实现
+https://github.com/alibaba/formily 研究下源码
 
 
 B端技术概览
