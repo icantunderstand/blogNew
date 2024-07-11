@@ -1,0 +1,333 @@
+---
+title: TableRender/ProTable源码解读
+date: "2024-07-11"
+tags: ["engineering"]
+---
+--- 写在前面 ---  
+在刚开始工作的两年中,做过很多不同业务相似的页面场景.比如在中后台系统中,一个通常的业务场景就是数据查询页面-筛选项 + 表格.之前列过一些回顾自己工
+作经历中相对没有做好的点,这个就是其中的一个.在面对相似的场景的时候没有考虑到一些更通用的解法,似乎只想着写完没有更多考虑做好.这篇文章是中后台系统
+中效率工具思考文章的系列作品开始,后面会继续展示动态Form方案/配置化报表实现等.  
+--- 正文开始 ---
+
+本文主要对[TableRender](https://xrender.fun/table-render)和[ProTable](https://procomponents.ant.design/components/table)两种
+表格的使用和源码进行解读,通过源码解读希望可以了解到配置化表格相关实现的细节和思考点,以用来启发相应业务场景的实现思考.
+## TableRender
+### [TableRender](https://xrender.fun/table-render)使用
+
+```javascript
+    // 搜索查询schema定义
+    const schema = {
+        type: 'object',
+        labelWidth: 70,
+        properties: {
+            title: {
+                title: '标题',
+                type: 'string'
+            },
+            created_at: {
+                title: '创建时间',
+                type: 'string',
+                format: 'date'
+            }
+        }
+    };
+    // 表格展示列定义
+    const columns = [
+        {
+            title: '标题',
+            dataIndex: 'title',
+        },
+        {
+            title: '创建时间',
+            key: 'since',
+            dataIndex: 'created_at',
+            valueType: 'date',
+        }
+    ];
+    // 查询列表接口定义 查询/排序参数
+    const api = (params, sorter) => {
+    return {
+      data: dataSource,
+      total: dataSource.length
+    };
+  };
+    <TableRender
+      search={{ schema }}
+      request={api}
+      columns={columns}
+      title='最简表格'
+      ref={tableRef}
+      toolbarRender={ 
+        <>
+          <Button>查看日志</Button>
+          <Button>导出数据</Button>
+          <Button type='primary'>
+            <PlusOutlined />
+            新增
+          </Button>
+        </>
+      }
+    />
+```
+从上面的TableRender的使用代码可以看出,TableRender的使用相对简单:
+* 定义搜索框的schema实现搜索配置
+* request查询接口
+* 表格展示columns  
+TableRender还对数据格式化逻辑/工具栏(支持刷新/列配置),在具体的使用上TableRender依赖Antd,在表格操作上它只封装了基本的展示功能做基础的封装并
+不支持表格的选中等操作.
+
+### [TableRender](https://xrender.fun/table-render)源码解读
+表格的渲染实现其实相对简单,在对两个库源码解读中,主要关注
+* 搜索与表格api联动
+* 表格配置与数据展示实现
+* 内部关键逻辑封装
+
+TableRender的实现如下图所示:
+![TableRender](/static/images/frontEndToolStatic/tableRender/tableRenderStruct.jpg)  
+
+#### 搜索与表格api联动
+搜索form基于[form-render](https://xrender.fun/form-render)实现,有两种方式会触发api的加载.
+
+查询触发逻辑
+```javascript
+    // 监听表单值的变化 触发查询
+    if (mode === 'simple') {
+    watch = {
+      '#': _debounce((value) => {
+        form.submit();
+        const callBack: any = _watch?.['#'];
+        if (isFunction(callBack)) {
+          callBack(value);
+        }
+      }, 300),
+      ..._watch,
+    }
+  }
+  // form-render的handleSearch回调 点击查询按钮查询
+  const handleSearch = (data: any) => {
+    if (typeof onSearch === 'function') {
+      onSearch(data);
+    }
+    refresh({ ...data, sorter });
+  };
+```
+参数获取逻辑
+```javascript
+    const getTableData = (_api: any) => {
+      setState({ loading: true });
+      // 在容器里面通过form实例获取表单值做查询
+      let _params = {
+        ...form.getValues(true),
+        ...customSearch,
+        ...extraSearch,
+        ..._pagination,
+      };
+      /// 省略若干代码
+      // 这里在设置全局store 比如loading态 dataSource等
+      setState({
+        loading: false,
+        dataSource: data || rows,
+        ...extraData,
+        pagination: {
+            ..._pagination,
+            total,
+            pageSize: pageSize || _pageSize,
+        },
+      });
+    }
+```
+#### 表格配置与数据展示
+
+表格数据获取
+```javascript
+    // 订阅全局的dataSource
+    const dataSource = useTableStore((store) => store.dataSource);
+```
+
+表格格式展示
+```javascript
+    const proColumns = useMemo(() => {
+        // getProColumns会解析columns配置,里面内置了对数据类型的封装逻辑从而实现格式化展示
+        const proColumns = getProColumns(columns);
+        if (columnsSetting && columnsSetting.length > 0) {
+            return setColumns(columnsSetting, proColumns)
+        }
+        return proColumns;
+    }, [columns, columnsSetting]);
+```
+
+#### 内部关键逻辑封装
+内部实现了一些简单的请求周期的方法封装,比如onSearch/afterSearch,可以将一些内部状态透传给外部
+
+## [ProTable](https://procomponents.ant.design/components/table)
+ProTable在功能上更像是TableRender的加强版.在功能上它增加了更多常用的表格展示类型,配置上更加丰富且灵活.在实现结构上,ProTable跟TableRender的实现类似,
+ProTable在封装上更加集中,在封装的action中增加了数据轮训、请求取消、debounce等能力,融合了更多日常表单使用的习惯
+
+### [ProTable](https://procomponents.ant.design/components/table)使用
+构建dataSource
+```javascript
+
+    const tableListDataSource: TableListItem[] = [];
+    for (let i = 0; i < 50; i += 1) {
+    tableListDataSource.push({
+        key: i,
+        containers: Math.floor(Math.random() * 20),
+        creator: 'aaa',
+        createdAt: Date.now() - Math.floor(Math.random() * 100000),
+    });
+    }
+```
+表格columns配置与查询配置
+```javascript
+    const columns: ProColumns<TableListItem>[] = [
+        {
+            title: '容器数量',
+            width: 120,
+            dataIndex: 'containers',
+            align: 'right',
+            search: false,
+            sorter: (a, b) => a.containers - b.containers,
+        },
+        {
+            title: '创建者',
+            width: 120,
+            dataIndex: 'creator',
+            valueType: 'string',
+        
+        },
+        {
+            title: '创建时间',
+            width: 140,
+            key: 'since',
+            dataIndex: 'createdAt',
+            valueType: 'date',
+            sorter: (a, b) => a.createdAt - b.createdAt,
+            renderFormItem: () => {
+            return <RangePicker />;
+            },
+        },
+    ];
+```
+表格展示
+```javascript
+    // 省略若干配置
+    <ProTable<TableListItem>
+      columns={columns}
+      // 通过actionRef获取内部暴露的方法
+      actionRef={actionRef}
+      cardBordered
+      // 支持选中表格题目配置
+      rowSelection={{
+        selections: [Table.SELECTION_ALL, Table.SELECTION_INVERT],
+        defaultSelectedRowKeys: [],
+      }}
+      // 支持传入dataSource或者request模式
+      dataSource={tableListDataSource}
+    />
+```
+### [ProTable](https://procomponents.ant.design/components/table)源码解读
+
+#### 搜索与表格api联动
+
+```javascript
+    // 顶部筛选区域根据传入的columns配置生成 表单值变化的时候触发onFormSearchSubmit
+    // onFormSearchSubmit会修改formSearch
+    <FormRender<T, U>
+        columns={propsColumns}
+        onFormSearchSubmit={(values) => {
+          onFormSearchSubmit(values);
+        }}
+        ghost={ghost}
+        onReset={props.onReset}
+        onSubmit={props.onSubmit}
+    />
+    // formSearch作为内部封装的action接口effects入参 当effects发生变化的时候,会触发api请求fetchData
+    const action = useFetchData(fetchData, defaultData, {
+    pageInfo: propsPagination === false ? false : fetchPagination,
+    loading: props.loading,
+    dataSource: props.dataSource,
+    onDataSourceChange: props.onDataSourceChange,
+    onLoad,
+    onLoadingChange,
+    onRequestError,
+    postData,
+    revalidateOnFocus,
+    manual: formSearch === undefined,
+    polling,
+    effects: [
+      stringify(params),
+      stringify(formSearch),
+      stringify(proFilter),
+      stringify(proSort),
+    ],
+    debounceTime: props.debounceTime,
+    onPageInfoChange: (pageInfo) => {
+      if (!propsPagination || !fetchData) return;
+
+      // 总是触发一下 onChange 和  onShowSizeChange
+      // 目前只有 List 和 Table 支持分页, List 有分页的时候打断 Table 的分页
+      propsPagination?.onChange?.(pageInfo.current, pageInfo.pageSize);
+      propsPagination?.onShowSizeChange?.(pageInfo.current, pageInfo.pageSize);
+    },
+  });
+
+```
+
+#### 表格配置与数据展示
+
+```javascript
+    // 表格渲染会根据传入的columns配置生成columns 
+    // 从封装的action中获取展示数据源
+    const getTableProps = () => ({
+      ...rest,
+      size,
+      // 表格选择配置
+      rowSelection: rowSelection === false ? undefined : rowSelection,
+      // 根据传入的配置预处理成columns 做数据格式化展示
+      columns: columns.map((item) =>
+        item.isExtraColumns ? item.extraColumn : item,
+      ),
+      loading: action.loading,
+      // action.dataSource 数据源 展示表格数据
+      dataSource: editableUtils.newLineRecord
+        ? editableDataSource(action.dataSource)
+        : action.dataSource,
+      pagination,
+      onChange: (
+        changePagination: TablePaginationConfig,
+        filters: Record<string, (React.Key | boolean)[] | null>,
+        sorter: any,
+        extra: TableCurrentDataSource<T>,
+      ) => {
+        // 触发表格排序/条目选择的查询 触发外层api请求
+      },
+    });
+```
+#### 内部关键逻辑封装
+在封装的useFetchData hook中封装了请求的轮训、取消和debounce能力,通过将action直接暴露给用户也给用户控制数据请求的能力.
+## 一点思考&总结
+* 对比TableRender与ProTable,ProTable相对来说对功能的封装更加全面,将一些日常表格需要处理的行为都内置了.复杂度下不确定会不会带来更多的
+性能问题,这点需要在实际的使用中考量.TableRender对功能的封装相对少,满足基本的表单查询展示功能
+* 在做业务逻辑抽象封装的时候,有两个似乎对立面的词: 小而精&大而美.实际上在使用封装的能力时候,我们总会认为它不够小而精或者大而美.这其中一个原因
+是在做技术选型的时候没有很好识别当前业务的现状(当然这点很难,业务是会发展的),也有对业务的场景能力没有做好划分的原因.有克制的能力封装也许是在对
+业务逻辑抽象时需要考虑的一个因素
+* 在业务抽象时,要提供类似生命周期或者关键逻辑的接口,比如像webpack基于tapable实现的插件机制就给用户通过plugin订阅内部事件的能力
+* 在对比TableRender与ProTable的时候,想到了低代码的实现.通过完整的低代码周期实现的页面成为low code的话,用这种ProTable实现的方式可以
+称为low code + little code.也许有时候这种low code + little code就能满足团队的诉求.
+
+
+## 相关链接
+[ProTable](https://procomponents.ant.design/components/table)  
+[TableRender](https://xrender.fun/table-render)  
+
+
+
+
+
+
+
+
+
+
+
+
