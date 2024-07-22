@@ -122,7 +122,8 @@ position相关属性及含义
 
     text-overflow: ellipsis:
     overflow: hidden;
-    white-space: nowrap;  
+    white-space: nowrap;
+    width: xxxpx;
 
 ### 多行文本溢出
 
@@ -254,6 +255,7 @@ vw/vh方案是根据视口的宽度和高度进行适配 1vw等于window.innerWi
       height: 100px;
     }
     #main {
+      // flex 是 flex-grow flex-shrink flex-basis的组合
       flex: 1;
       height: 100px;
     }
