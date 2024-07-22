@@ -79,8 +79,8 @@ categories:
       }
       return temp;
     }
-    function deepClone(obj, hash = new WeakMap()) {
-        if (obj === null) return obj; // 如果是null或者undefined我就不进行拷贝操作
+    function deepClone(obj, hash = new Map()) {
+        if (obj === null) return obj; // 如果是null或者undefined就不进行拷贝操作
         // instanceof 这里注意
         if (obj instanceof Date) return new Date(obj);
         if (obj instanceof RegExp) return new RegExp(obj);
@@ -313,7 +313,7 @@ categories:
 * 标签的移除 
 * callback注册到window上 需要进行移除(冲突) 和 callback的返回
 
-    function jsonp ({url, data, callback}) {
+    function jsonp (url, data, callback) {
       const container = document.getElementsByTagName('head')[0];
       const fnName = `jsonp_${new Date().getTime()}`;
       const script = document.createElement('script');

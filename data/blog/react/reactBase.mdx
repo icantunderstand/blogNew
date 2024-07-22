@@ -78,7 +78,7 @@ reconciler分为render阶段和commit阶段
             timerRef.current = setTimeout(() => setDebouncedValue(value), delay);
 
             return () => {
-            clearTimeout(timerRef.current);
+                clearTimeout(timerRef.current);
             };
         }, [value, delay]);
 

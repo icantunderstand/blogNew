@@ -17,8 +17,10 @@ tags: ["React"]
 ## 任务调度的演进过程
 
 ![长时间执行任务](/static/images/reactStatic/scheduler/scheduler_long_task.jpg)  
-当js线程执行一个比较长时间的js任务的时候,会导致UI线程无法快速的响应用户的输入,造成体验卡顿等问题.
-![任务分片](/static/images/reactStatic/scheduler/scheduler_split_task.jpg)
+当js线程执行一个比较长时间的js任务的时候,会导致UI线程无法快速的响应用户的输入,造成体验卡顿等问题.  
+
+![任务分片](/static/images/reactStatic/scheduler/splitTask.png) 
+
 将长时间执行的任务划分成多个短时间执行的任务,能有效的降低js执行线程卡死的状态,这样就引入另一个问题就是如何划分任务切片才能产生更好的UI体验.
 ![任务调度](/static/images/reactStatic/scheduler/scheduler_continuous_task.jpg)  
 基于以上两种模式的思路,js如果能在执行过程中主动的获取用户的输入(执行的deadline),主动的暂停当前js的执行并通过事件循环在下一次的事件循环中再次唤起js任务的执行，这样就能充分的利用起所有的执行时间来执行任务并且保证用户输入(高优先级任务)的响应，以上就是Scheduler在调度任务执行的实现方式，下面从源码的角度来看下Scheduler是如何实现任务调度的.
@@ -40,6 +42,7 @@ tags: ["React"]
 以下先只关注同步taskQueue的执行流程,requestHostCallback通过Message channel发起宏任务来执行flushWork,最终走入到workLoop整个调度的[实现逻辑](https://github.com/facebook/react/blob/00d4f95c2ad000f40ea0c774cc1ced3a0ceb6f23/packages/src/forks/SchedulerDOM.js#L200). 
 
 ![workLoop调用](/static/images/reactStatic/scheduler/workloop.png)  
+
 ![任务过期处理逻辑](/static/images/reactStatic/scheduler/yieldTimeout.png)
 wookLoop是实现任务调用的核心逻辑,它主要实现了如下几件事:
 1. 对可执行时间进行了切片(yieldInterval == 5ms) 

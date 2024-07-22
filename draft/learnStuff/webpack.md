@@ -119,13 +119,13 @@ Plugin主要职责 基于webpack构建的hooks来增强构建能力
 
 ### 优化构建速度
 * 减少文件的查找  
-  * resolve.modules: [path.resolve(__dirname, 'node_modules')]
+  * resolve.modules: [path.resolve(__dirname, 'node_modules')] // 会按照配置的顺序查找
   * resolve.extensions: ['.js', '.jsx'] 会添加后缀进行查找匹配
   * module.noParse  noParse: /jquery|lodash/
   * 配置loader的时候 exclude include
 
 * 编译速度
-  * HardSourceWebpackPlugin 在不同的构建之间共享模块缓存
+  * 使用webpack cache (momory/filesystem)
   * thread-loader
   * parallelUglifyPlugin 开启多进程压缩文件
 
@@ -146,7 +146,7 @@ Plugin主要职责 基于webpack构建的hooks来增强构建能力
     * css mini-css-extract-plugin 配置cdn的前缀
 
 ## webpack的热更新原理
-在浏览器和与Webpack Dev Server之间维护了一个Websocket，在监听模式下,资源变化Dev Server会向浏览器推送更新(包括构建的hash值)，当浏览器对比有差异的时候，会通过ajax获取更改内容，然后通过jsonp的方式完成更新
+在浏览器和与Webpack Dev Server之间维护了一个Websocket，在监听模式下,资源变化Dev Server会向浏览器推送更新(包括构建的hash值)，浏览器完成更新资源的替换
 
 ##  文件指纹
 * Hash 整个项目的构建相关， 只要项目文件有修改整个项目的hash值就会有变化
@@ -162,7 +162,7 @@ Plugin主要职责 基于webpack构建的hooks来增强构建能力
 影响生成文件存放的目录和引用 比如path设置path.resolve(__dirname, 'dist') 在html中引用的时候要使用'dist/bundle.js'
 
 * devServer publicPath
-在开发模式下，通过webpack-dev-server启动一个本地服务器，在内存中动态打包文件，用于控制开发模式下的资源访问，默认‘/’
+在开发模式下，通过webpack-dev-server启动一个本地服务器，在内存中动态打包文件，用于控制开发模式下的资源访问，默认'/'
 
 ## 打包工具对比
 parcel 内置插件 + 并行编译  小型项目,缺乏灵活性

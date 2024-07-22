@@ -71,7 +71,7 @@ tags: ["engineering"]
 #### 资源加载监控
 
 ```javascript
-   function processResourcePerformance() {
+   function processResourcePerformance(perf) {
         perf.getEntriesByType('resource').forEach(entry => {
             // 这里可以做过滤逻辑 过滤第三方资源控制上报
 
