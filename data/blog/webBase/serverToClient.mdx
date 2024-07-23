@@ -192,14 +192,14 @@ Server-Sent Events(SSE)是一种实现服务端向客户端单向推送的技术
 ```
 
 #### SSE注意事项
-* 服务端消息需要已特定的格式发送 消息之间需要用两个换行符分割(\n\n)
+* 服务端消息需要以特定的格式发送 消息之间需要用两个换行符分割(\n\n)
 * SSE是有同源限制的, 在跨域场景需要通过设置CROS的相关header实现跨域通信
 ```javascript
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers":
 				"Origin, X-Requested-With, Content-Type, Accept",
 ```
-* 浏览器对同一域名下并发的HTTP连接数有限制,建议使用HTTP/2,可提供最大并发HTTP流数量
+* 浏览器对同一域名下并发的HTTP连接数有限制,建议使用HTTP2,可提供最大并发HTTP流数量
 * 可以对EevntSource做一些细粒度的控制,减少服务端连接数
 
 ### WebSocket
