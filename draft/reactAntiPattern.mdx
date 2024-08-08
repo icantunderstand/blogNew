@@ -15,7 +15,39 @@ tags: ["React"]
 本文梳理在日常开发中遇到的一些'坏'味道的代码,会从它为什么是'坏'味道的代码角度来分析原因并且尝试提供一些解决的思路
 
 ## hooks地狱
+```javascript
+    export default function Home() {
+        const [loading, setLoading] = useState(false)
+        const [name, setName] = useState('')
+        const [userInfo, setUserInfo] = useState({})
+        const [effectData, setEffectData] = useState<number[]>([])
+        const [overviewData, setOverViewData] = useState<number[]>([])
 
+        useEffect(() => {
+            // api获取逻辑
+            setEffectData([1,2])
+            setOverViewData([4,5])
+        }, [userInfo])
+
+        // 也许还有其他的useCallback/useMemo等
+        return (
+            <div
+            >ss</div>
+        );
+    }
+```
+
+react的hooks在代码复用和赋予组件数据能力上都相对好用且轻量,但是hooks的'滥'用问题在代码维护上和组件性能上都有一定影响.
+上面的代码是一段示例代码,这里定义了多个state去维护页面状态,还可能有useEffect/useCallback等其他hooks逻辑.这样的代码在维护上会有一些问题:
+* 可读性差 
+    * 需要在不同的hooks之间跳转
+    * useEffect/useCallback/useMemo等hooks取决于依赖的更新触发.相对于直接调用而言这段逻辑相对不直接,无法很快的了解业务逻辑
+* 性能问题 过多的hooks意味着页面需要承载更多的计算执行逻辑,也许有时候你不需要那个hook  
+
+笔者在实际的项目中遇到过一个页面有10多个useState的页面,看起来真的很头大.我通过将组件拆分/相关state合并手段等,页面的重复渲染就下降了.
+在hooks地狱这个问题的解法上:
+* [react hooks过多，你需要这个eslint插件](https://icantunderstand.github.io/blogNew/blog/frontEndTool/eslitPlugin) 之前写过一个限制hooks数目的插件,可以在项目中尝试一下
+* 减少组件的数据逻辑,可以参考[对状态管理设计的一点思考](https://icantunderstand.github.io/blogNew/blog/react/store),用hooks去做可复用的能力和ui状态处理,数据逻辑通过全局的状态管理控制
 
 
 ## context/useReducer 
