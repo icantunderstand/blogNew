@@ -42,22 +42,57 @@ react的hooks在代码复用和赋予组件数据能力上都相对好用且轻�
 * 可读性差 
     * 需要在不同的hooks之间跳转
     * useEffect/useCallback/useMemo等hooks取决于依赖的更新触发.相对于直接调用而言这段逻辑相对不直接,无法很快的了解业务逻辑
+    * 组件承接了较多的数据逻辑,这部分逻辑在组件维度上看很难集中管理,在涉及到数据需要共享等场景就需要对代码进行改造
 * 性能问题 过多的hooks意味着页面需要承载更多的计算执行逻辑,也许有时候你不需要那个hook  
 
 笔者在实际的项目中遇到过一个页面有10多个useState的页面,看起来真的很头大.我通过将组件拆分/相关state合并手段等,页面的重复渲染就下降了.
 在hooks地狱这个问题的解法上:
-* [react hooks过多，你需要这个eslint插件](https://icantunderstand.github.io/blogNew/blog/frontEndTool/eslitPlugin) 之前写过一个限制hooks数目的插件,可以在项目中尝试一下
+* [react hooks过多,你需要这个eslint插件](https://icantunderstand.github.io/blogNew/blog/frontEndTool/eslitPlugin) 之前写过一个限制hooks数目的插件,可以在项目中尝试一下
 * 减少组件的数据逻辑,可以参考[对状态管理设计的一点思考](https://icantunderstand.github.io/blogNew/blog/react/store),用hooks去做可复用的能力和ui状态处理,数据逻辑通过全局的状态管理控制
 
 
 ## context/useReducer 
 
+```javascript 
+    // 多层级的context嵌套
+    <AContext>
+        <BContext>
+            <CContext>
+                <DContext>
+                    <SubChild />
+                </DContext>
+            </Context>
+        </BContext>           
+    </AContext>
+```
+```javascript
+
+    const initialState = {
+        username: '',
+        email: '',
+        password: ''
+    };
+    function reducer(state, action) {
+        switch (action.type) {
+            case 'SET_FIELD':
+            return {
+                ...state,
+                [action.field]: action.value
+            };
+            case 'RESET':
+            return initialState;
+            default:
+            throw new Error();
+        }
+    }
+    const [state, dispatch] = useReducer(reducer, initialState);
+
+    //在页面中通过dispatch触发更新
+```
 
 ## context + form
 
 
 ## 巨型组件
-
-## 组件承接过多的数据逻辑
 
 
