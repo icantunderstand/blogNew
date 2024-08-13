@@ -43,6 +43,7 @@ react的hooks在代码复用和赋予组件数据能力上都相对好用且轻�
     * 需要在不同的hooks之间跳转
     * useEffect/useCallback/useMemo等hooks取决于依赖的更新触发.相对于直接调用而言这段逻辑相对不直接,无法很快的了解业务逻辑
     * 组件承接了较多的数据逻辑,这部分逻辑在组件维度上看很难集中管理,在涉及到数据需要共享等场景就需要对代码进行改造
+    * hooks不好懂 这个需要展开  表达多个功能  拆开
 * 性能问题 过多的hooks意味着页面需要承载更多的计算执行逻辑,也许有时候你不需要那个hook  
 
 笔者在实际的项目中遇到过一个页面有10多个useState的页面,看起来真的很头大.我通过将组件拆分/相关state合并手段等,页面的重复渲染就下降了.
@@ -65,8 +66,12 @@ react的hooks在代码复用和赋予组件数据能力上都相对好用且轻�
         </BContext>           
     </AContext>
 ```
-```javascript
+react提供的context是一种轻量级的状态管理方案,一般在使用方法通常是一个顶层的Context容器或者多层包裹的Context容器.Context方案
+会当相应Context更新时,订阅该Context的组件都会进行渲染.
 
+
+```javascript
+    // useReducer例子
     const initialState = {
         username: '',
         email: '',
@@ -86,8 +91,8 @@ react的hooks在代码复用和赋予组件数据能力上都相对好用且轻�
         }
     }
     const [state, dispatch] = useReducer(reducer, initialState);
-
     //在页面中通过dispatch触发更新
+    // dispatch({ type: 'SET_FIELD', value: 111  })
 ```
 
 ## context + form
