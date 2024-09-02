@@ -8,6 +8,12 @@ B端技术概览
 // form 原理 不同form方案对比   @formily/path 去看看实现
 https://github.com/alibaba/formily 研究下源码
 
+封装工具包(初始化逻辑)
+
+code to svg
+
+
+
 
 
 
