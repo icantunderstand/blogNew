@@ -556,17 +556,7 @@ monorepo是一种单一仓库的软件开发结构，通过将相同业务的多
 * 生成(Code Generation) 将修改后的AST装换成最终的JavaScript代码
 
 ## 造成内存泄露一些情况
-* 未释放的事件监听器 当DOM元素被删除和替换时，未移除相应事件的监听器，导致相应的DOM节点无法回收
-
-```javascript
-        var element = document.getElementById('example');
-        element.addEventListener('click', function() {
-            // 一些处理代码
-        });
-
-        // 移除DOM元素
-        document.body.removeChild(element);
-```
+* 闭包
 * 循环引用 两个对象相互引用，当对象不在使用的时候但是他们的引用关系让JavaScript引擎认为他们仍在使用中，所以不会被回收
 
 ```javascript
@@ -580,10 +570,19 @@ monorepo是一种单一仓库的软件开发结构，通过将相同业务的多
         obj1 = null;
         obj2 = null;
 ```
-* 定时器/IntersectionObserver/ResizeObserver/MutationObserver 等在不需要的时候 需要清除
-* Promises，Observables，EventEmitters 设置监听器的模型都有可能造成内存泄露
-* 全局对象存储 相当于不断增加内存
-* 新增DOM结构  
+* 定时器/监听器/IntersectionObserver/ResizeObserver/MutationObserver 等在不需要的时候 需要清除
+* 全局对象存储,一些场景可以使用WeakMap/WeakSet/WeakRef来存储数据
+* bind
+```javascript
+    function MyClass() {
+        this.largeData = new Array(1000000).fill('leak');
+        window.addEventListener('click', this.handleClick.bind(this));
+    }
+
+    MyClass.prototype.handleClick = function() {
+        console.log('Clicked');
+    };
+```
 
 
 ## 参考

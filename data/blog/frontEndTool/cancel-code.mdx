@@ -75,7 +75,7 @@ XMLHttpRequest支持使用abort方法实现请求的终止，axios底层封装�
             // 如果传入的配置有cancelToken 就调用cancelToken的promise方法 
             // 通过promise实现控制流的流转 调用cancelToken方法的时候 将resolve时机暴露给cancelToken
             // 调用cancelToken的cancel方法时,resolve了当前的promise，控制流程回到当前的后续流程，执行request.abort()从而完成请求的终止
-            config.cancelToken.promise.then(function onCanceled(cancel) {
+            config.cancelToken.then(function onCanceled(cancel) {
                 if (!request) {
                     return;
                 }

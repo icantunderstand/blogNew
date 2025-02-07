@@ -1,0 +1,100 @@
+---
+title: 2025-2-第一期
+date: "2025-2-06"  
+tags: ["weeklyReport"]
+---
+
+
+## [solid-start](https://github.com/solidjs/solid-start)
+solidjs的starter模版,可以方便的体验solidjs
+
+## [Bridging React Native and Rust via JSI](https://ditto.live/blog/bridging-react-native-and-rust-via-jsi)
+这篇文章介绍通过JSI实现React Native和Rust的结合
+
+
+
+## 工具
+
+### [tinykeys](https://github.com/jamiebuilds/tinykeys)  
+一个实现JavaScript键盘时间绑定的库,只有大约650B.
+
+### [fabric.js](https://github.com/fabricjs/fabric.js)  
+
+
+## 代码片段
+
+### 通过Promise.withResolvers()/AbortController实现控制Promise执行
+
+#### Promise.withResolvers()
+```javascript
+
+    function withResolvers() {
+        return new Promise((resolve, reject) => {
+            return { promise: resolve, resolve, reject };
+        });
+    }
+    const buildCancelableTask = (asyncFn) => {
+        let rejected = false;
+        const { promise, resolve, reject } = withResolvers();
+        return {
+            run: () => {
+            if (!rejected) {
+                asyncFn().then(resolve, reject);
+            }
+                // 这里需要将withResolvers返回的Promise返回
+                return promise;
+            },
+
+            cancel: () => {
+                rejected = true;
+                reject(new Error('CanceledError'));
+            },
+        };
+    };
+    // 创建一个task
+    const task = buildCancelableTask(() => new Promise((res) => setTimeout(() => res('Task completed'), 3000)));
+    task.run().then(console.log).catch(console.error);
+    // 取消任务
+    setTimeout(() => {
+        task.cancel();
+    }, 1000);
+```
+#### AbortController
+```javascript
+    const buildCancelableTask = (signal, asyncFunc) => {
+        return new Promise((resolve, reject) => {
+            asyncFunc().then(resolve).catch(reject);
+            signal.addEventListener("abort", () => { reject("Task was canceled"); });
+        });
+    }
+    const ac = new AbortController();
+    const signal = ac.signal;
+    const task = buildCancelableTask(signal, async () => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log("Task completed");
+    });
+    ac.abort();
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
