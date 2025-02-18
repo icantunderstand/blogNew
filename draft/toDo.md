@@ -49,6 +49,9 @@ Next.js 提供了多种预加载能力，以提高应用的性能和用户体验
 
 学习下nextjs的预加载能力
 
+server actions
+
+
 
 
 

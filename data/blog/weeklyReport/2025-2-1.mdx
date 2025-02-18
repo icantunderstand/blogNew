@@ -15,11 +15,20 @@ solidjs的starter模版,可以方便的体验solidjs
 在优化单页应用的加载时间上,常用的手段就是路由或者组件的异步加载或者动态加载,但是这样在用户体验上有时候会存在延迟的问题,这篇文章介绍通过工具的方式
 构建出单页应用的路由组件信息和路由组件关联的文件信息实现预加载,是一个不错的思路.
 
+## [Integrate Go Library into a JavaScript Webpage with WebAssembly](https://tderflinger.com/en/how-to-integrate-go-library-js-webpage-webassembly)
+这篇文章介绍如何在web应用中通过WebAssembly的方式集成Go语言库
+
 
 ## 工具
 
 ### [tinykeys](https://github.com/jamiebuilds/tinykeys)  
 一个实现JavaScript键盘时间绑定的库,只有大约650B.
+
+### [oclif](https://github.com/oclif/oclif)
+一个生成命令行工具的库
+
+### [style-observer](https://github.com/LeaVerou/style-observer)
+一个可以监听CSS样式变化的库,原理上是通过监听transitionstart/transitionend事件实现的.可以实现一些细粒度的CSS + js的联动效果.
 
 
 ## 代码片段
@@ -30,18 +39,22 @@ solidjs的starter模版,可以方便的体验solidjs
 ```javascript
 
     function withResolvers() {
-        return new Promise((resolve, reject) => {
-            return { promise: resolve, resolve, reject };
+        let resolve, reject;
+        const promise = new Promise((res, rej) => {
+            resolve = res;
+            reject = rej;
         });
+        return { promise, resolve, reject };
     }
+
     const buildCancelableTask = (asyncFn) => {
         let rejected = false;
         const { promise, resolve, reject } = withResolvers();
         return {
             run: () => {
-            if (!rejected) {
-                asyncFn().then(resolve, reject);
-            }
+                if (!rejected) {
+                    asyncFn().then(resolve, reject);
+                }
                 // 这里需要将withResolvers返回的Promise返回
                 return promise;
             },
@@ -72,7 +85,7 @@ solidjs的starter模版,可以方便的体验solidjs
     const signal = ac.signal;
     const task = buildCancelableTask(signal, async () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log("Task completed");
+        console.log("Task completed");
     });
     ac.abort();
 ```
