@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sticky Sidebar Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+
+    .container {
+      display: flex;
+      width: 100%;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .sidebar {
+      width: 300px;
+      padding: 20px;
+      position: sticky;
+      top: 0; /* 固定位置 */
+      height: 100vh; /* 确保侧边栏高度与视口高度一致 */
+      background-color: #f0f0f0;
+      border-left: 1px solid #ccc;
+    }
+
+    .content {
+      height: 2000px; /* 增加页面高度以便滚动 */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="main-content">
+      <div class="content">
+        <h1>Main Content</h1>
+        <p>Scroll down to see the sidebar stay in place.</p>
+        <p v-for="i in 50" :key="i">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero.</p>
+      </div>
+    </div>
+    <div class="sidebar">
+      <h2>Sticky Sidebar</h2>
+      <p>This sidebar will stay in place as you scroll down the page.</p>
+    </div>
+  </div>
+</body>
+</html>
