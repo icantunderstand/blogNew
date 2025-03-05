@@ -14,7 +14,7 @@ on:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -66,7 +66,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-artifact
+<<<<<<< HEAD
           path: .out
+=======
+          path: out
+>>>>>>> e418a02c8fa873c4ee437d55d10b651747a2bcb2
 
   # Deploy job
   deploy:
@@ -76,10 +80,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
       - name: Download artifact
         uses: actions/download-artifact@v4
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
         with:
+<<<<<<< HEAD
           github_token: ${{ secrets.ACTIONS_DEPLOY_KEY }}
           publish_dir: ./out
+=======
+          name: build-artifact
+          path: out
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+        id: deployment
+>>>>>>> e418a02c8fa873c4ee437d55d10b651747a2bcb2
