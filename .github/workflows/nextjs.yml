@@ -66,11 +66,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-artifact
-<<<<<<< HEAD
-          path: .out
-=======
           path: out
->>>>>>> e418a02c8fa873c4ee437d55d10b651747a2bcb2
 
   # Deploy job
   deploy:
@@ -89,10 +85,6 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-<<<<<<< HEAD
-          github_token: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-          publish_dir: ./out
-=======
           name: build-artifact
           path: out
       - name: Setup Pages
@@ -104,4 +96,3 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
         id: deployment
->>>>>>> e418a02c8fa873c4ee437d55d10b651747a2bcb2
