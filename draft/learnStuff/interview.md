@@ -208,18 +208,26 @@ categories:
       }
       return obj;
     }
-    // 创建出来对象的__proto__ 是函数的prototype
+    // 创建出来对象的__proto__ 是函数Con的prototype
 
-    __proto__ 对象的原型
-    prototype 函数的原型  Func.prototype.constructor === Func
+     __proto__ 对象的原型 指向构造函数的prototype 属性
+    prototype 是函数对象的一个属性  Func.prototype.constructor === Func
     对象属性的获取是顺着对象__proto__沿着原型链查找
+
+    构造函数 Function          实例对象 Object
+    +---------------+          +---------------+
+    |               |          |               |
+    |   prototype   |--------->|   __proto__   |
+    |               |          |               |
+    +---------------+          +---------------+
+
 
 ![原型](./pic/proto.jpg)
 
 
-
 ## 原型链面试问题
-
+    
+    // 需要再理解一下这里 
     Function.prototype.a = () => console.log(1);
     Object.prototype.b = () => console.log(2); 
     function A() {}
@@ -385,7 +393,15 @@ categories:
 
 ## js中0.1 + 0.2 !== 0.3的问题
 JavaScript使用Number类型表示数字（整数和浮点数），遵循 IEEE 754 标准 通过64位来表示一个数字
-转化成整数 在转化回来
+
+    function add(a, b) {
+      const factor = 10 ** Math.max(
+        (a.toString().split('.')[1] || '').length,
+        (b.toString().split('.')[1] || '').length
+      );
+      return (a * factor + b * factor) / factor;
+    }
+
 
 ## 相关题  
 
