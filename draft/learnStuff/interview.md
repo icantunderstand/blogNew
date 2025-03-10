@@ -25,6 +25,7 @@ categories:
         if(!lastTime) {
           lastTime = curr
         }
+        // 要先clearTimeout
         clearTimeout(timer)
         // 增加了必须执行的逻辑
         if(curr - lastTime >= mustRun) {
@@ -55,25 +56,26 @@ categories:
             if(!lastRunTime) {
               lastRunTime = now
             }
+            // clear的逻辑要提前
+            clearTimeout(timer)
             if (now - lastRunTime >= t) {
                 lastRunTime = now
                 return fn.apply(context,args)
             } else {
-                clearTimeout(timer)
                 timer = setTimeout(() => {
                     lastRunTime = +new Date()
                     return fn.apply(context,args)
                 }, lastRunTime + t - now)
+                // 注意这里的lastRunTime + t
             }
         }
     }
 
 ### 深拷贝  
 
-
     Function.prototype.clone = function clone() {
       const that = this;
-      const temp = function(...args) { return that.apply(this,...args) };
+      const temp = function(...args) { return that.apply(this,args) };
       for(const key in this) {
         temp[key] = this[key];
       }
@@ -87,8 +89,31 @@ categories:
         if(Object.prototype.toString.call(obj) === '[object Function]') return obj.clone()
         // 可能是对象或者普通的值  如果是函数的话是不需要深拷贝
         if (typeof obj !== "object") return obj;
-        // 是对象的话就要进行深拷贝
+        // 是对象的话就要进行深拷贝  别忘记这步
         if (hash.get(obj)) return hash.get(obj);
+
+        if (obj instanceof Map) {
+          const cloneMap = new Map();
+          hash.set(obj, cloneMap);
+          obj.forEach((value, key) => {
+              // 递归克隆 Map 的键和值
+              cloneMap.set(deepClone(key, hash), deepClone(value, hash));
+          });
+          return cloneMap;
+        }
+        // 处理 Set
+        if (obj instanceof Set) {
+            const cloneSet = new Set();
+            hash.set(obj, cloneSet);
+            
+            obj.forEach(value => {
+                // 递归克隆 Set 的值
+                cloneSet.add(deepClone(value, hash));
+            });
+            
+            return cloneSet;
+        }
+
         let cloneObj = new obj.constructor(); // 这里注意
         // 找到的是所属类原型上的constructor,而原型上的 constructor指向的是当前类本身
         hash.set(obj, cloneObj);
@@ -120,7 +145,7 @@ categories:
             if(next.done) {
                 resolve(next.value)
             }
-            //  往下走的场景
+            //  往下走的场景 能处理值或者Promise
             Promise.resolve(next.value).then(function(v) {
                 step(function(){ return itr.next(v) });
             }, function(v) {
