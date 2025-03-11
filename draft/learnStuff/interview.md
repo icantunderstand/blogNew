@@ -221,7 +221,15 @@ categories:
     |               |          |               |
     +---------------+          +---------------+
 
+    function Foo() {}
+    // Foo是一个函数对象 是通过Function.prototype => function Function() {} 构造出来的
+    // 注意理解下面的几个
+    Foo.__proto__ === Function.prototype
+    Foo.prototype.__proto__ === Object.prototype
+    Foo.prototype.constructor === Foo
+    Foo.prototype.__proto__.__proto__ === null
 
+    
 ![原型](./pic/proto.jpg)
 
 
@@ -264,8 +272,8 @@ categories:
 
 ### 借用构造函数方式
 
+    // 借用构造函数方式都在父类的构造函数中定义 需要创建一遍无法复用 
     function Parent(age) {
-      // 借用构造函数方式都在父类的构造函数中定义 创建实例的时候 需要创建一遍方法
       this.name = age
       this.getName = () => {
         return this.name
@@ -330,8 +338,9 @@ categories:
       }, [])
     }
 
-## 实现compose函数
-    // 函数执行顺序是从右往左
+## 实现compose/pipe函数
+
+    // compose 函数执行顺序是从右往左
     function compose(...funcs) {
       if(funcs.length === 0) {
         return arg => arg
@@ -341,38 +350,73 @@ categories:
       }
       return funcs.reduce((a,b) => (...args) => a(b(...args)))
     }
-
-### 实现一个jsonp
-* 标签的移除 
-* callback注册到window上 需要进行移除(冲突) 和 callback的返回
-
-    function jsonp (url, data, callback) {
-      const container = document.getElementsByTagName('head')[0];
-      const fnName = `jsonp_${new Date().getTime()}`;
-      const script = document.createElement('script');
-      script.src = `${url}?${objectToQuery(data)}&callback=${fnName}`;
-      script.type = 'text/javascript';
-      container.appendChild(script);
-
-      window[fnName] = function (res) {   
-          callback && callback(res);
-          container.removeChild(script);
-          delete window[fnName];
+    // pipe函数
+    function pipe(...funcs) {
+      if (funcs.length === 0) {
+        return arg => arg;
       }
-
-      script.onerror = function() { // 异常处理，也是很多人漏掉的部分
-          callback && callback(
-            'something error hanppend!'
-          )
-          container.removeChild(script);
-          delete window[fnName];
+    
+      if (funcs.length === 1) {
+        return funcs[0];
+      }
+  
+      return function(...args) {
+        let result = funcs[0](...args);
+        
+        for (let i = 1; i < funcs.length; i++) {
+          result = funcs[i](result);
         }
+        
+        return result;
+      };
     }
+### 实现一个jsonp
 
+    function jsonp(url, params, callback) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            const callBackName = `jsonp_${new Date().getTime()}`;
+            const searchParams = new URLSearchParams(params);
+            searchParams.append('callback', callBackName);
+            script.src = `${url}?${searchParams.toString()}`;
+
+            const timeout = setTimeout(() => {
+                cleanup();
+                reject(new Error(`JSONP request to ${opts.url} timed out`));
+              }, 5000);
+            // 清理函数
+            const cleanup = () => {
+                // 删除 script 标签
+                if (script.parentNode) {
+                script.parentNode.removeChild(script);
+                }
+                
+                // 清除全局回调函数
+                delete window[callBackName];
+                
+                // 清除超时计时器
+                clearTimeout(timeout);
+            };
+            // 定义全局回调函数
+            window[opts.callbackName] = (data) => {
+                cleanup();
+                resolve(data);
+            };
+            // 处理 script 加载错误
+            script.onerror = () => {
+                cleanup();
+                reject(new Error(`JSONP request to ${opts.url} failed`));
+            };
+            // 设置 script 的 src 属性并添加到文档中
+            script.src = url;
+            document.head.appendChild(script);
+        })
+    }
 
 ## promise
 
-1. then 和 catch 期望接收函数做参数，如果非函数就会发生 Promise 穿透现象，打印的是上一个 Promise 的返回
+### promise值穿透
+then 和 catch 期望接收函数做参数，如果非函数就会发生 Promise 穿透现象，打印的是上一个 Promise 的返回
 
     const promise = new Promise(function(resolve, reject){
       setTimeout(function() {
@@ -384,15 +428,22 @@ categories:
       console.log(n) // 输出1 
     });
 
+### promsie相关api
+Promise.all 返回一个Promise 当所有的Promsie都成功的时候才会fulfilled,任何一个被拒绝Promise.all会被
+立刻拒绝返回那个最先被拒绝的原因
+Promise.allSellted 返回一个Promsie 所有Promise都有结果的时候返回 数组中每个对象包含 status: fulfilled/rejected
+value: 返回的值 reason: 原因
+Promise.any  任何一个fulfilled就返回解决的Promise  所有都失败的时候 AggregateError: All promises were rejected
+Promise.race 当所有都完成 返回第一个先完成的   第一个失败了 Promise的状态就是失败
 
-
+## 移动端适配
 禁止缩放 并且是响应式可以解决
 <meta name="viewport" content="user-scalable=no">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 
 
 ## js中0.1 + 0.2 !== 0.3的问题
-JavaScript使用Number类型表示数字（整数和浮点数），遵循 IEEE 754 标准 通过64位来表示一个数字
+JavaScript使用Number类型表示数字(整数和浮点数)，遵循 IEEE 754 标准 通过64位来表示一个数字
 
     function add(a, b) {
       const factor = 10 ** Math.max(
@@ -403,12 +454,9 @@ JavaScript使用Number类型表示数字（整数和浮点数），遵循 IEEE 7
     }
 
 
-## 相关题  
+## 相关题 
 
-    // let obj = {
-	    "A.B.C.D":1,
-	    "A.B.E.F":2
-      }
+    // 可以按照路径进行排序 先处理短路径 在处理长路径
     function parseObj(obj) {
         const ret = {}
         for(const [key, value] of Object.entries(obj)) {
@@ -425,6 +473,7 @@ JavaScript使用Number类型表示数字（整数和浮点数），遵循 IEEE 7
                         prev = prev[arr[i]]
                     }
                 } else if(i === arr.length - 1) {
+                    // 这里会出现重复问题
                     prev[arr[i]] = value
                 }
                           
