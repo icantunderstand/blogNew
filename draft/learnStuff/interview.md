@@ -479,13 +479,13 @@ JavaScript使用Number类型表示数字(整数和浮点数)，遵循 IEEE 754 �
                           
             }
         }
-
         return ret
     }
 
     // 实现类似koa中间件的处理逻辑
     function onionMiddle(...middlewares) {
-       return (next) => {
+      // 返回一个接受最后middleware的函数
+      return (next) => {
           let index = -1
           function dispatch(i) {
             if(i <= index) throw new Error('next() called multiple time')
