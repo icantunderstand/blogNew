@@ -501,21 +501,27 @@ JavaScript使用Number类型表示数字(整数和浮点数)，遵循 IEEE 754 �
 
     // 实现lodash的get方法
     function customGet(obj, path, defaultValue) {
+      if(obj === null) {
+        return defaultValue;
+      }
       // 将路径字符串转换为路径数组
       const pathArray = Array.isArray(path) ? path : path.split('.'); 
-  
+      let result = object;
       // 遍历路径数组，逐层获取属性值
       for (let i = 0; i < pathArray.length; i++) {
-        if (!obj || typeof obj !== 'object') {
+        if (result === null) {
           // 如果中途遇到 undefined 或非对象值，则返回默认值
           return defaultValue;
         }
-        obj = obj[pathArray[i]];
+        result = result[pathArray[i]];
       }
   
       // 返回获取到的属性值或默认值
-      return obj !== undefined ? obj : defaultValue;
+      return result === undefined ? defaultValue : result;
     }
+
+
+
 
 
 
