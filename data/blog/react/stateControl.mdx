@@ -1,16 +1,16 @@
 ---
 title: 当我们聊状态管理的时候我们在聊什么
-date: "2021-08-31"
+date: "2025-3-13"
 tags: ["React"]
 ---
 
-页面开发中数据在组件之间共享和同步是一个比较常见的问题，通过状态管理可以实现清晰的数据流和组件状态同步能一定程度上减少业务的复杂度。本文主要对比Redux和Mobx的实现细节来深入状态管理的技术实现，这样在做技术选型的时候能有一定的考量
+页面开发中数据在组件之间共享和同步是一个比较常见的问题,通过状态管理可以实现清晰的数据流和组件状态同步能一定程度上减少业务的复杂度。本文主要对比Redux和Mobx的实现细节来深入状态管理的技术实现,这样在做技术选型的时候能有一定的考量
 ##  [redux](https://github.com/reduxjs/redux)
 
 ###  redux的思路
 ![redux实现思路](/static/images/reactStatic/stateControl/redux.png)
-1. redux通过全局的store来统一管理数据，通过订阅机制实现数据变更的通知
-2. redux引入函数式编程的概念，约定通过action来触发全局store的更新，单向数据流能一定程度上降低业务的复杂度
+1. redux通过全局的store来统一管理数据,通过订阅机制实现数据变更的通知
+2. redux引入函数式编程的概念,约定通过action来触发全局store的更新,单向数据流能一定程度上降低业务的复杂度
   
 ###  redux简单使用  
 ```javascript
@@ -183,7 +183,7 @@ applyMiddleware是redux提供对外部进行扩展的途径,通常情况下dispa
 ```
 #### redux结合react  
 ![react-redux](/static/images/reactStatic/stateControl/reactRedux.png)  
-React-Redux的作用是将React组件和Redux绑定，React组件可以通过react-reudx完成数据的获取和更新。其中connect函数就是这个功能，通过下面的代码可以看出connect主要是从redux或者context中获取属性通过高阶组件的方式返回包裹组件。
+React-Redux的作用是将React组件和Redux绑定,React组件可以通过react-reudx完成数据的获取和更新。其中connect函数就是这个功能,通过下面的代码可以看出connect主要是从redux或者context中获取属性通过高阶组件的方式返回包裹组件。
 ```javascript
     const Connect = _Connect as ConnectedComponent<
       typeof WrappedComponent,
@@ -209,14 +209,14 @@ React-Redux的作用是将React组件和Redux绑定，React组件可以通过rea
 ```
 
 ##  Mobx  
-mobx将响应式编程的概念引入到状态管理的实现上，通过观察者模式实现组件的更新。相比redux他的优势在于:
-1. 在组件更新上性能更好 redux通过发布订阅的模式会在所有的组件上进行Prop的脏检查，mbox通过proxy依赖收集能更精确的控制组件的更新
-2. 长期维护上存在一定优势 mbox基于proxy内部维护了更新的机制，redux需要通过mapStateTpProps来主动告知订阅的属性存在一定维护成本
+mobx将响应式编程的概念引入到状态管理的实现上,通过观察者模式实现组件的更新。相比redux他的优势在于:
+1. 在组件更新上性能更好 redux通过发布订阅的模式会在所有的组件上进行Prop的脏检查,mbox通过proxy依赖收集能更精确的控制组件的更新
+2. 长期维护上存在一定优势 mbox基于proxy内部维护了更新的机制,redux需要通过mapStateTpProps来主动告知订阅的属性存在一定维护成本
 
 ### mobx背景介绍
 ![mobx](/static/images/reactStatic/stateControl/mobx.png)  
-* Observable  定义可观察的值，当observable值变化的时候会触发Derivations  
-* Derivations Derivations主要为Computed values和Reactions，可观察值的改变会触发对应的Derivations触发  
+* Observable  定义可观察的值,当observable值变化的时候会触发Derivations  
+* Derivations Derivations主要为Computed values和Reactions,可观察值的改变会触发对应的Derivations触发  
 * Actions actions触发Observable值的更改进而触发Derivations  
 ### mobx简单使用
 ```javascript
@@ -239,11 +239,11 @@ mobx将响应式编程的概念引入到状态管理的实现上，通过观察�
 ### mobx源码解析  
 使用mobx实现组件更新的方式如下:
 * mobx实现创建Observable值和触发Derivations
-* mobx-react实现对react组件的封装，创建基于组件的Derivations从而在对应的Observable值修改的时候完成组件的更新
+* mobx-react实现对react组件的封装,创建基于组件的Derivations从而在对应的Observable值修改的时候完成组件的更新
 ![mobx原理](/static/images/reactStatic/stateControl/mobxlogic.png) 
 
 #### mobx生成Observable
-Observable会根据传入的值类型包装生成代理，在对观察值获取和设置的时候都是调用代理的方法
+Observable会根据传入的值类型包装生成代理,在对观察值获取和设置的时候都是调用代理的方法
 ```javascript
     // mobx暴露的observable调用的入口函数 
     function createObservable(v: any, arg2?: any, arg3?: any) {
@@ -276,7 +276,7 @@ Observable会根据传入的值类型包装生成代理，在对观察值获取�
             decorators
         )
     },
-    //extendObservable通过创建一个代理(管家)来代理属性的访问和设置，这里关注在没有proxy设置的场景asObservableObject在内部创建了代理
+    //extendObservable通过创建一个代理(管家)来代理属性的访问和设置,这里关注在没有proxy设置的场景asObservableObject在内部创建了代理
     const adm = new ObservableObjectAdministration(
         target,
         new Map(),
@@ -286,7 +286,7 @@ Observable会根据传入的值类型包装生成代理，在对观察值获取�
     // 在ObservableObjectAdministration内部维护了维护了获取属性的get和set方法
 ```
 ![setAndGet](/static/images/reactStatic/stateControl/setAndGet.png)  
-在上面的例子对观察值进行修改的时候，会最终走入observablevalue的更新值并且触发Derivations
+在上面的例子对观察值进行修改的时候,会最终走入observablevalue的更新值并且触发Derivations
 ```javascript
     setNewValue_(newValue: T) {
       const oldValue = this.value_
@@ -311,7 +311,7 @@ Observable会根据传入的值类型包装生成代理，在对观察值获取�
     }
 ```
 #### mobx-react生成Derivations
-这里主要从包装函数式组件来看Derivations的生成过程，函数式组件的封装方法主要做了:
+这里主要从包装函数式组件来看Derivations的生成过程,函数式组件的封装方法主要做了:
 * 定义更新逻辑并与生成的Reaction绑定
 * 通过运行函数 将observable值与Reaction绑定
 ```javascript
@@ -347,11 +347,103 @@ Observable会根据传入的值类型包装生成代理，在对观察值获取�
 这样当observable更改的时候会触发对应的Reaction执行从而达到组件刷新的目的
 
 ### mobx响应式更新与MVVM
-* MVVM是一种用于构建页面的软件架构。通过ViewModel实现视图与数据模型的绑定关系，从而实现数据更新自动映射到视图层
-* mobx是一个状态管理库，在与React结合的过程中通过mobx-react实现Derivations的生成，在observable值变化的时候触发Derivations的更新从而达到视图更新的目的。
+* MVVM是一种用于构建页面的软件架构。通过ViewModel实现视图与数据模型的绑定关系,从而实现数据更新自动映射到视图层
+* mobx是一个状态管理库,在与React结合的过程中通过mobx-react实现Derivations的生成,在observable值变化的时候触发Derivations的更新从而达到视图更新的目的。
 
+## [zustand](https://github.com/pmndrs/zustand)
+zustand是一个轻量级的状态管理库,通过React Hooks实现状态管理,相比Redux和Mobx,zustand的实现更简单,没有引入新的概念,使用上更接近React Hooks的实现。
 
-在业务开发中最开始引入状态管理是为了实现组件之间的状态共享，而使用Redux或者Mobx是引入不同的编程范式来实现这种共享的行为。不同的编程范式能给予项目一定的约束从而实现业务开发的规范。但是范式的引入也一定程度上增加了项目的复杂度，比如redux的依赖管理、中间件概念、mobx跟踪性较弱的更新逻辑等。在考虑引入具体方案的时候应该考虑整个项目的现状和成本，是不是有更轻量化的实现，比如React Hooks。
+### zustand简单使用
+```javascript
+    import { create } from 'zustand'
+    // store定义
+    const useBearStore = create((set) => ({
+      bears: 0,
+      increasePopulation: () => set((state) => ({ bears: state.bears + 1 })),
+      removeAllBears: () => set({ bears: 0 }),
+    }))
+
+    // 使用store
+    function BearCounter() {
+      const bears = useBearStore((state) => state.bears)
+      return <h1>{bears} around here ...</h1>
+    }
+```
+
+### zustand源码解析
+
+#### store创建
+
+```javascript
+    // [源码位置](https://github.com/pmndrs/zustand/blob/3089fdc43562c91992a0f2d3f24c817ab7d98478/src/react.ts#L53)
+    const createImpl = <T>(createState: StateCreator<T, [], []>) => {
+        // 通过createStore创建了store 里面实现了订阅功能
+        const api = createStore(createState)
+        const useBoundStore: any = (selector?: any) => useStore(api, selector)
+        Object.assign(useBoundStore, api)
+        // 实际调用create的返回值,是一个接受selector的函数 提供订阅能力 
+        return useBoundStore
+    }
+```
+```javascript
+    // [源码位置](https://github.com/pmndrs/zustand/blob/3089fdc43562c91992a0f2d3f24c817ab7d98478/src/vanilla.ts#L60)
+    const createStoreImpl = (createState) => {
+      let state: TState
+      // 通过Set维护所有的listener
+      const listeners: Set<Listener> = new Set()
+      const setState: StoreApi<TState>['setState'] = (partial, replace) => {
+        // 如果partial是函数,就传入当前的state,这样就注入的state,在setState的时候可以利用其他的值做逻辑
+        const nextState =
+          typeof partial === 'function'
+            ? (partial as (state: TState) => TState)(state)
+            : partial
+        if (!Object.is(nextState, state)) {
+          const previousState = state
+          state =
+            (replace ?? (typeof nextState !== 'object' || nextState === null))
+              ? (nextState as TState)
+              : Object.assign({}, state, nextState)
+          // 如果最后值有变化,触发所有的listener 组件判断更新
+          listeners.forEach((listener) => listener(state, previousState))
+        }
+      }
+      const getState: StoreApi<TState>['getState'] = () => state
+      const getInitialState: StoreApi<TState>['getInitialState'] = () =>
+        initialState
+      // 订阅逻辑 通过这个函数 组件跟store建立起绑定关系
+      const subscribe: StoreApi<TState>['subscribe'] = (listener) => {
+        listeners.add(listener)
+        return () => listeners.delete(listener)
+      }
+      const api = { setState, getState, getInitialState, subscribe }
+      const initialState = (state = createState(setState, getState, api))
+      return api as any
+    }
+```
+#### 组件订阅&更新
+```javascript
+    // [源码位置](https://github.com/pmndrs/zustand/blob/3089fdc43562c91992a0f2d3f24c817ab7d98478/src/react.ts#L26)
+    export function useStore<TState, StateSlice>(
+      api: ReadonlyStoreApi<TState>,
+      selector: (state: TState) => StateSlice = identity as any,
+    ) {
+      // 在组件中调用useStore 内部通过useSyncExternalStore定义之前创建的store
+      const slice = React.useSyncExternalStore(
+        api.subscribe,
+        () => selector(api.getState()),
+        () => selector(api.getInitialState()),
+      )
+      React.useDebugValue(slice)
+      return slice
+    }
+```
+zustand在实现思路上是基于react的hooks api通过订阅实现更新,它相比redux在使用上更加简洁,模版代码更少。
+
+## 一些想法
+* 在业务开发中最开始引入状态管理是为了实现组件之间的状态共享,而使用Redux或者Mobx是引入不同的编程范式来实现这种共享的行为。不同的编程范式能给予项目一定的约束从而实现业务开发的规范。但是范式的引入也一定程度上增加了项目的复杂度,比如redux的依赖管理、中间件概念、mobx跟踪性较弱的更新逻辑等。
+在考虑引入具体方案的时候应该考虑整个项目的现状和成本,是不是有更轻量化的实现,比如React Hooks。
+* 状态管理方案上通过订阅或者Observable实现更新,在大量使用的场景上会存在一定的性能问题,解决方案都是相似的,比如store的拆分、selctor的优化等
+
 
 ## 参考
 [我为什么从Redux迁移到了Mobx](https://tech.youzan.com/mobx_vs_redux/)  

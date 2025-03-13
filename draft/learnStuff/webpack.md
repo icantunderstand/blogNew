@@ -13,22 +13,28 @@ categories: webpack
 
 ## webpack打包流程  
 
-* 初始化参数 webpack会从配置文件中读取配置参数
-* 开始编译 根据参数初始化Compiler对象，加载插件，执行Compiler的run方法开始编译
-* 解析与编译 根据入口配置生成模块的依赖关系，解析模块的路径，编译模块内容
-* 生成chunk 将模块组合成一个或者多个chunk,每个chunk包含了一组模块的代码和模块之间的依赖关系
-* 输出 将生成的chunk输出到指定路径，生成静态资源文件
-* 完成构建
+### 初始化阶段
+* 读取合并配置参数
+* 创建Compiler对象/加载插件,准备开始编译
+### 编译阶段
+* 确定入口 根据entry配置找到入口文件,构建依赖图谱
+* 模块路径解析 解析模块路径
+* 构建模块 通过loader加载文件解析模块内容并且收集模块依赖
+### 生成阶段
+* 确定输出内容 根据依赖图提取模块- 根据entry 和 optimization配置决定分组 分割策略
+* 优化  代码分割 压缩混淆等等
+* 生成资源 生成最终的chunk source map等
+* 构建资源映射表 包含所有资源的路径清单 用于异步加载
 
-### compiler && compilation
-compiler是一个全局单例,负责把控整个webpack打包的构建流程
+## compiler && compilation
+webpack在启动后会创建一个单例的Compiler对象,它负责存储webpack所有配置信息、插件以及声明周期钩子函数
 compilation对象是每一次构建的上下文对象,包含当次构建的所有信息
 
-### Loader
+## Loader
 loader可以将不同类型的文件转换成JavaScript模块
 webpack只能处理js模块代码,Loader可以将非js文件类型的文件转化成js进行后续的打包逻辑
 
-#### Loader的执行顺序
+### Loader的执行顺序
 
 Loader是通过数组进行配置的,loader-runner会从配置的末尾依次执行对应loader的处理逻辑(compose)
 [a,b,c]
@@ -41,7 +47,7 @@ a pitch => b pitch => a loader normal execution
 3. 请求重写 pitch可以返回新的请求，从而修改模块的请求
 4. 支持异步 
 
-#### Loader开发
+### Loader开发
 * this.callback 一个可以同步或者异步调用的可以返回多个结果的函数
 
       this.callback(
@@ -53,7 +59,7 @@ a pitch => b pitch => a loader normal execution
 
 * this.async 告知loader-runner这个loader将会异步回调返回this.callback
 
-##### 同步loader
+#### 同步loader
 
     // content 
     module.exports = function(content, map, meta) { 
@@ -62,10 +68,10 @@ a pitch => b pitch => a loader normal execution
     module.exports = function(content, map, meta) {
       // 通过callback触发
       this.callback(null, someDealFunc(content), map, meta)
+      // 需要这个return 显示的返回undefined 
       return 
     }
-##### 异步loader
-
+#### 异步loader
 
     module.exports = function(content, map, meta) {
     // 告知loader-runner是一个异步loader 异步loader不会阻塞webpack编译
@@ -76,10 +82,10 @@ a pitch => b pitch => a loader normal execution
       });
     };
 
-### Plugin
+## Plugin
 Plugin主要职责 基于webpack构建的hooks来增强构建能力
 
-#### 开发plugin
+### 开发plugin
 * 插件必须是一个函数或者一个包含apply方法的对象
 * 传递给插件的compiler和compilation对象是同一个引用,修改对应的对象会对后面的插件有影响
 * 异步事件需要插件调用回调函数通知webpack进入下一个流程(会阻塞)
@@ -116,34 +122,16 @@ Plugin主要职责 基于webpack构建的hooks来增强构建能力
 
 
 ## webpack性能优化
-
 ### 优化构建速度
-* 减少文件的查找  
-  * resolve.modules: [path.resolve(__dirname, 'node_modules')] // 会按照配置的顺序查找
-  * resolve.extensions: ['.js', '.jsx'] 会添加后缀进行查找匹配
-  * module.noParse  noParse: /jquery|lodash/
-  * 配置loader的时候 exclude include
-
-* 编译速度
-  * 使用webpack cache (momory/filesystem)
-  * thread-loader
-  * parallelUglifyPlugin 开启多进程压缩文件
-
-### 输出质量
-  * split-chunk-plugin 拆分公共模块
-  * 区分环境 definePlugin  
-    plugins:[
-      new DefinePlugin({
-          'process.env': {
-              NODE_ENV: JSON.stringify('production')
-          }
-      })
-    ]
-  * url-loader 将小图直接base64到js或者css中
-  * css-loader?minimize 开启cssnano压缩
-  * 使用Tree Shaking  保留es6模块化语法
-  * 使用CDN资源 
-    * css mini-css-extract-plugin 配置cdn的前缀
+缓存机制：利用 cache 选项或 cache-loader 插件来缓存构建过程中生成的中间文件，加快后续构建速度。
+并行编译：使用 thread-loader 或者 Webpack 自身的多线程能力加速资源处理。  
+文件查找优化:  resolve.modules(指定模块解析路径)/resolve.alias(别名)/resolve.extensions(扩展名尝试)/noParse(不解析特定的文件)
+### 打包体积性能优化  
+Tree Shaking: 去除无用的代码
+按需加载Polyfills: 按需加载polyfills
+三方库: 单独拆分或者CDN引入
+代码分割: optimization.splitChunks 
+环境变量: definePlugin
 
 ## webpack的热更新原理
 在浏览器和与Webpack Dev Server之间维护了一个Websocket，在监听模式下,资源变化Dev Server会向浏览器推送更新(包括构建的hash值)，浏览器完成更新资源的替换
@@ -165,10 +153,21 @@ Plugin主要职责 基于webpack构建的hooks来增强构建能力
 在开发模式下，通过webpack-dev-server启动一个本地服务器，在内存中动态打包文件，用于控制开发模式下的资源访问，默认'/'
 
 ## 打包工具对比
-parcel 内置插件 + 并行编译  小型项目,缺乏灵活性
-rollup tree shaking 适合打包es6模块
-webpack 大型项目
+大型项目和企业级应用：选择 Webpack，因为它的高度可配置性和强大的插件生态系统可以满足复杂的需求。
+快速原型开发和中小型项目：选择 Parcel，因为它的零配置和自动优化特性可以显著提高开发效率。
+库开发和中小型项目：选择 Rollup，因为它的简洁配置和优秀的 Tree Shaking 支持可以有效减小打包体积。
 
+| 特性           | Webpack                | Parcel                           | Rollup                        |
+| -------------- | ---------------------- | -------------------------------- | ----------------------------- |
+| 配置复杂度     | 高                     | 低                               | 中等                          |
+| 性能           | 中等                   | 高                               | 高                            |
+| 适用场景       | 大型项目、企业级应用   | 快速原型开发、中小型项目         | 库开发、中小型项目            |
+| 模块化支持     | 支持多种模块格式       | 支持多种模块格式                 | 支持多种模块格式              |
+| 插件系统       | 丰富                   | 丰富                             | 丰富                          |
+| HMR            | 支持                   | 支持                             | 支持                          |
+| 代码分割       | 支持                   | 支持                             | 支持                          |
+| Tree Shaking   | 支持                   | 支持                             | 优秀                          |
+| 多语言支持     | 支持                   | 支持                      | 支持  
 ## webpack中chunk的概念
 chunk是由多个模块组成的代码块，比如Entry chunk,Split chunk拆分出的代码等
 
