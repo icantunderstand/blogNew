@@ -1,0 +1,183 @@
+---
+title: field-form源码解析
+date: "2025-03-16"
+tags: ["JavaScript"]
+---
+
+# [rc-field-form](https://github.com/react-component/field-form)
+rc-field-form是一个相对'极简'的form仓库,这里的极简是它并没有实现特别丰富的form能力,但是通过阅读它的源码确能了解form技术方案需要考量的点.
+比如多form更新/字段更新如何触发form更新/字段之间的依赖等,下面就先从rc-field-form开始对form方案的探索之旅
+
+# rc-field-form简单使用
+```javascript
+    import Form, { Field } from 'rc-field-form';
+    const Input = ({ value = '', ...props }) => <input value={value} {...props} />;
+    const Demo = () => {
+        return (
+            <Form
+                onFinish={values => {
+                    console.log('Finish:', values);
+                }}
+            >
+            <Field name="username">
+                <Input placeholder="Username" />
+            </Field>
+            <Field name="password">
+                <Input placeholder="Password" />
+            </Field>
+            <button>Submit</button>
+            </Form>
+        );
+    };
+```
+
+# rc-field-form源码分析
+![代码结构](/static/images/frontEndToolStatic/form/rcFieldForm.jpg)
+在功能实现上主要有
+* FormContext-多Form联动能力/嵌套表单
+* Form 表单模块-与外部props传入函数的调用/FormProvider的联动/初始化FormStore(useForm)
+* Field 字段模块-与FormStore联动实现字段更新通知
+* useForm FormStore-管理字段更新与通知
+
+## [FormProvider源码解析](https://github.com/react-component/field-form/blob/master/src/FormContext.tsx)
+
+```javascript
+  // 将当前FormContext的所有Form存储起来
+  const formsRef = React.useRef<Forms>({});
+  // 外层的FormContext 嵌套表单实现
+  const formContext = React.useContext(FormContext); 
+  return (
+    <FormContext.Provider
+      value={{
+        ...formContext,
+        triggerFormChange: (name, changedFields) => {
+          // 触发当前FormProvider传入onFormChange
+          if (onFormChange) {
+            onFormChange(name, {
+              changedFields,
+              forms: formsRef.current,
+            });
+          }
+          // 触发嵌套表单的更新函数
+          formContext.triggerFormChange(name, changedFields);
+        },
+        triggerFormFinish: (name, values) => {},
+        registerForm: (name, form) => {},
+        unregisterForm: name => {},
+      }}
+    >
+      {children}
+    </FormContext.Provider>
+  );
+```
+## [Form源码解析](https://github.com/react-component/field-form/blob/master/src/Form.tsx)
+```javascript
+  const nativeElementRef = React.useRef<HTMLFormElement>(null);
+  const formContext: FormContextProps = React.useContext(FormContext);
+  
+  // useForm是当前form的store,作为context的value可以供下面的FormField使用
+  const [formInstance] = useForm(form);
+  const {
+    useSubscribe,
+    setInitialValues,
+    setCallbacks,
+    setValidateMessages,
+    setPreserve,
+    destroyForm,
+  } = (formInstance as InternalFormInstance).getInternalHooks(HOOK_MARK);
+
+  // 注册当前Form
+  React.useEffect(() => {
+    formContext.registerForm(name, formInstance);
+    return () => {
+      formContext.unregisterForm(name);
+    };
+  }, [formContext, formInstance, name])
+  // 通过setCallbacks 可以实现触发当前Form的更新函数和多Form的通知能力
+  // 这种方式解耦了FormContext useForm
+  setCallbacks({
+    onValuesChange,
+    onFieldsChange: (changedFields: FieldData[], ...rest) => {
+      formContext.triggerFormChange(name, changedFields);
+      if (onFieldsChange) {
+        onFieldsChange(changedFields, ...rest);
+      }
+    },
+  });
+  // useForm作为store被传递下去了
+  const formContextValue = React.useMemo(
+    () => ({
+      ...(formInstance as InternalFormInstance),
+      validateTrigger,
+    }),
+    [formInstance, validateTrigger],
+  );
+
+  const wrapperNode = (
+    <ListContext.Provider value={null}>
+      <FieldContext.Provider value={formContextValue}>{childrenNode}</FieldContext.Provider>
+    </ListContext.Provider>
+  );
+  return (xxx)
+```
+## [Field源码解析](https://github.com/react-component/field-form/blob/master/src/Field.tsx)
+Field是Form字段的实现模块,它包含了规则校验/字段更新等,这里主要关注在字段更新上它是如何实现的
+```javascript
+   // getControlled在render函数中通过React.cloneElement调用 为clone的元素注入trigger
+   public getControlled = (childProps: ChildProps = {}) => {
+    // 增加更新回调函数 默认onChangge
+    control[trigger] = (...args: EventArgs) => {
+      // 通过useForm的dispatch通知更新
+      if (newValue !== value) {
+        dispatch({
+          type: 'updateValue',
+          namePath,
+          value: newValue,
+        });
+      }
+      // 省略若干代码
+    };
+    // 触发校验逻辑
+    return control;
+  };
+```
+```javascript
+    public onStoreChange: FieldEntity['onStoreChange'] = (prevStore, namePathList, info) => {
+        // dependencies是判断dependenciesUpdate更新的条件 用于处理依赖更新
+        const { shouldUpdate, dependencies = [], onReset } = this.props;
+        const { store } = info;
+        // 分类型判断当前field是否重新渲染 可以已经可以比较细力度的更新当前Field的更新了
+        // reset/remove/setField/dependenciesUpdate
+        switch (info.type) {
+        // 省略若干代码
+        }
+        if (shouldUpdate === true) {
+            this.reRender();
+        }
+  };
+```
+## [useForm源码解析](https://github.com/react-component/field-form/blob/master/src/useForm.ts)
+form相关的值操作逻辑都集中在useForm这个FormStore上实现,它提供了获取Field值/触发Field校验/触发更新等,这里同样主要关注它在更新逻辑上的实现
+```javascript
+  // 在Field中通过dispatch更新时会触发useForm上的updateValue
+  private updateValue = (name: NamePath, value: StoreValue) => {
+    const namePath = getNamePath(name);
+    const prevStore = this.store;
+    // 更新当前store
+    this.updateStore(setValue(this.store, namePath, value));
+    // 更新观察者 触发dependenciesUpdate
+    this.notifyObservers(prevStore, [namePath], {
+      type: 'valueUpdate',
+      source: 'internal',
+    });
+    // 触发之前在Form内设置的callback 调用Form设置onValuesChange函数
+    const { onValuesChange } = this.callbacks;
+    if (onValuesChange) {
+      const changedValues = cloneByNamePathList(this.store, [namePath]);
+      onValuesChange(changedValues, this.getFieldsValue());
+    }
+
+  };
+```
+
+antd的Form就是基于rc-field-form包装实现的.在阅读源码实现上可以看到Form方案一些需要考量的点,比如字段更新的控制/怎么实现通知能力/多Form的联动等.
