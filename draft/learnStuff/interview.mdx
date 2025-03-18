@@ -5,7 +5,6 @@ tags:
 categories: 
 ---
 
-
 ## 进程和线程
 1. 进程是操作系统资源调度的基本单位，线程是任务的调度执行的基本单位
 2. 线程共享所属进程的资源，因此共享简单，但是同步复杂，需要用加锁等措施
@@ -13,7 +12,7 @@ categories:
 ## 函数节流
 
 ### 防抖函数
-    
+```javascript
     // debounce 多次触发只有最后一次执行  
     function debounce(fn, delay, mustRun) {
       let timer = null
@@ -43,8 +42,9 @@ categories:
         }
       }
     }
-
+```
 ### 节流
+```javascript
     // 多长时间必须执行对应的函数 
     // 需要注意时间处理那块
     function throttle(func, t = 50) {
@@ -70,9 +70,9 @@ categories:
             }
         }
     }
-
+```
 ### 深拷贝  
-
+```javascript
     Function.prototype.clone = function clone() {
       const that = this;
       const temp = function(...args) { return that.apply(this,args) };
@@ -125,12 +125,10 @@ categories:
         }
         return cloneObj;  
     }
-
-
+```
 ## 模拟async await的实现过程
-
+```javascript
     // 通过Promise Generator来实现
-
     function spawn(genF) {
       return new Promise((resolve, reject) => {
         const itr = genF()
@@ -155,11 +153,11 @@ categories:
         step(function() { return itr.next(undefined); })
       })
     }
-
+```
 ## 实现apply call bind
 
 ### apply
-
+```javascript
     Function.prototype.myApply = function(context, args) {
       // apply接受数组
       context.fn = this;
@@ -167,9 +165,9 @@ categories:
       delete context.fn;
       return result;
     }
-
+```
 ### call 
-    
+```javascript
     // call的性能更好 不需要处理参数转换
     Function.prototype.myCall = function(context, ...args) {
       context.fn = this;
@@ -177,9 +175,9 @@ categories:
       delete context.fn;
       return result;
     }
-
+```
 ### bind
-
+```javascript
     Function.prototype.myBind = function(context, ...args) {
       const fn = this;
       return function fnToBind(...restArgs) {
@@ -190,14 +188,14 @@ categories:
         }
       }
     }
-
+```
 ## 理解new操作符
 1. 以构造器的原型为属性创建新对象
 2. 将新对象作为this调用构造器
 3. 如果构造器返回的是对象则返，否则返回第一步创建的对象
 
 ### 实现一个new
-
+```javascript
     function myNew(Con, ...args) {
       // 这里需要注意
       const obj = Object.create(Con.prototype);
@@ -210,16 +208,16 @@ categories:
     }
     // 创建出来对象的__proto__ 是函数Con的prototype
 
-     __proto__ 对象的原型 指向构造函数的prototype 属性
-    prototype 是函数对象的一个属性  Func.prototype.constructor === Func
-    对象属性的获取是顺着对象__proto__沿着原型链查找
+    //  __proto__ 对象的原型 指向构造函数的prototype 属性
+    // prototype 是函数对象的一个属性  Func.prototype.constructor === Func
+    // 对象属性的获取是顺着对象__proto__沿着原型链查找
 
-    构造函数 Function          实例对象 Object
-    +---------------+          +---------------+
-    |               |          |               |
-    |   prototype   |--------->|   __proto__   |
-    |               |          |               |
-    +---------------+          +---------------+
+    // 构造函数 Function          实例对象 Object
+    // +---------------+          +---------------+
+    // |               |          |               |
+    // |   prototype   |--------->|   __proto__   |
+    // |               |          |               |
+    // +---------------+          +---------------+
 
     function Foo() {}
     // Foo是一个函数对象 是通过Function.prototype => function Function() {} 构造出来的
@@ -228,13 +226,10 @@ categories:
     Foo.prototype.__proto__ === Object.prototype
     Foo.prototype.constructor === Foo
     Foo.prototype.__proto__.__proto__ === null
-
-    
+```    
 ![原型](./pic/proto.jpg)
-
-
 ## 原型链面试问题
-    
+```javascript
     // 需要再理解一下这里 
     Function.prototype.a = () => console.log(1);
     Object.prototype.b = () => console.log(2); 
@@ -250,13 +245,13 @@ categories:
     function Function() {}
     Function.prototype (__proto__) => Object.prototype
 
-    构造函数的__proto__(包括Function和Object)都指向Function.prototype。
-    对象的__proto__都指向Object.prototype 
-
+    // 构造函数的__proto__(包括Function和Object)都指向Function.prototype。
+    // 对象的__proto__都指向Object.prototype 
+```
 ## 实现继承的几种方式
 
 ### 原型链继承
-
+```javascript
     //原型链继承 将子类的原型指向父类的一个实例实现继承
     // 会导致父类的属性被所有实例所共享
 
@@ -269,9 +264,9 @@ categories:
 
     Child.prototype = new Parent()
     Child.prototype.constructor = Child
-
+```
 ### 借用构造函数方式
-
+```javascript
     // 借用构造函数方式都在父类的构造函数中定义 需要创建一遍无法复用 
     function Parent(age) {
       this.name = age
@@ -282,8 +277,9 @@ categories:
     function Child(age) {
       Parent.call(this, age)
     }
+```
 ### 组合继承
-
+```javascript
     // 组合继承 将原型链和借用构造函数技术结合在一起
     function Parent(age) {
       this.name = age
@@ -297,9 +293,9 @@ categories:
     Child.prototype.constructor = Child
     // 原型链上存在多余的属性
     // 调用两次构造函数
-
-
+```
 ### 寄生组合式继承
+```javascript
     function Animal(name) {
       this.name = name;
     }
@@ -318,10 +314,9 @@ categories:
         configurable: true,
       }
     })
-
-
+```
 ## 数组操作
-
+```javascript
     function isArray(obj) {
       return Object.prototype.toString.call(obj) === '[object Array]';
     }
@@ -337,9 +332,9 @@ categories:
         }
       }, [])
     }
-
+```
 ## 实现compose/pipe函数
-
+```javascript
     // compose 函数执行顺序是从右往左
     function compose(...funcs) {
       if(funcs.length === 0) {
@@ -370,8 +365,9 @@ categories:
         return result;
       };
     }
+```
 ### 实现一个jsonp
-
+```javascript
     function jsonp(url, params, callback) {
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
@@ -412,12 +408,12 @@ categories:
             document.head.appendChild(script);
         })
     }
-
+```
 ## promise
 
 ### promise值穿透
 then 和 catch 期望接收函数做参数，如果非函数就会发生 Promise 穿透现象，打印的是上一个 Promise 的返回
-
+```javascript
     const promise = new Promise(function(resolve, reject){
       setTimeout(function() {
         resolve(1);
@@ -427,24 +423,24 @@ then 和 catch 期望接收函数做参数，如果非函数就会发生 Promise
     promise.then(2).then((n) => {
       console.log(n) // 输出1 
     });
-
+```
 ### promsie相关api
 Promise.all 返回一个Promise 当所有的Promsie都成功的时候才会fulfilled,任何一个被拒绝Promise.all会被
 立刻拒绝返回那个最先被拒绝的原因
 Promise.allSellted 返回一个Promsie 所有Promise都有结果的时候返回 数组中每个对象包含 status: fulfilled/rejected
 value: 返回的值 reason: 原因
 Promise.any  任何一个fulfilled就返回解决的Promise  所有都失败的时候 AggregateError: All promises were rejected
-Promise.race 当所有都完成 返回第一个先完成的   第一个失败了 Promise的状态就是失败
+Promise.race 被第一个有状态的promise结果决定整个Promise状态
 
 ## 移动端适配
 禁止缩放 并且是响应式可以解决
+```html
 <meta name="viewport" content="user-scalable=no">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-
-
+```
 ## js中0.1 + 0.2 !== 0.3的问题
 JavaScript使用Number类型表示数字(整数和浮点数)，遵循 IEEE 754 标准 通过64位来表示一个数字
-
+```javascript
     function add(a, b) {
       const factor = 10 ** Math.max(
         (a.toString().split('.')[1] || '').length,
@@ -452,10 +448,9 @@ JavaScript使用Number类型表示数字(整数和浮点数)，遵循 IEEE 754 �
       );
       return (a * factor + b * factor) / factor;
     }
-
-
+```
 ## 相关题 
-
+```javascript
     // 可以按照路径进行排序 先处理短路径 在处理长路径
     function parseObj(obj) {
         const ret = {}
@@ -481,7 +476,8 @@ JavaScript使用Number类型表示数字(整数和浮点数)，遵循 IEEE 754 �
         }
         return ret
     }
-
+```
+```javascript   
     // 实现类似koa中间件的处理逻辑
     function onionMiddle(...middlewares) {
       // 返回一个接受最后middleware的函数
@@ -498,7 +494,8 @@ JavaScript使用Number类型表示数字(整数和浮点数)，遵循 IEEE 754 �
           return dispatch(0)
        }
     }
-
+```
+```javascript
     // 实现lodash的get方法
     function customGet(obj, path, defaultValue) {
       if(obj === null) {
@@ -519,6 +516,120 @@ JavaScript使用Number类型表示数字(整数和浮点数)，遵循 IEEE 754 �
       // 返回获取到的属性值或默认值
       return result === undefined ? defaultValue : result;
     }
+```
+```javascript
+    // 实现一个Promise.All
+    function promiseAll(promises) {
+      return new Promise((resolve, reject) => {
+        // 参数校验
+        if (!Array.isArray(promises)) {
+          return reject(new TypeError('promises must be an array'));
+        }
+        
+        const results = [];
+        let completed = 0;
+        const len = promises.length;
+        
+        // 处理空数组情况
+        if (len === 0) {
+          return resolve(results);
+        }
+        
+        promises.forEach((promise, index) => {
+          Promise.resolve(promise)
+            .then(result => {
+              results[index] = result;
+              completed++;
+              
+              if (completed === len) {
+                resolve(results);
+              }
+            })
+            .catch(reject); // 任何一个Promise失败都会直接reject
+        });
+      });
+    }
+```
+```javascript
+    // 使用Promise实现红绿灯
+    function trafficLight(color, duration) {
+      return new Promise((resolve) => {
+      
+        // 等待指定时间后解决Promise
+        setTimeout(() => {
+          resolve();
+        }, duration);
+      });
+    }
+    async function showLightWithCountdown(color, duration) {
+        while (true) {
+          // 红灯10秒
+          await trafficLight('red', 10000);
+          
+          // 绿灯10秒
+          await trafficLight('green', 10000);
+          
+          // 黄灯3秒
+          await trafficLight('yellow', 3000);
+        }
+    }
+```
+   
+```javascript
+    /**
+    * 控制并发请求
+    * @param {Array} urls - 请求地址数组
+    * @param {Number} maxNum - 最大并发数
+    * @returns {Promise} 所有请求的结果
+    */
+    async function multiRequest(urls, maxNum) {
+      // 请求总数
+      const len = urls.length;
+      // 结果数组
+      const result = new Array(len);
+      // 记录start位置
+      let count = 0
+      let finishedCount = 0
+      // 返回新的Promise
+      return new Promise((resolve, reject) => {
+        // 首次启动最大并发数的请求
+        for(let i = 0; i < maxNum;i++) {
+          next()
+        }
+        function next() {
+          let current = count++;
+          // 添加边界检查
+          if (current >= len) {
+            return;
+          }
+          fetch(urls[current])
+            .then(res => res.json())
+            .then(res => {
+              // 保存请求结果
+              result[current] = res;
+              if(finishedCount === len) {
+                resolve(result)
+              } else {
+                next();
+              }
+            })
+            .catch(err => {
+              result[current] = err;
+              // 继续下一个请求
+              finishedCount++;  // 同样需要增加完成计数
+              if (finishedCount === len) {
+                resolve(result);  // 所有请求完成后返回结果
+              } else {
+                next();  // 继续下一个请求
+              }
+            });
+        }
+      });
+    }
+```
+
+
+    
 
 
 
