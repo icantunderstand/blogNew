@@ -5,38 +5,25 @@ tags: ["JavaScript"]
 ---
 
 ## [AsyncFunction](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncFunction)
-在项目中需要根据配置生成Async Function来保证配置的串行执行，Async Function在创建的时候只能访问到全局作用域的变量，需要注意。在node中可以通过[vm.runInNewContext](https://github.com/nodejs/node/issues/9474)来解决。
-
+在项目中需要根据配置生成Async Function来保证配置的串行执行,Async Function在创建的时候只能访问到全局作用域的变量，需要注意。在node中可以通过[vm.runInNewContext](https://github.com/nodejs/node/issues/9474)来解决。
 ## 变量
-在javascript中声明变量有下面的几种方式: var/const(let)  下面来梳理下这几种声明变量方式的区别。  
+在javascript中声明变量有下面的几种方式: var/const(let)
 
 | 声明方式 | 声明提升 | 作用域| 
 | ------ | ------ | ------ |  
-| let/const | Temporal Dead Zone | 块级作用域 |  
+| let/const(不允许修改指向) | Temporal Dead Zone | 块级作用域, 在进入声明该变量的块级作用域的时候,会为其分配空间此时这个变量是未初始化的(引用一个未初始化的变量会导致引用错误),运行到对该变量的赋值语句时对变量赋值(未赋值为undefined) |  
 | var | 提升 | 函数作用域, 进入到声明该变量的函数作用域分配空间并且初始化值为undefined,执行到赋值语句后进行赋值 |  
-
-### var
-在进入声明该变量的函数作用域的时候,会为其分配空间并且初始化值为undefined,在执行到对var赋值的语句的时候会对该变量进行赋值(如果没有赋值就是undefined)  
-### let 
-在进入声明该变量的块级作用域的时候,会为其分配空间此时这个变量是未初始化的(引用一个未初始化的变量会导致引用错误),到达对该变量的赋值语句的时候进行变量的赋值(否则为undefined)。  
-### const
-跟let的行为类似,但是需要进行初始化的值(不允许修改指向)  
-
-下面是一些简单的例子来帮助理解上面的点  
 ```javascript
     let tmp = true;
     if (true) {
         // 引用未初始化的变量引用错误
         //  console.log(tmp); // ReferenceError
-    
         let tmp; // 初始化为undefined
         console.log(tmp); // undefined
-    
         tmp = 123;
         console.log(tmp); // 123
     }
     console.log(tmp);// true
-
     if (true) {
       const func = function () {
         console.log(myVar); // 3
@@ -54,24 +41,11 @@ tags: ["JavaScript"]
     arr.map(x => x()); // [3,3,3]  每个变量都指向一个绑定i 所以都为3
     
     const arr = [];
-    for (var i of [0, 1, 2]) {
-        arr.push(() => i);
-    }
-    arr.map(x => x()); // [2,2,2]
-
-    const arr = [];
     for (let i=0; i < 3; i++) {
         arr.push(() => i);
     }
-    arr.map(x => x()); // [0,1,2]   每次为let创建一个当前值的绑定 所以为[0,1,2]
-    
-    const arr = [];
-    for (const i of [0, 1, 2]) {
-        arr.push(() => i);
-    }
-    arr.map(x => x()); // [0,1,2]
+    arr.map(x => x()); // [0,1,2]   每次为let创建一个当前值的绑定 所以为[0,1,2] 
 ```
-
 ### var和let声明变量对参数的影响
 
 | 声明方式 | 表现 | 
@@ -79,6 +53,21 @@ tags: ["JavaScript"]
 | var    | 声明的变量会覆盖函数的参数 |
 | let/const | 重复定义 |
 
+```javascript
+    // var 声明会覆盖参数
+    function test(name) {
+        console.log(name); // 输出 "Tom"
+        var name = "Jerry";  // var 声明会覆盖参数
+        console.log(name); // 输出 "Jerry"
+    }
+    test("Tom");
+    //  let/const 不会覆盖参数
+    function test(name) {
+        console.log(name); // 输出 "Tom"
+        let name = "Jerry";  // 报错：Identifier 'name' has already been declared
+    }
+    test("Tom");
+```
 ####  理解默认参数的行为
 默认参数可以理解成let的行为  默认参数的访问范围是与函数体内部相隔离开的,只能访问到外部的变量  
 ```javascript
@@ -87,21 +76,17 @@ tags: ["JavaScript"]
         return [x, y];
     }
     foo(); // [1,1]
-    
     // 在初始化x=y的时候 y处于TDZ 出现引用错误
     function bar(x=y, y=2) {
         return [x, y];
     }
     bar(); // ReferenceError
-    
-    
     const foo = 'outer';
     function bar(func = x => foo) {
         const foo = 'inner';
         console.log(func()); // outer
     }
     bar();  //  如果在这个例子的外部不存在foo 会引用错误
-
     function noParameter() {
         throw new Error('no parameter');
     }
@@ -116,11 +101,18 @@ tags: ["JavaScript"]
     console.log(length) // 3
     const [x, y] = new Set([1,2]);
     console.log(x,y); // 1 2  
+    // 解构默认赋值
+    const {
+        name = 'haha',
+        desc = 'ss',
+        age = 10
+    } = { name: '', desc: undefined }
+    // name = ''  desc = 'ss' age = 10
 ```
 在对数组进行解构的时候,还可以通过越过某些数组项或者通过剩余参数获取数组后面的值
 ```javascript
     const [,, x, y] = ['a', 'b', 'c', 'd']; // x = 'c'; y = 'd'
-    const [x,...y] = [1,2,3] // x 1 y [2,3]
+    const [x,...y] = [1,2,3] // x = 1  y =  [2,3]
 
     const num = [1,2,3];
     const b = [];
@@ -134,18 +126,13 @@ tags: ["JavaScript"]
 ```
 ## ES6 模块
 ES6模块本质上是一种规定静态化的加载和导出代码的方式,通过编译时加载使基于代码的静态分析成为可能(webapck中的tree Shaking).CommonJs的模块(运行时加载)就是对象.
-
 ### ES6模块的特点和CommonJs的对比
-
 不能动态的引入并且引入是有提升的 
 ```javascript
     // 不能动态的引入
     if (Math.random()) {
       import 'foo'; // SyntaxError
     }  
-    {
-      import 'foo'; // SyntaxError
-    }
     // 引入的提升
     foo();
     import { foo } from 'my_module';
