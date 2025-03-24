@@ -7,12 +7,13 @@ tags: ["crossPlatform"]
 h5性能优化可以总结为如下的几个方向:
 * 将请求时间线上的行为提前执行
 * 将请求时间线上不紧急的后置
-* 将资源从最近的位置提供给页面
+* 将资源从最近的位置提供给页面  
+
 在讨论h5加载性能的时候主要有以下角色:
 * Native容器
 * 用户(开发的视角)
 * 服务端(数据/页面)
-* h5页面
+* h5页面  
 本文会结合优化的方向从不同角色的角度总结h5优化的一些通用方案。
 
 ## Native容器优化
@@ -22,7 +23,7 @@ h5性能优化可以总结为如下的几个方向:
 * [离线包](https://icantunderstand.github.io/blog/cross-platform-offline) 通过离线包可以直接加载提前下载好的本地资源展示
 
 ## h5页面内优化
-* 预连接 dns-prefetch, preconnect
+* 预连接 dns-prefetch(提前DNS), preconnect(DNS/TCP/TLS)
 * 资源包拆分 框架和业务代码进行拆包，框架层使用更长的缓存策略来减少框架代码的请求
 * 页面资源加载 图片懒加载、路由懒加载、小图内联、模块动态加载
 * js执行优化 缓存计算结果、WebWorker、GPU渲染、长列表优化 
@@ -36,7 +37,7 @@ h5性能优化可以总结为如下的几个方向:
 * 预渲染技术 
     1. [SSR](https://www.patterns.dev/posts/server-side-rendering)(server-side rendering)服务端渲染,在服务端完成数据请求和html内容的生成返回给用户
     2. [SSG](https://www.patterns.dev/posts/static-rendering)(static site generation)静态页面生成，SSG主要用于生成静态的网站比如博客等
-    3. [ISR](https://www.patterns.dev/posts/incremental-static-rendering)（Incremental Static Generation)渐进式静态内容生成，可以增量的方式在服务端生成新的内容和替换已有内容，对SSG的一种补充
+    3. [ISR](https://www.patterns.dev/posts/incremental-static-rendering)(Incremental Static Generation)渐进式静态内容生成，可以增量的方式在服务端生成新的内容和替换已有内容，对SSG的一种补充
     4. [Selective Hydration](https://www.patterns.dev/posts/react-selective-hydration) 可选的注水 通过Suspense和pipeToNodeStream流式输入实现可选注水
     5. [Islands Architecture](https://www.patterns.dev/posts/islands-architecture) 孤岛架构,可以实现静态和动态内容的分离渲染，可以对组件渲染更细粒度的控制
 
