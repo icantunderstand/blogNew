@@ -1,6 +1,6 @@
 
 B端技术概览
-自动化报表
+
 
 
 好的习惯:
@@ -14,8 +14,6 @@ B端技术概览
 目的  清晰
 记账软件
 
-// form 原理 不同form方案对比  
-https://github.com/alibaba/formily 研究下源码
 
 封装工具包(初始化逻辑)
 
@@ -36,6 +34,9 @@ code to svg
 梳理nextjs的预加载能力 实现方式
 
 server actions
+
+
+基于研发的ai工作流
 
 
 

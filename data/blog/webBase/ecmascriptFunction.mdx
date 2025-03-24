@@ -35,10 +35,13 @@ tags: ["JavaScript"]
 
 ### [[Construct]]
 当通过new操作符调用一个函数对象的时候,实际上会执行内部定义的[[Construct]]方法,下面从规范上理解[[Construct]]方法从而理解调用构造函数的实际行为.  
-在通过new调用构造函数的时候会进行一些参数的修正然后调用构造函数的[[Construct]]
-![newBefore](/static/images/javascriptBaseStatic/ecmascriptFunction/newBefore.png)  
-![new](/static/images/javascriptBaseStatic/ecmascriptFunction/new.png)
-![objCreate](/static/images/javascriptBaseStatic/ecmascriptFunction/createObj.png)
+在通过new调用构造函数的时候会进行一些参数的修正然后调用构造函数的[[Construct]]  
+![newBefore](/static/images/javascriptBaseStatic/ecmascriptFunction/newBefore.png)    
+
+![new](/static/images/javascriptBaseStatic/ecmascriptFunction/new.png)   
+
+![objCreate](/static/images/javascriptBaseStatic/ecmascriptFunction/createObj.png)  
+
 [[Construct]]主要分为一下几个步骤:  
 
 1. 将执行上下文定义为当前的执行上下文

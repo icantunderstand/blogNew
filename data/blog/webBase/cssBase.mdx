@@ -119,20 +119,21 @@ position相关属性及含义
 ## 文本溢出省略显示
 
 ### 单行文本溢出
-
-    text-overflow: ellipsis:
-    overflow: hidden;
-    white-space: nowrap;
-    width: xxxpx;
+```css
+    text-overflow: ellipsis;  
+    overflow: hidden;  
+    white-space: nowrap;  
+    width: xxxpx;  
+```
 
 ### 多行文本溢出
-
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    // 行数
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-
+```css
+    display: -webkit-box;  
+    -webkit-box-orient: vertical;  
+    // 行数  
+    -webkit-line-clamp: 2;  
+    overflow: hidden;  
+```
 
 ## 动画
 * js方案: window.requestAnimationFrame, 通过cancelAnimationFrame可以取消动画

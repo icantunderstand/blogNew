@@ -45,22 +45,22 @@ WebSocket建立在TCP协议之上，通过HTTP协议完成握手升级。默认�
 | message | 接收消息触发 |
 | open | 链接建立触发 |
 
-### 建立连接(握手过程)
+### HTTP协议升级
 
 1. 客户端申请协议升级
 
-        GET ws://example.com/ HTTP/1.1  
-        Connection: Upgrade  //升级协议
-        Upgrade: websocket  // 升级websocket
-        Origin: http://example.com  
-        Sec-WebSocket-Version: 13  // 指定websocket版本 如果服务端不支持服务端会返回支持的版本
+        GET ws://example.com/ HTTP/1.1   
+        Connection: Upgrade  //升级协议  
+        Upgrade: websocket  // 升级websocket  
+        Origin: http://example.com   
+        Sec-WebSocket-Version: 13  // 指定  websocket版本 如果服务端不支持服务端会返回支持的版本  
         Sec-WebSocket-Key: d4egt7snxxxxxx2WcaMQlA==  // 与服务端的返回头Sec-WebSocket-Accept相匹配，提供保护防止恶意连接等
 
 2. 服务端响应协议升级
 
-        HTTP/1.1 101 Switching Protocols // 101切换协议
-        Connection:Upgrade
-        Upgrade: websocket
+        HTTP/1.1 101 Switching Protocols // 101切换协议  
+        Connection:Upgrade  
+        Upgrade: websocket  
         Sec-WebSocket-Accept: Oy4NRAQ13jhfONC7bP8dTKb4PTU= // 根据请求Sec-WebSocket-key生成
 
 ### 连接保持  
@@ -107,9 +107,6 @@ WebSocket建立在TCP协议之上，通过HTTP协议完成握手升级。默认�
 | 状态码值 | 含义 |
 | ------ | ------ |
 | 301 | 永久重定向 可以SEO，会被浏览器缓存 |
-```javascript
-res.writeHead(301, {'Location': 'http://www.baidu.com/'}); 
-```
 | 302 | 临时重定向 |
 | 304 | 在缓存协商过程中，304代表客户端可以使用当前的缓存结果 |
 | 201 | 表示请求已经创建成功并且创建了新的资源，通常作为POST请求的返回值 |
@@ -120,6 +117,7 @@ res.writeHead(301, {'Location': 'http://www.baidu.com/'});
 | 405 Method Not Allowed | 表明服务器禁止了使用当前HTTP方法 | 
 | 502 | 网关错误 | 
 | 503 Service Unavailable | 服务不可用 | 
+
 
 ## 前端存储(cookie/localStorage/sessionStorage)
 | 名称 |  生命周期  |  大小  | 传递方式  |
@@ -185,54 +183,53 @@ SSO一般都需要一个独立的认证中心（passport），子系统的登录
 
 请求端请求头:  
 
-    GET /resources/public-data/ HTTP/1.1
-    Host: bar.other
-    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:71.0) Gecko/20100101 Firefox/71.0
-    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-    Accept-Language: en-us,en;q=0.5
-    Accept-Encoding: gzip,deflate
-    Connection: keep-alive
-    Origin: https://foo.example  // 标识请求来源
+    GET /resources/public-data/ HTTP/1.1  
+    Host: bar.other  
+    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:71.0) Gecko/20100101 Firefox/71.0  
+    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8  
+    Accept-Language: en-us,en;q=0.5  
+    Accept-Encoding: gzip,deflate  
+    Connection: keep-alive  
+    Origin: https://foo.example  // 标识请求来源  
 
 服务端响应头:
   
-    HTTP/1.1 200 OK
-    Date: Mon, 01 Dec 2008 00:23:53 GMT
-    Server: Apache/2
+    HTTP/1.1 200 OK  
+    Date: Mon, 01 Dec 2008 00:23:53 GMT  
+    Server: Apache/2  
     Access-Control-Allow-Origin: * // 告知浏览器该资源可以被哪些域名访问
-    Keep-Alive: timeout=2, max=100
-    Connection: Keep-Alive
-    Transfer-Encoding: chunked
-    Content-Type: application/xml
-
+    Keep-Alive: timeout=2, max=100  
+    Connection: Keep-Alive  
+    Transfer-Encoding: chunked  
+    Content-Type: application/xml  
 
 #### 复杂请求跨域交互
 
 请求端预检请求
 
-    OPTIONS /doc HTTP/1.1
-    Host: bar.other
-    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:71.0) Gecko/20100101 Firefox/71.0
-    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-    Accept-Language: en-us,en;q=0.5
-    Accept-Encoding: gzip,deflate
-    Connection: keep-alive
-    Origin: https://foo.example
-    Access-Control-Request-Method: POST // 跨域请求方法
-    Access-Control-Request-Headers: X-PINGOTHER, Content-Type // 跨域请求的自定义请求头
+    OPTIONS /doc HTTP/1.1  
+    Host: bar.other  
+    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:71.0) Gecko/20100101 Firefox/71.0  
+    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8  
+    Accept-Language: en-us,en;q=0.5  
+    Accept-Encoding: gzip,deflate  
+    Connection: keep-alive  
+    Origin: https://foo.example  
+    Access-Control-Request-Method: POST // 跨域请求方法  
+    Access-Control-Request-Headers: X-PINGOTHER, Content-Type // 跨域请求的自定义请求头  
 
 服务端响应预检请求
 
-    HTTP/1.1 204 No Content
-    Date: Mon, 01 Dec 2008 01:15:39 GMT
-    Server: Apache/2
-    Access-Control-Allow-Origin: https://foo.example
-    Access-Control-Allow-Methods: POST, GET, OPTIONS
-    Access-Control-Allow-Headers: X-PINGOTHER, Content-Type
-    Access-Control-Max-Age: 86400
-    Vary: Accept-Encoding, Origin
-    Keep-Alive: timeout=2, max=100
-    Connection: Keep-Alive
+    HTTP/1.1 204 No Content  
+    Date: Mon, 01 Dec 2008 01:15:39 GMT  
+    Server: Apache/2  
+    Access-Control-Allow-Origin: https://foo.example  
+    Access-Control-Allow-Methods: POST, GET, OPTIONS  
+    Access-Control-Allow-Headers: X-PINGOTHER, Content-Type  
+    Access-Control-Max-Age: 86400  
+    Vary: Accept-Encoding, Origin  
+    Keep-Alive: timeout=2, max=100  
+    Connection: Keep-Alive  
 
 在完成预检请求后进行正常的请求交互响应 
 
@@ -256,17 +253,15 @@ SSO一般都需要一个独立的认证中心（passport），子系统的登录
 http1.1三种连接方式:
 ![http 1.1 三种连接模式](/static/images/javascriptBaseStatic/baseWebSummary/http1.1.png)
 * 短连接模式(Short-lived Connection): Connection: close 
-* 长连接模式(Persistent Connection): 长连接模式能减少TCP传输慢启动和握手时间
-
-
-        Connection: keep-alive // 长连接
-        Keep-Alive: timeout=5, max=1000 // 连接时间
+* 长连接模式(Persistent Connection): 长连接模式能减少TCP传输慢启动和握手时间  
+    Connection: keep-alive // 长连接
+    Keep-Alive: timeout=5, max=1000 // 连接时间
 
 * 管道模式(Pipelining): 在建立的一个连接上发送多个请求不必等到上个结果返回，返回结果需要按照发送的顺序返回，Pipelining模式需要逐个响应存在队首阻塞问题、易被攻击等问题，已被http2的多路复用所替代
 
 ## http2
 http2通过二进制分帧层，将需要发送的数据拆分成帧，通过帧的首部的流标识信息组装成信息。
-![二进制分帧层](/static/images/javascriptBaseStatic/baseWebSummary/binaryFrame.svg)
+![二进制分帧层](/static/images/javascriptBaseStatic/baseWebSummary/binaryFrame.png)
 
 http2对比http1.1有如下的优势:
 * 报头压缩 在HTTP2中使用首部表来跟踪和存储之前发送的键值对。相同的数据不会在每次请求和响应中发送，新的首部键追加到末尾或者替换之前的值。减少冗余数据的发送

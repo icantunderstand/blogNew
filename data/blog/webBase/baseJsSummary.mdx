@@ -336,8 +336,7 @@ async函数执行结果返回**promise**.在async函数体内可以使用await�
     console.log('main')
     // 上面代码的输出是  async func  main 1
 ```
-### 通过generator + promise来模拟async function
-async function可以通过generator + promise来模拟。
+通过generator + promise来模拟async function
 ```javascript
     function spawn(genF) {
       return new Promise((resolve, reject) => {
@@ -571,6 +570,69 @@ monorepo是一种单一仓库的软件开发结构，通过将相同业务的多
     };
 ```
 
+## IntersectionObserver
+IntersectionObserver 是用来检测元素是否进入视口（可见区域）的 API.
+```javascript
+    function lazyLoadImages() {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;  // 加载真实图片
+                observer.unobserve(img);    // 加载后停止观察
+            }
+            });
+        });
+
+        // 观察所有懒加载图片
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    }
+```
+
+## ResizeObserver
+ResizeObserver用于监听元素尺寸变化
+```javascript
+    // 创建观察者
+    const resizeObserver = new ResizeObserver(entries => {
+        entries.forEach(entry => {
+            const { width, height } = entry.contentRect;
+            console.log('元素尺寸变化:', width, height);
+        });
+    });
+    // 开始观察目标元素
+    const target = document.querySelector('.target');
+    resizeObserver.observe(target);
+```
+
+## MutationObserver 
+MutationObserver用于监听DOM节点变化
+```javascript
+// 创建观察者
+const observer = new MutationObserver((mutations) => {
+  mutations.forEach(mutation => {
+    // mutation.type: 'attributes' | 'childList' | 'characterData'
+    console.log('DOM变化类型:', mutation.type);
+    console.log('变化的目标节点:', mutation.target);
+  });
+});
+// 配置观察选项
+const config = {
+  attributes: true,      // 观察属性变化
+  childList: true,      // 观察子节点变化
+  characterData: true,  // 观察文本内容变化
+  subtree: true         // 观察所有后代节点
+};
+// 开始观察
+const targetNode = document.querySelector('#target');
+observer.observe(targetNode, config);
+```
+
+## script脚本
+async  异步下载 下载后立即执行
+defer  异步下载 下载后等html解析完毕后执行
+无async/defer设置  阻塞html解析 下载后立即执行
 
 ## 参考
 [Async functions](http://exploringjs.com/es2016-es2017/ch_async-functions.html)  
