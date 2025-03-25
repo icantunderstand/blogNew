@@ -47,20 +47,27 @@ React仓库是一个包含多个package的仓库.在阅读源码之前需要对�
 ### 走入ReactDOM.render()源码
 首先定位到packages/react-dom/src/client/ReactDOM.js
 ![domRender](/static/images/reactStatic/reactRender/domRender.png)
-可以看到ReactDOM.render()方法将当前的ReactElement和Container信息传递给了legacyRenderSubtreeIntoContainer.
+可以看到ReactDOM.render()方法将当前的ReactElement和Container信息传递给了legacyRenderSubtreeIntoContainer.  
+
 ![containerRender](/static/images/reactStatic/reactRender/containerRender.png)
-由于是首次mount,这个时候还没有root节点并且是应用的根节点这里直接进行root节点的创建.最后调用root的render方法就开始进行页面的绘制.在legacyCreateRootFromDOMContainer方法中会对当前容器的内容进行清理.这里调用创建了ReactRoot节点.
-![createReactRoot](/static/images/reactStatic/reactRender/createReactRoot.png)
+由于是首次mount,这个时候还没有root节点并且是应用的根节点这里直接进行root节点的创建.最后调用root的render方法就开始进行页面的绘制.
+在legacyCreateRootFromDOMContainer方法中会对当前容器的内容进行清理.这里调用创建了ReactRoot节点. 
+
+![createReactRoot](/static/images/reactStatic/reactRender/createReactRoot.png) 
+
 ![reactRoot](/static/images/reactStatic/reactRender/ReactRoot.png)
 createContainer根据当前的container信息来创建根容器.
-定位到packages/react-reconciler/src/ReactFiberReconciler.js
+定位到packages/react-reconciler/src/ReactFiberReconciler.js  
+
 ![createContainer](/static/images/reactStatic/reactRender/createContainer.png)
 定位到packages/react-reconciler/src/ReactFiberRoot.js(Fiber !!!!!!) 
 在createFiberRoot方法中,创建了根据当前的容器信息创建了FiberRoot并且创建了一个HostRootFiber进行相互引用.
+
 ![createFiberRoot](/static/images/reactStatic/reactRender/createFiberRoot.png)  
 ## ReactDOM.render()调用过程中的数据结构
 ![reactStruct](/static/images/reactStatic/reactRender/renderStruct.png)
 通过启动最开始create-react-app创建的项目,可以看到以下的输出.  
+
 ![showRenderStruct](/static/images/reactStatic/reactRender/showRenderStruct.png)
 ## 后记
 这篇文章只梳理了React在实际调用渲染函数之前的函数调用和数据结构.在这个过程中终于盼来了千呼万唤的fiber.之后的文章会继续深入react的渲染流程和fiber的实现来对react进行学习.

@@ -59,11 +59,11 @@ setState是SyncLanePriority优先级,在调度上就会通过微任务发起调�
 
 ### 图解setState更新逻辑
 假设我们在这样一个场景中在一个函数中连续调用的两次setState
+```javascript
 
-
-    this.setState({  })
-    this.setState({  })
-
+    this.setState({ name: 1 })
+    this.setState({ name: 2 })
+```
 #### 第一次调用
 在第一次调用setState的时候在fiber的根节点上创建了updateQueue添加此次的更新内容,通过微任务发起调度.
 ![setStateFirst](/static/images/reactStatic/setState/setStateFirst.png)

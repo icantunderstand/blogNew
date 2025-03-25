@@ -44,7 +44,7 @@ react的hooks在代码复用和赋予组件数据能力上都相对好用且轻�
     * 组件承接了较多的数据逻辑,这部分逻辑在组件维度上看很难集中管理,在涉及到数据需要共享等场景就需要对代码进行改造
 * 性能问题 过多的hooks意味着页面需要承载更多的计算执行逻辑,也许有时候你不需要hook  
 
-笔者在实际的项目中遇到过一个页面有10多个useState的页面,看起来真的很头大.我通过将组件拆分/相关state合并手段等,页面的重复渲染就下降了.
+笔者在实际的项目中遇到过一个页面有10多个useState的页面,看起来真的很头大.通过将组件拆分/相关state合并手段等,页面的重复渲染就下降了.
 在hooks地狱这个问题的解法上:
 * [react hooks过多,你需要这个eslint插件](https://icantunderstand.github.io/blogNew/blog/frontEndTool/eslitPlugin) 之前写过一个限制hooks数目的插件,可以在项目中尝试一下
 * 减少组件的数据逻辑,可以参考[对状态管理设计的一点思考](https://icantunderstand.github.io/blogNew/blog/react/store),用hooks去做可复用的能力和ui状态处理,数据逻辑通过全局的状态管理控制
@@ -64,8 +64,8 @@ react的hooks在代码复用和赋予组件数据能力上都相对好用且轻�
         </BContext>           
     </AContext>
 ```
-react提供的context是一种轻量级的状态管理方案,一般在使用方法通常是一个顶层的Context容器或者多层包裹的Context容器.Context方案
-会当相应Context更新时,订阅该Context的组件都会进行渲染.Context在重复渲染/变更逻辑回溯上有存在一定问题,不大推荐使用Context方案做数据管理.
+react提供的context是一种轻量级的状态管理方案,一般在使用方法通常是一个顶层的Context容器或者多层包裹的Context容器.Context
+在相应Context更新时,订阅该Context的组件都会进行渲染.Context在重复渲染/变更逻辑回溯上有存在一定问题,不大推荐使用Context方案做数据管理.
 
 ```javascript
     // useReducer例子
