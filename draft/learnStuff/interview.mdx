@@ -628,6 +628,134 @@ JavaScript使用Number类型表示数字(整数和浮点数)，遵循 IEEE 754 �
     }
 ```
 
+## curry函数
+```javascript
+  function curry(fn) {
+      return function curried(...args) {
+          // 如果参数够了，直接执行
+          if (args.length >= fn.length) {
+              return fn.apply(this, args);
+          }
+          
+          // 参数不够，返回新函数
+          return function(...moreArgs) {
+              return curried.apply(this, args.concat(moreArgs));
+          }
+      }
+  }
+```
+```javascript
+class RequestClient {
+    constructor() {
+        // 缓存存储
+        this.cache = new Map();
+        // 正在进行的请求
+        this.pendingRequests = new Map();
+    }
+
+    async request(url, options = {}) {
+        const cacheKey = this.getCacheKey(url, options);
+        
+        try {
+            // 1. 检查缓存是否有效
+            const cachedData = this.getCache(cacheKey);
+            if (cachedData) {
+                return cachedData;
+            }
+
+            // 2. 检查是否有相同的请求正在进行
+            if (this.pendingRequests.has(cacheKey)) {
+                return this.pendingRequests.get(cacheKey);
+            }
+
+            // 3. 发起新请求
+            const promise = this.fetchData(url, options, cacheKey);
+            // 将请求添加到pending列表
+            this.pendingRequests.set(cacheKey, promise);
+
+            const response = await promise;
+            return response;
+
+        } finally {
+            // 请求完成后，从pending列表中移除
+            this.pendingRequests.delete(cacheKey);
+        }
+    }
+
+    // 生成缓存key
+    getCacheKey(url, options) {
+        return `${options.method || 'GET'}-${url}-${JSON.stringify(options.body || '')}`;
+    }
+
+    // 获取缓存数据
+    getCache(key) {
+        const cached = this.cache.get(key);
+        if (!cached) return null;
+
+        // 检查缓存是否过期
+        if (cached.expires && Date.now() > cached.expires) {
+            this.cache.delete(key);
+            return null;
+        }
+
+        return cached.data;
+    }
+
+    // 设置缓存
+    setCache(key, data, ttl = 5 * 60 * 1000) { // 默认缓存5分钟
+        this.cache.set(key, {
+            data,
+            expires: Date.now() + ttl
+        });
+    }
+
+    // 实际发起请求
+    async fetchData(url, options, cacheKey) {
+        try {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // 缓存响应数据
+            this.setCache(cacheKey, data);
+            
+            return data;
+        } catch (error) {
+            // 请求失败时删除缓存
+            this.cache.delete(cacheKey);
+            throw error;
+        }
+    }
+
+    // 清除指定URL的缓存
+    clearCache(url) {
+        if (url) {
+            for (const key of this.cache.keys()) {
+                if (key.includes(url)) {
+                    this.cache.delete(key);
+                }
+            }
+        } else {
+            this.cache.clear();
+        }
+    }
+}
+```
+
+
+
+
+
 
     
 
