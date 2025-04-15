@@ -4,15 +4,15 @@ date: "2021-07-07"
 tags: ["crossPlatform"]
 ---
 
-Hybrid混合开发相对于单一的客户端开发有着开发周期短，迭代快的优势，但是Hybrid模式开发的页面存在着一定的缺陷，比如性能问题、缺乏客户端能力等。通过JSBridge这个桥梁可以实现客户端能力的打通，赋予了Hybrid应用更强的端能力。
+Hybrid混合开发相对于单一的客户端开发有着开发周期短,迭代快的优势,但是Hybrid模式开发的页面存在着一定的缺陷,比如性能问题、缺乏客户端能力等。通过JSBridge这个桥梁可以实现客户端能力的打通,赋予了Hybrid应用更强的端能力。
 ![JS](/static/images/crossPlatformStatic/jsBridge/JSBridge.png)  
-JSBridge作为客户端和H5的通信的桥梁，可以承接如下的能力:
-* 鉴权能力 JSBridge调用能力鉴权，白名单，黑名单等
-* 胶水能力 JSBridge兼容代码，做版本控制等调用透明
-* 测试能力 提供测试方法，方便测试
+JSBridge作为客户端和H5的通信的桥梁,可以承接如下的能力:
+* 鉴权能力 JSBridge调用能力鉴权,白名单,黑名单等
+* 胶水能力 JSBridge兼容代码,做版本控制等调用透明
+* 测试能力 提供测试方法,方便测试
 * Scope(配置)能力 能基于配置产出精简版、目标版本JSBridge
 
-下面以Android代码为例，介绍JSBridge的实现方式。
+下面以Android代码为例,介绍JSBridge的实现方式。
 ## Js调用Native
 Js调用Native通常有如下的方案:
 * 拦截请求(shouldOverrideUrlLoading/shouldInterceptRequest)
@@ -20,7 +20,7 @@ Js调用Native通常有如下的方案:
 * 客户端注入JSBridge(addJavascriptInterface)  
 
 ### 拦截请求
-在安卓初始化Wevview的时候可以设定WebViewClient，WebViewClient主要功能是处理Webview加载时的通知和请求事件等。通过重写WebViewClient的shouldOverrideUrlLoading/shouldInterceptRequest就可以实现拦截h5的请求从而实现端能力调用。
+在安卓初始化Wevview的时候可以设定WebViewClient,WebViewClient主要功能是处理Webview加载时的通知和请求事件等。通过重写WebViewClient的shouldOverrideUrlLoading/shouldInterceptRequest就可以实现拦截h5的请求从而实现端能力调用。
 实现思路如下:
 * 定义JSBridge实现Jsb方法
 * 定义JSBManager管理Jsb的调用
@@ -97,7 +97,7 @@ Js调用Native通常有如下的方案:
             // 调用JSBridge初始逻辑
             webViewClient.initJsb();
             WebView webView = (WebView) findViewById(R.id.webView);
-            // 设置WebViewClient处理webviewt通知，请求等
+            // 设置WebViewClient处理webviewt通知,请求等
             webView.setWebViewClient(webViewClient);
             // 开启调试功能
             webView.setWebContentsDebuggingEnabled(true);
@@ -142,9 +142,9 @@ Js调用Native通常有如下的方案:
 
 ![拦截请求实现调用](/static/images/crossPlatformStatic/jsBridge/overrideUrlCall.png)
 
-使用iframe发送消息的方式会存在消息丢失，参数限制等问题，可以通过消息队列和拦截shouldInterceptRequest方法来实现。
+使用iframe发送消息的方式会存在消息丢失,参数限制等问题,可以通过消息队列和拦截shouldInterceptRequest方法来实现。
 ### 拦截特定方法
-在初始化WebView的时候可以同步设置WebChromeClient，WebChromeClient主要是辅助WebView处理Js对话框，标题等操作，通过拦截WebChromeClient相应的方法同样可以实现调用端能力。 
+在初始化WebView的时候可以同步设置WebChromeClient,WebChromeClient主要是辅助WebView处理Js对话框,标题等操作,通过拦截WebChromeClient相应的方法同样可以实现调用端能力。 
 
 #### 实现WebChromeClient 
 
@@ -231,6 +231,6 @@ Nativa调用Js通常有如下的方案:
 ![evaluate调用js](/static/images/crossPlatformStatic/jsBridge/evaluateJS.png)
 
 ## 参考
-[小白必看，JSBridge 初探](https://www.zoo.team/article/jsbridge)
+[小白必看,JSBridge 初探](https://www.zoo.team/article/jsbridge)
 [跨端技能必备之JSBridge](https://juejin.cn/post/6844903840588759048)
 [从零开始写一个 JSBridge](https://juejin.cn/post/6844903856418062350)

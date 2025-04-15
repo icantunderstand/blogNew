@@ -15,7 +15,8 @@ javascript在创建执行上下文的时候,会对当前执行环境声明的变
 ```javascript
     console.log(a);// undefined
     var a = 0;
-    // let const与var的区别是在创建对应的之后环境的时候是let const不会为变量绑定初始值,var会绑定初始值(undefined),引用一个没有初始值的变量会报错
+    // 在创建执行环境的时候是let const不会为变量绑定初始值,var会绑定初始值(undefined)
+    // 引用一个没有初始值的变量会引用错误
     test();
     function test() { test2(); }
     function test2() { console.log(1); }
@@ -32,7 +33,8 @@ javascript在创建执行上下文的时候,会对当前执行环境声明的变
         Environment Record  // 用于初始化和存储当前上下文声明的函数声明,变量
         outer LexicalEnvironment  // 用于从外部的作用域查找标识符(作用域链)
       }
-      VariableEnvironment: {} // VariableEnvironment和LexicalEnvironment是相似的概念下面会单独进行讲解
+      VariableEnvironment: {} 
+      // VariableEnvironment和LexicalEnvironment是相似的概念下面会单独进行讲解
     }
 ```
 ### this
@@ -89,7 +91,7 @@ VariableEnvironment是创建执行上下文的时候进行变量的初始化绑�
 ### 理解闭包
 当前的函数存在对外部作用域变量的访问会形成闭包.闭包保存的是生成闭包时候的执行上下文的LexicalEnvironment.
 (Closure is when a function remembers and accesses variables from outside of its own scope, even when that function is executed in a different scope.)
-## 参考   
+## 参考 
 [VariableEnvironment和LexicalEnvironment的区别](https://stackoverflow.com/questions/15031667/clarity-on-the-difference-between-lexicalenvironment-and-variableenvironment)  
 [lexical-environments-ecmascript-implementation](http://dmitrysoshnikov.com/ecmascript/es5-chapter-3-2-lexical-environments-ecmascript-implementation/)  
 [ECMAScript2017](https://www.ecma-international.org/ecma-262/8.0/index.html#sec-intro)  

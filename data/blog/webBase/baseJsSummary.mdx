@@ -629,6 +629,34 @@ const targetNode = document.querySelector('#target');
 observer.observe(targetNode, config);
 ```
 
+## PerformanceObserver
+PerformanceObserver用于监听页面性能指标 
+```javascript
+// 创建性能观察器
+const observer = new PerformanceObserver((list) => {
+    // 获取性能条目
+    const entries = list.getEntries();
+    entries.forEach(entry => {
+        console.log('性能条目:', {
+            name: entry.name,
+            entryType: entry.entryType,
+            startTime: entry.startTime,
+            duration: entry.duration
+        });
+    });
+});
+// 开始观察
+observer.observe({ 
+    entryTypes: [
+        'resource',      // 资源加载
+        'navigation',    // 页面导航
+        'paint',         // 绘制时间
+        'largest-contentful-paint', // 最大内容绘制
+        'first-input',   // 首次输入延迟
+        'layout-shift'   // 累积布局偏移
+    ] 
+});
+```
 ## script脚本
 async  异步下载 下载后立即执行
 defer  异步下载 下载后等html解析完毕后执行

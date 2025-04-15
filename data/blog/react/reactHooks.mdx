@@ -62,7 +62,9 @@ mountState主要做了:
 #### update阶段源码分析
 在使用useState返回的回调触发页面更新的时候是调用的[dispatchAction函数](https://github.com/facebook/react/blob/1d1e49cfa453b58769e87c3c8d321024d58c948f/packages/react-reconciler/src/ReactFiberHooks.new.js#L1901)  
 ![dispatchAction代码逻辑](/static/images/reactStatic/reactHooks/dispatchAction.png)  
-在组件更新执行到对应的函数组件的时候,会执行对应hook的update阶段对应的hook逻辑.useState对应的就是[updateState](https://github.com/facebook/react/blob/1d1e49cfa453b58769e87c3c8d321024d58c948f/packages/react-reconciler/src/ReactFiberHooks.new.js#L1262).从updateState的代码可以看出useState底层是使用的useReducer代码逻辑.这样具体的更新逻辑就在[updateReducer](https://github.com/facebook/react/blob/1d1e49cfa453b58769e87c3c8d321024d58c948f/packages/react-reconciler/src/ReactFiberHooks.new.js#L710)中了!!!
+在组件更新执行到对应的函数组件的时候,会执行对应hook的update阶段对应的hook逻辑.useState对应的就是[updateState](https://github.com/facebook/react/blob/1d1e49cfa453b58769e87c3c8d321024d58c948f/packages/react-reconciler/src/ReactFiberHooks.new.js#L1262).
+从updateState的代码可以看出useState底层是使用的useReducer代码逻辑.这样具体的更新逻辑就在[updateReducer](https://github.com/facebook/react/blob/1d1e49cfa453b58769e87c3c8d321024d58c948f/packages/react-reconciler/src/ReactFiberHooks.new.js#L710)中了!!!
+
 ![dispatchAction代码逻辑](/static/images/reactStatic/reactHooks/updateReducer.png)   
 updateReducer主要逻辑如下:
 1. 根据fiber上存储的hook链表获取到当前的hook,hook的更新queue

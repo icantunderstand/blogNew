@@ -12,45 +12,46 @@ tags: ["React"]
 ## 单页应用/多页应用
 | 对比 | 单页应用 | 多页应用 |
 | ------ | ------ | ------ | 
-| 优点 | 页面切换快，当前页面刷新  | 利于SEO |
-| 缺点 | 不利于SEO，需要做服务端路径处理和应用内前进后退逻辑 | 切页需要重新加载资源，有卡顿空白的问题 |
+| 优点 | 页面切换快,当前页面刷新  | 利于SEO |
+| 缺点 | 不利于SEO,需要做服务端路径处理和应用内前进后退逻辑 | 切页需要重新加载资源,有卡顿空白的问题 |
  
 ## 前端架构模型(MVC/MVP/MVVM)
 
 ### MVC 
 #### 客户端MVC  
 ![客户端mvc](/static/images/reactStatic/reactBase/mvc.png)  
-1. 用户操作视图后，调用Controller接口发起数据更新
-2. Controller调用Model接口做数据变更，Model发起数据变更通知
-3. 数据监听数据变更通知，完成页面更新
+1. 用户操作视图后,调用Controller接口发起数据更新
+2. Controller调用Model接口做数据变更,Model发起数据变更通知
+3. 数据监听数据变更通知,完成页面更新
 
 #### 服务端MVC
 ![服务端mvc](/static/images/reactStatic/reactBase/serverMvc.png)  
 1. 用户发起页面请求
-2. 服务端根据路由规则把请求交给特定的Controller处理，Controller完成数据的组合和页面模版渲染
-3. 服务端将渲染结果返回给客户端，客户端完成页面的渲染
+2. 服务端根据路由规则把请求交给特定的Controller处理,Controller完成数据的组合和页面模版渲染
+3. 服务端将渲染结果返回给客户端,客户端完成页面的渲染
 
 ### MVP(Model-View-Presenter)  
 ![mvp](/static/images/reactStatic/reactBase/mvp.png)  
-1. 用户操作页面，调用Presenter
+1. 用户操作页面,调用Presenter
 2. Presenter直接调用Model接口更新数据
 3. Model更新后通过观察者模式通知Presenter
 4. Presenter接受更新通知后调用View接口更新视图
 
 ### MVVM(Model-View-ViewModel)   
 ![mvvm](/static/images/reactStatic/reactBase/mvvm.png)  
-1. 用户操作页面，调用ViewModel更新Model
+1. 用户操作页面,调用ViewModel更新Model
 2. Model更新触发ViewModel更新
-3. ViewModel和View有双向绑定，视图自动更新
+3. ViewModel和View有双向绑定,视图自动更新
 
 ## react diff
 react的diff策略基于以下三点:
 * DOM节点的跨层级移动操作较少
-* 相同类型组件有相同的DOM结构，不同类型的组件有不同的DOM结构
-* 对于同一层级的一组子节点，可以通过唯一id进行区分
-对于以上三点，有以下的更新策略
+* 相同类型组件有相同的DOM结构,不同类型的组件有不同的DOM结构
+* 对于同一层级的一组子节点,可以通过唯一id进行区分  
+
+对于以上三点,有以下的更新策略
 * tree diff 对虚拟Dom分层diff,不存在直接删除不考虑移动的复用
-* component diff  不同类型组件直接替换，同类型组件可以通过组件的属性变化来判断是否需要更新
+* component diff  不同类型组件直接替换,同类型组件可以通过组件的属性变化来判断是否需要更新
 * element diff React提供了三种节点操作：插入(INSERT_MARKUP)/移动(MOVE_EXISTING)/删除(REMOVE_NODE)来达到同类型子节点复用的目的
 ![element diff](/static/images/reactStatic/reactBase/elementDiff.png) 
 
@@ -59,8 +60,8 @@ react的diff策略基于以下三点:
 reconciler分为render阶段和commit阶段
 * 任务调度-scheduler阶段  
 * render阶段利用已有的fiber tree生成workInprogressFiber render阶段可以被高优先打断
-* commit阶段是更新阶段，将render阶段需要更新的操作执行，commit阶段有三个主要阶段钩子
-    1. before mutation-执行DOM操作前执行，会执行getSnapshotBeforeUpdate/componentDidUpdate
+* commit阶段是更新阶段,将render阶段需要更新的操作执行,commit阶段有三个主要阶段钩子
+    1. before mutation-执行DOM操作前执行,会执行getSnapshotBeforeUpdate/componentDidUpdate
     2. mutation-执行DOM操作
     3. layout阶段(执行DOM操作之后) 尺寸变化会触发页面重排
 

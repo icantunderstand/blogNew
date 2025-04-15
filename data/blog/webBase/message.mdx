@@ -12,7 +12,7 @@ tags: ["JavaScript"]
 ```javascript
     otherWindow.postMessage(message, targetOrigin, [transfer]);
 ```
-* otherWindow 其他窗口的引用，比如iframe的contentWindow、执行window.open的返回的窗口对象、window.parent获取的父窗口对象。利用window.open返回的窗口对象可以实现跟新窗口的通信
+* otherWindow 其他窗口的引用,比如iframe的contentWindow、执行window.open的返回的窗口对象、window.parent获取的父窗口对象。利用window.open返回的窗口对象可以实现跟新窗口的通信
 * message 需要发送的数据，它会被结构化克隆算法序列化,无法被结构化克隆的数据会导致异常或者丢失属性，比如函数/原型链的丢失等
 * targetOrigin 指定哪些源可以接收数据，这里就可以实现跨源的通信和安全控制
 * transfer 可选的[Transferable](https://developer.mozilla.org/zh-CN/docs/Web/API/Web_Workers_API/Transferable_objects)对象
@@ -44,7 +44,7 @@ tags: ["JavaScript"]
     });
 ```
 ## 浏览器不同tab间通信
-跨tab通信有可能涉及到不同tab的数据同步逻辑，是一个相对常见的场景
+跨tab通信有可能涉及到不同tab的数据同步逻辑,是一个相对常见的场景
 ### [localStorage](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/postMessage)
 sessionStrage在chrome中打开同源的tab时候不会共享sessionStorage,所以主要介绍localStorage的实现方案.localStorage是在同域名下共享的浏览器存储，在同域的不同tab下监听localStorage的storage事件就可以实现跨tab通信
 ```javascript
@@ -53,6 +53,7 @@ sessionStrage在chrome中打开同源的tab时候不会共享sessionStorage,所�
 
     // 第二个标签页也打开当前页面 监听 storage 事件 接收其他标签页的数据
     window.addEventListener('storage', function(event) {
+        // event上有key-存储的键值  newValue-修改后的新值  oldValue-修改前的旧值 
         if (event.key === 'message') {
             console.log('Received message in Tab 1:', event.newValue);
         }
@@ -75,7 +76,7 @@ sessionStrage在chrome中打开同源的tab时候不会共享sessionStorage,所�
         console.log("Message from server ", event.data);
     });
 ```
-使用websocket这种方案相对重，除非已有websocket长连接并且需要考虑websocket的断连造成的通信失败
+使用websocket这种方案相对重,除非已有websocket长连接并且需要考虑websocket的断连造成的通信失败
 ### [BroadcastChannel](https://developer.mozilla.org/zh-CN/docs/Web/API/BroadcastChannel)  
 BroadcastChannel可以做到同源窗口间的通信能力.它基于发布-订阅的模式实现消息通知。
 ```javascript

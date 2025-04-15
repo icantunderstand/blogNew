@@ -42,7 +42,8 @@ tags: ["engineering"]
 ##### 加快编译速度
 可以使用happyPack加快编译速度,happyPack通过多进程的方式来加快代码的打包过程.
 使用happyPack的例子:
-![happyPack](/static/images/javascriptBaseStatic/isomorphism/happy1.png)
+![happyPack](/static/images/javascriptBaseStatic/isomorphism/happy1.png)  
+
 ![happyPack](/static/images/javascriptBaseStatic/isomorphism/happy2.png)  
 
 ### 资源匹配
@@ -50,18 +51,19 @@ tags: ["engineering"]
 可以通过webpack-manifest-plugin生成资源的位置信息文件,然后通过该文件查找资源的位置.
 资源位置文件
 ![manifest](/static/images/javascriptBaseStatic/isomorphism/manifest1.png)
-通过manifest查找资源的位置
+通过manifest查找资源的位置  
+
 ![manifest](/static/images/javascriptBaseStatic/isomorphism/manifest2.png)
 #### data
 1. server端执行匹配到组件的获取数据的方法(返回promise),primose执行完毕获取到最新的数据储存.将数据通过脚本挂载到window上的属性上.
 2. client端通过window属性的获取,生成存储数据.
 服务端获取数据和注入数据
 ![serverStore](/static/images/javascriptBaseStatic/isomorphism/serverStore.png)
-client端提取数据
+client端提取数据  
+
 ![clientStore](/static/images/javascriptBaseStatic/isomorphism/clientStore.png) 
 
 ## 扩展性
-
 ### 配置单页是否支持服务端渲染
 通过中间项配置是否支持服务端渲染
 ![configServerRender](/static/images/javascriptBaseStatic/isomorphism/configServerRender.png)
