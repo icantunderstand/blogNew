@@ -5,7 +5,7 @@ tags: ["React"]
 ---
 
 React可以通过Context来解决跨组件的属性共享问题,但是Context方案会存在性能问题,Context更新会触发使用该Context的组件渲染.
-React有过[Context selectors](https://github.com/reactjs/rfcs/pull/119)的提案,use-context-selector就通过实现Context selectors
+React提出过[Context selectors](https://github.com/reactjs/rfcs/pull/119)的提案,use-context-selector就通过实现Context selectors
 来解决Context的性能问题.
 ## use-context-selector简单使用
 ```javascript
@@ -47,8 +47,7 @@ React有过[Context selectors](https://github.com/reactjs/rfcs/pull/119)的提�
         </StateProvider>
     );
 ```
-在上面的例子中Context的value是一个useState的返回值,这里就留下一个疑问,use-context-selector是订阅更新的呢,也就是只有通过useContextSelector获取
-了相应的属性才更新.
+在上面的例子中Context的value是一个useState的返回值,这里就留下一个疑问,use-context-selector是如何实现订阅更新的呢??!!
 ## use-context-selector原理
 ![use-context-selector前后对比](/static/images/reactStatic/reactContextSelector/struct.jpg)  
 react的context方案中,子组件通过useContext获取Context的值和触发更新.Context的值变化的时候会触发所有使用该Context组件的更新.
