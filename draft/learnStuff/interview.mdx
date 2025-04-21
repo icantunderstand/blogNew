@@ -394,7 +394,7 @@ categories:
                 clearTimeout(timeout);
             };
             // 定义全局回调函数
-            window[opts.callbackName] = (data) => {
+            window[callbackName] = (data) => {
                 cleanup();
                 resolve(data);
             };
