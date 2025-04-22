@@ -81,8 +81,6 @@ tags: ["engineering"]
       // 判断是资源加载异常 比如event上存在tagName
       // 进行上报
    }, true)
-   // 上报当前资源加载数据
-   processResourcePerformance(performance);
    // 创建一个PerformanceObserver并指定处理函数processResourcePerformance
    const observer = new PerformanceObserver(r => processResourcePerformance(r));
    // PerformanceObserver指定监听resource 资源
