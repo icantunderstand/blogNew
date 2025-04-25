@@ -26,8 +26,7 @@ tags: ['JavaScript']
 * 构建资源映射表 包含所有资源的路径清单 用于异步加载
 
 ## Loader
-loader可以将不同类型的文件转换成JavaScript模块
-webpack只能处理js模块代码,Loader可以将非js文件类型的文件转化成js进行后续的打包逻辑
+将各种类型的文件转换成 Webpack 可以处理的模块
 
 ### Loader的执行顺序
 
@@ -38,11 +37,6 @@ Loader是通过数组进行配置的,loader-runner会从配置的末尾依次执
 
 [a,b,c] 如果b loader的pitch返回了结果  
 ![stopPitch](/static/images/frontEndToolStatic/webpack/stopPitch.png)  
-
-1. pitch能对loader进行顺序调整
-2. loader协同工作
-3. 请求重写 pitch可以返回新的请求,从而修改模块的请求
-4. 支持异步 
 
 ### Loader开发
 * this.callback 一个可以同步或者异步调用的可以返回多个结果的函数
@@ -82,12 +76,12 @@ Loader是通过数组进行配置的,loader-runner会从配置的末尾依次执
     };
 ```
 ## Plugin
-Plugin主要职责 基于webpack构建的hooks来增强构建能力
+基于webpack构建的hooks来增强构建能力
 
 ### 开发plugin
 * 插件必须是一个函数或者一个包含apply方法的对象
 * 传递给插件的compiler和compilation对象是同一个引用,修改对应的对象会对后面的插件有影响
-* 异步事件需要插件调用回调函数通知webpack进入下一个流程(会阻塞)
+* 异步事件需要插件调用回调函数通知webpack进入下一个流程(同步钩子会阻塞编译,异步钩子不会阻塞编译)
 ```javascript
       // 同步钩子
       class MyPlugin {
