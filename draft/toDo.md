@@ -46,6 +46,12 @@ server actions
 
 关键指标  todo
 
+mcp怎么个流程
+如何流式渲染
+
+
+
+
 
 
 
