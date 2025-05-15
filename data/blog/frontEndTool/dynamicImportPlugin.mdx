@@ -1,0 +1,155 @@
+---
+title: 如何设计一个模块动态加载功能
+date: '2025-05-15'
+tags: ['engineering']
+---
+
+在工程领域,工程师似乎经历了这样的变化
+
+- 人工时代
+- 工具时代
+- 工程时代
+- 智能(AI)时代
+
+在人工时代,大部分工作都是Pro Code方式完成.
+![Pro Code](/static/images/frontEndToolStatic/buildImport/proCode.jpg)  
+在上面的两个模块中,可以看到它们是有相似的功能的.但是在实现上会偏重复的方式实现,这个时候对工程师的数量需求很大,对工程师的'能力'要求低.
+这里的'能力'是指解决复杂场景或者提效的能力.  
+在工具时代,我们会抽象工具,帮助实现提效/复用/约束等目的.这个时候对工程师的能力就需要对业务有理解能力.
+
+![Tool Code](/static/images/frontEndToolStatic/buildImport/tool.jpg)  
+工程时代我们似乎已经走到了尾声,现在正在处于一个工程时代向智能时代的过渡阶段.在工程时代,工程师需要从工程架构上去解决业务问题.
+
+![Engineer Code](/static/images/frontEndToolStatic/buildImport/engineer.jpg)  
+在这个过渡阶段,理解工具/工程还是有很大意义.在理解工具或者工程的组织方式的基础上,才能更好的利用AI实现对应的功能.
+
+---
+
+## 此处是正文分割线
+
+回归到标题,模块的动态加载功能是前端比较常见的场景,通过动态加载的方式可以减少主bundle的体积从而一定程度上提升页面加载速度.从手动的指定模块动态加载
+到自动化实现模块的自动加载可以看做是靠近智能化的'一小步'.下面我们就看看如何在项目中实现模块的动态加载.
+
+## 模块自动动态引入
+
+在webpack的编译过程中,会给我们暴露一些钩子,通过监听对应的钩子就可以影响编译内容的产生.在实现模块自动动态引入这个功能,可以通过监听钩子自动的在对应的
+目录下生成内容,从而完成自动动态引入.
+
+![生成引入](/static/images/frontEndToolStatic/buildImport/generateImport.jpg)
+
+```javascript
+class ModalMapPlugin {
+  apply(compiler) {
+    compiler.hooks.afterPlugins.tap('ModalMapPlugin', () => {
+      // 监听afterPlugins钩子回调
+      const modalMap = {}
+      const modalsDir = path.resolve(process.cwd(), 'src/Modal')
+      function scanDir(dir) {
+        try {
+          const files = fs.readdirSync(dir)
+          // 扫描对应的目录并且生成动态引入内容
+          files.forEach((file) => {
+            const fullPath = path.join(dir, file)
+            const stat = fs.statSync(fullPath)
+            if (stat.isDirectory()) {
+              const indexPath = path.join(fullPath, 'index.tsx')
+              if (fs.existsSync(indexPath)) {
+                const relativePath = path.relative(modalsDir, fullPath)
+                const componentName = relativePath.split(path.sep)[0]
+                modalMap[componentName] =
+                  `React.lazy(() => import('@/Modal/${componentName}/index.tsx'))`
+              }
+            }
+          })
+        } catch (error) {
+          console.error('扫描目录出错:', error)
+        }
+      }
+      try {
+        scanDir(modalsDir)
+        // 生成动态引入内容
+        const content = `
+          import React from 'react';
+          export const modalComponentMap = {
+            ${Object.entries(modalMap)
+              .map(([key, value]) => `"${key}": ${value}`)
+              .join(',\n  ')}
+          };`
+        // 生成类型定义内容
+        const typeContent = `import { LazyExoticComponent } from 'react';
+      export type ModalComponentType = ${Object.keys(modalMap)
+        .map((key) => `"${key}"`)
+        .join(' | ')};
+        export const modalComponentMap: Record<ModalComponentType, LazyExoticComponent<any>>;`
+        // 确保输出目录存在
+        const outputDir = path.resolve(process.cwd(), 'src/utils')
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true })
+        }
+        // 写入 JS 文件
+        const outputPath = path.join(outputDir, 'modalMap.js')
+        fs.writeFileSync(outputPath, content)
+        // 写入类型定义文件
+        const typeOutputPath = path.join(outputDir, 'modalMap.d.ts')
+        fs.writeFileSync(typeOutputPath, typeContent)
+      } catch (error) {
+        console.error('生成映射文件出错:', error)
+      }
+    })
+  }
+}
+```
+
+## 防劣化设计
+
+### 类型
+
+在生成动态引入的时候同时生成了类型,这样在使用的时候错误的类型就会报ts的类型错误
+
+```javascript
+import { LazyExoticComponent } from 'react';
+export type ModalComponentType = "AAModal" | "testModal";
+export const modalComponentMap: Record<ModalComponentType, LazyExoticComponent<any>>;
+```
+
+### 引用方式限制
+
+如果对应目录下的包通过直接引用的方式还是会被打进主包,可以通过增加eslint的rules来解决
+
+```javascript
+    rules: {
+    'no-restricted-imports': ['warn', {
+      patterns: [{
+        group: ['**/Modal/*'],
+        message: '请使用 React.lazy 懒加载 Modal 组件，例如：\nconst Component = React.lazy(() => import("@/Modal/Component"));'
+      }]
+    }],
+  }
+```
+
+## 使用
+
+在使用上可以通过Suspense包裹对应的组件,数据可以通过自定义事件或者props的方式传递
+
+```javascript
+// 使用方式
+const App = () => {
+  const [showModal, setShowModal] = useState(false)
+  const ModalComponent = modalComponentMap['AsModal']
+  return (
+    <div>
+      <button onClick={() => setShowModal(true)}>打开弹窗</button>
+
+      {showModal && (
+        <Suspense fallback={<div>加载中...</div>}>
+          {/* @ts-ignore */}
+          <ModalComponent isOpen={showModal} onClose={() => setShowModal(false)} />
+        </Suspense>
+      )}
+    </div>
+  )
+}
+```
+
+在调用的时候,动态加载了对应的模块  
+![引用结果](/static/images/frontEndToolStatic/buildImport/importResult.png)
