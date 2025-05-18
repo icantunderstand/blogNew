@@ -1,0 +1,88 @@
+---
+title: AI探秘-大模型流式输出是如何实现的
+date: "2025-05-12"
+tags: ["AI"]
+---
+
+作为一个工程师,AI正在极大程度的改变我的工作或者生活方式.在相对多的使用AI工具的同时AI对我还是个犹抱琵琶半遮面的感觉.这个系列主要从AI的一些
+小的知识点来了解AI相关技术实现.
+
+在使用大模型的时候,产生的内容通常会以流式的方式输出.像下面的形式  
+![内容输出](/static/images/aiStatic/contentOut.gif)  
+
+在之前的文章中[一文搞懂服务端推送](https://icantunderstand.github.io/blogNew/blog/webBase/serverToClient),梳理了几种
+服务端推送技术:
+* Server-Sent Events(SSE)
+* WebSocket
+* Long polling
+* http2服务端推送
+大模型在生成内容的时候,需要有服务端的推送能力将内容反馈给请求方,这里就需要使用一些服务端推送技术.在上面的方案中只有Server-Sent Events(SSE)和
+WebSocket可以实现这样的功能.但是Server-Sent Events(SSE)似乎更加轻量,笔者在使用豆包网页版的时候发现它就是基于SSE实现的内容交互.  
+![豆包](/static/images/aiStatic/doubao.png)  
+下面就通过demo的方式来实现一个基于SSE的流式输出展示
+
+
+## 服务端实现
+下面的代码是在nestjs框架中实现的,它定义了一个/travel-plan的路由,实现主要有如下:
+* 设置SSE头
+* 模拟大模型访问多个MCP服务生成内容
+* 按照SSE的格式将内容输出
+
+```typescript
+  @Get('travel-plan')
+  async streamTravelPlan(@Res() res: Response) {
+    // 设置SSE头
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    try {
+      // 这里可以模拟大模型访问多个MCP服务生成内容
+      const schedule = await this.getScheduleService();
+      await this.streamText(schedule, res, 50);
+      const tips = await this.getTipsService();
+      await this.streamText(tips, res, 50);
+      res.end();
+    } catch (error) {
+      res.write(`data: 获取旅游规划失败，请稍后重试\n\n`);
+      res.end();
+    }
+  }
+
+  // 流式输出文本的辅助函数
+  private async streamText(text: string, res: Response, timeout: number = 50) {
+    const chars = text.split('');
+    for (const char of chars) {
+     // SSE需要满足特定的格式 消息之间需要用\n\n分割
+      res.write(`data: ${char}\n\n`);
+      await new Promise(resolve => setTimeout(resolve, timeout));
+    }
+  }
+```
+
+## 网页端实现
+网页端其实就是将SSE输出的内容展示出来,当然这里应该还需要一些重连等相关逻辑.
+```javascript
+    const eventSource = new EventSource('http://localhost:3001/travel-plan');
+    eventSource.onmessage = (event) => {
+      // 将后面的内容追加到之前的内容后面
+      setContent(prev => prev + event.data);
+    };
+    eventSource.onerror = () => {
+      eventSource.close();
+      setIsLoading(false);
+    };
+```
+这样就实现了一个基于SSE的流式渲染输出
+![demo输出](/static/images/aiStatic/demoOut.gif) 
+
+
+
+
+
+
+
+
+
+
+
+
