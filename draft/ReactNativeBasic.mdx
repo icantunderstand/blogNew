@@ -1,84 +1,37 @@
 ---
-title: React Native学习记录
-date: "2024-06-11"
-tags: ["crossPlatform"]
+title: 跨端技术整理
+date: '2024-06-11'
+tags: ['crossPlatform']
 ---
 
 ## react native架构
 
 ### react native旧架构的问题
+
 原有的架构下js侧和native侧通过Bridge(桥)来实现通信。桥有一些固有的限制:
-* 异步 
-* 单线程 js是单线程的,在js侧的计算也是在单线程中进行
-* 带来了额外的开销 需要进行数据序列化
+
+- 异步
+- 单线程 js是单线程的,在js侧的计算也是在单线程中进行
+- 带来了额外的开销 需要进行数据序列化
+
 ### react native新架构
-* JavaScript层引入JSI(JavaScript Interface),JSI作为JSC上一层的抽象可以实现引擎的替换,JavaScript拥有了持有C++对象引用的能力,从而实现直接调用Native代码
-* Turbo Modules 新的模块系统 - 通过JSI通信/可异步加载/类型
-* Fabric 新的渲染器
+
+- JavaScript层引入JSI(JavaScript Interface),JSI作为JSC上一层的抽象可以实现引擎的替换,JavaScript拥有了持有C++对象引用的能力,从而实现直接调用Native代码
+- Turbo Modules 新的模块系统 - 通过JSI通信/可异步加载/类型
+- Fabric 新的渲染器
 
 ## react native交互的线程
-* UI Thread: Android/iOS(或其它平台)应用中的主线程
-* Shadow Thread:进行布局计算和构造 UI 界面的线程
-* JS Thread:React 等 JavaScript 代码都在这个线程执行
-* Native Modules 线程
 
-## react native启动流程
-1. 加载JavaScript代码
-2. 初始化Native Modules: 根据Native Module注册信息，加载并实例化所有Native Module.
-3. 创建Module配置表,注入Native Module信息
-4. 初始化JSCExector(JS执行引擎)
-5. 执行JS Bundle代码
+- UI Thread: Android/iOS(或其它平台)应用中的主线程
+- Shadow Thread:进行布局计算和构造 UI 界面的线程
+- JS Thread:React 等 JavaScript 代码都在这个线程执行
+- Native Modules 线程
 
+## lynx
 
-## FlatList
-FlatList通过预渲染和可视区域渲染的方案,来降低列表渲染时候的内存占用从而提升页面的性能.下面从FlatList的基础使用来逐渐展开.
-
-### 基本使用
-```javascript
-    renderItem = ({ item, index }) => {
-      return <View><Text style={{ color: 'white' }}>{item.name}</Text></View>
-    }
-    render() {
-      return (
-        <FlatList
-          data={[{ name: 'a' }, { name: 'b' }, { name: 'c' }, { name: 'd' }]}
-          renderItem={this.renderItem}
-          keyExtractor={item => `${item.name}`}
-        />
-      )
-    }
-```
-在上面的例子中通过设置data, renderItem(条目渲染函数)就完成了列表的渲染功能
-### 结构
-FlatList数据渲染的原理是通过数据项和底层容器ScrollView的布局事件计算出需要渲染的条目,在滚动过程中动态的更新渲染条目来完成列表的绘制.FlatList渲染的内部结构如下:
-![listSection](/static/images/crossPlatformStatic/reactNativeStatic/flatList.png)  
-
-### FlatList性能优化
-
-#### 减少更新时列表项总体数目和条目的重渲染,
-1. 列表条目使用PureComponent或者shouldComponentUpdate来减少条目的更新. 
-2. 调整windowSize大小(默认是21)
-3. 调整maxToRenderPerBatch的大小,控制每次更新的最大条目  
-
-#### 减少内存的占用
-1. 减少匿名函数的使用
-2. 列表条目的渲染逻辑尽量简单
-
-#### 减少渲染过程中的计算
-1. 使用getItemLayout减少列表条目的计算过程
-2. 调整滚动事件的触发频次(scrollEventThrottle)
-3. 在列表项中合理的使用缓存
-4. 渲染过程中减少与Native通信过程,可以使用InteractionManager优化
-
+## 编译方案
 
 ## 参考
 
-[React Native架构演进](http://www.ayqy.net/blog/react-native-new-architecture/) 
-[为何要设计新架构](https://reactnative.cn/docs/the-new-architecture/why) 
-
-
-
-
-
-
-
+[React Native架构演进](http://www.ayqy.net/blog/react-native-new-architecture/)
+[为何要设计新架构](https://reactnative.cn/docs/the-new-architecture/why)
