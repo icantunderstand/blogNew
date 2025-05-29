@@ -1,0 +1,138 @@
+---
+title: 原子化状态管理方案-jotai
+date: '2025-05-26'
+tags: ['React']
+---
+
+在之前的[Form表单方案思考](https://icantunderstand.github.io/blogNew/blog/frontEndTool/formSummary)中,在实现表单方案上有一些思考:
+
+- 功能字段原子化
+- 设计生命周期能力
+- 结合当前业务情况去选型
+
+在原子能力的理解上,原子是最小化的单元模块.它包含极简的功能,通过原子的组合(派生)来组合出更加复杂的功能模版.原子模块在复用性和功能扩展性上有一定的优势.
+jotai就是一种基于原子能力设计的状态管理方案.下面从jotai的简单使用入手进而梳理jotai的实现原理.在文末会与其他状态管理方案对比总结.
+
+## 前置知识
+
+### [WeakMap](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap)
+
+在jotai中,使用[WeakMap](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap)来做store数据
+的存储.WeakMap的键值只能是对象或者非全局的Symbol对象,并且对对象的引用是弱引用,不能阻止垃圾回收机制.
+
+## jotai的简单使用
+
+```JavaScript
+    // 定义一个atom值
+    const countAtom = atom(0)
+    export default function Home() {
+    // 使用useAtom来获取atom值 相当于useState 在值变化的时候会自动触发组件渲染
+        const [count, setCount] = useAtom(countAtom)
+        return (
+            <div
+                onClick={() => setCount(count + 1)}
+            >
+            {count}
+            </div>
+        )
+    }
+```
+
+## jotai的实现原理
+
+```JavaScript
+    const countAtom = atom(0)
+    const doubledCountAtom = atom((get) => get(countAtom) * 2)
+    const store = getDefaultStore()
+    store.set(countAtom, 10)
+    const value = store.get(doubledCountAtom)
+    // value = 20
+```
+
+上面的例子中基础的atom值countAtom、派生atom值doubledCountAtom,通过store的方式设置countAtom的值,最后发现派生的doubledCountAtom值也发生了
+变化.下面就从这个例子出发了解jotai的值创建逻辑、更新逻辑的实现,最后看下jotai是如何与react结合实现组件的更新的.
+
+### 值的创建
+
+```JavaScript
+    // 创建atom值的入口函数
+    // 通过函数重载 可以让他实现多种功能 比如实现派生的
+    export function atom<Value, Args extends unknown[], Result>(
+        read?: Value | Read<Value, SetAtom<Args, Result>>,
+        write?: Write<Args, Result>,
+    ) {
+        // atom的唯一标识,在值更新依赖追踪都有用
+        const key = `atom${++keyCount}`
+        const config = {
+            toString() {
+            return import.meta.env?.MODE !== 'production' && this.debugLabel
+                ? key + ':' + this.debugLabel
+                : key
+            },
+        } as WritableAtom<Value, Args, Result> & { init?: Value | undefined }
+        // read是函数时候处理逻辑 派生处理
+        if (typeof read === 'function') {
+            config.read = read as Read<Value, SetAtom<Args, Result>>
+        } else {
+            // 普通方式 处理逻辑
+            config.init = read
+            config.read = defaultRead
+            config.write = defaultWrite as unknown as Write<Args, Result>
+        }
+        // 写派生处理逻辑
+        if (write) {
+            config.write = write
+        }
+        return config
+    }
+```
+
+```JavaScript
+    // 省略若干代码
+    // 创建store的函数功能
+    const store: Store = {
+        // 获取atom值
+        get: (atom) => returnAtomValue(readAtomState(atom)),
+        // 设置atom值
+        set: (atom, ...args) => {
+            try {
+                return writeAtomState(atom, ...args)
+            } finally {
+                // 依赖更新处理逻辑
+                recomputeInvalidatedAtoms()
+                flushCallbacks()
+            }
+        },
+        // 订阅atom值
+        sub: (atom, listener) => {
+            const mounted = mountAtom(atom)
+            const listeners = mounted.l
+            listeners.add(listener)
+            flushCallbacks()
+            return () => {
+                listeners.delete(listener)
+                unmountAtom(atom)
+                flushCallbacks()
+            }
+        },
+    }
+    Object.defineProperty(store, BUILDING_BLOCKS, { value: buildingBlocks })
+    return store
+```
+
+### 更新逻辑
+
+### 跟react的结合实现实现组件更新
+
+## jotai实现上的一些思考
+
+原子化 从下到上
+WeakMap  
+函数重载
+解耦 readAtomState/writeAtomState 处理更新的时机
+INTERNAL_overrideCreateStore 测试能力 升级能力
+atom interceptors
+
+## 参考
+
+[deepwiki-jotai](https://deepwiki.com/pmndrs/jotai)
