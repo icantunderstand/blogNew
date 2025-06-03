@@ -1,6 +1,6 @@
 ---
 title: 原子化状态管理方案-jotai
-date: '2025-05-26'
+date: '2025-06-03'
 tags: ['React']
 ---
 
@@ -45,8 +45,10 @@ jotai就是一种基于原子能力设计的状态管理方案.下面从jotai的
     const doubledCountAtom = atom((get) => get(countAtom) * 2)
     const store = getDefaultStore()
     store.set(countAtom, 10)
-    const value = store.get(doubledCountAtom)
+    const doubledCountAtomValue = store.get(doubledCountAtom)
     // value = 20
+    const countAtomValue = store.get(countAtom)
+    // value = 10
 ```
 
 上面的例子中基础的atom值countAtom、派生atom值doubledCountAtom,通过store的方式设置countAtom的值,最后发现派生的doubledCountAtom值也发生了
@@ -56,7 +58,7 @@ jotai就是一种基于原子能力设计的状态管理方案.下面从jotai的
 
 ```JavaScript
     // 创建atom值的入口函数
-    // 通过函数重载 可以让他实现多种功能 比如实现派生的
+    // 通过函数重载, atom入口函数支持多种参数类型
     export function atom<Value, Args extends unknown[], Result>(
         read?: Value | Read<Value, SetAtom<Args, Result>>,
         write?: Write<Args, Result>,
@@ -120,17 +122,22 @@ jotai就是一种基于原子能力设计的状态管理方案.下面从jotai的
     return store
 ```
 
-### 更新逻辑
+### 值的获取
+
+在获取atom值的时候,执行store的get方法.
+![jotai获取值](/static/images/frontEndToolStatic/jotiaStatic/jotaiGet.jpg)
+
+### 值的设置
+
+在设置atom值的时候,执行store的set方法.
+![jotai设置值](/static/images/frontEndToolStatic/jotiaStatic/jotaiSet.jpg)
 
 ### 跟react的结合实现实现组件更新
 
 ## jotai实现上的一些思考
 
-原子化 从下到上
-WeakMap  
-函数重载
 解耦 readAtomState/writeAtomState 处理更新的时机
-INTERNAL_overrideCreateStore 测试能力 升级能力
+INTERNAL_overrideCreateStore getBuildingBlocks 测试能力
 atom interceptors
 
 ## 参考
