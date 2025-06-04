@@ -1,6 +1,6 @@
 ---
 title: 原子化状态管理方案-jotai
-date: '2025-06-03'
+date: '2025-06-04'
 tags: ['React']
 ---
 
@@ -124,21 +124,41 @@ jotai就是一种基于原子能力设计的状态管理方案.下面从jotai的
 
 ### 值的获取
 
-在获取atom值的时候,执行store的get方法.
+在获取atom值的时候,执行store的get方法.  
 ![jotai获取值](/static/images/frontEndToolStatic/jotiaStatic/jotaiGet.jpg)
 
 ### 值的设置
 
-在设置atom值的时候,执行store的set方法.
+在设置atom值的时候,执行store的set方法.  
 ![jotai设置值](/static/images/frontEndToolStatic/jotiaStatic/jotaiSet.jpg)
 
 ### 跟react的结合实现实现组件更新
 
+在组件中,会使用useAtom来获取atom值,在atom值变化的时候会自动触发组件的更新.
+![jotai组件更新](/static/images/frontEndToolStatic/jotiaStatic/jotaiUseAtom.jpg)
+
 ## jotai实现上的一些思考
 
-解耦 readAtomState/writeAtomState 处理更新的时机
-INTERNAL_overrideCreateStore getBuildingBlocks 测试能力
-atom interceptors
+### 异步数据更新实现
+
+jotai可以实现异步数据的使用,在实现上通过标志位的方式,非常巧妙.在工具包中也融合了一些常用的store使用方式.
+
+### 增加测试调试能力入口
+
+在调试包的时候,有很多内部能力暴露给外部,在设计功能包的时候可以考虑做类似功能的设计,增加测试、调试能力.
+
+#### 懒计算
+
+当前atom的依赖发生更新的时候,只会更新依赖atom的版本.只有在重新获取当前atom的时候,才会重新计算当前atom的值
+
+## 状态管理方案的一点思考
+
+[当我们聊状态管理的时候我们在聊什么](https://icantunderstand.github.io/blogNew/blog/react/stateControl)中阅读了redux/mobx/zustand的源码实现,jotia似乎是比较
+'另类'的状态管理方案.也许到了那个老生常谈的话题,如果真的要做状态管理方案的选型应该怎么选呢?!!!
+也许应该多问自己几个问题:
+
+- 当前的业务是什么样的/未来的业务数据是怎么样的 比如数据轻量还是复杂度较高
+- 团队是否有学习成本 好的库会'教育'人,这种技术选型是否会在团队比较容易的形成最佳实践-团队的方言
 
 ## 参考
 
