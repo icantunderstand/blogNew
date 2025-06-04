@@ -1,100 +1,111 @@
 ---
 title: 2024-4-第一期
-date: "2024-04-15"  
-tags: ["weeklyReport"]
+date: '2024-04-15'
+tags: ['weeklyReport']
 ---
 
-## [proposal-iterator-helpers](https://github.com/tc39/proposal-iterator-helpers)  
+## [proposal-iterator-helpers](https://github.com/tc39/proposal-iterator-helpers)
+
 tc39增加了迭代器helpers函数的proposal.已经到了Stage 3阶段。通过这些迭代函数可以很方便的对迭代器进行处理。比如
 
 ```javascript
 function* naturals() {
-    let i = 0;
-    while (true) {
-        yield i;
-        i += 1;
-    }
+  let i = 0
+  while (true) {
+    yield i
+    i += 1
+  }
 }
 
-const result = naturals()
-    .map(value => {
-        return value * value;
-    });
-result.next(); //  {value: 0, done: false};
-result.next(); //  {value: 1, done: false};
-result.next(); //  {value: 4, done: false};
+const result = naturals().map((value) => {
+  return value * value
+})
+result.next() //  {value: 0, done: false};
+result.next() //  {value: 1, done: false};
+result.next() //  {value: 4, done: false};
 ```
 
-## [proposal-signals](https://github.com/proposal-signals/proposal-signals)  
+## [proposal-signals](https://github.com/proposal-signals/proposal-signals)
+
 tc39增加了signals的proposal。现在是Stage 0阶段。在[solidjs](https://www.solidjs.com/)中就有对signals的封装和使用。通过signals可以一定程度上简化在业务逻辑中的依赖关系覆盖和监听逻辑。
 
-## [Frontend Development Beyond React: Svelte](https://itnext.io/frontend-development-beyond-react-svelte-1-3-f47eda22cba5)  
+## [Frontend Development Beyond React: Svelte](https://itnext.io/frontend-development-beyond-react-svelte-1-3-f47eda22cba5)
+
 这篇文章介绍Svelte的基本原理和相关使用。对比react，Svelte的没有虚拟dom、有编译时优化、响应式更加高效。React也在编译时优化做尝试，React Compiler已经在instagram有使用
 
-## [JavaScript Visualized: Promise Execution](https://www.lydiahallie.com/blog/promise-execution)  
+## [JavaScript Visualized: Promise Execution](https://www.lydiahallie.com/blog/promise-execution)
+
 这篇文章通过动图的方式介绍JavaScript中Promise的执行过程
 
-## [The problem with functional components](https://romgrk.com/posts/react-functional-components/)  
-在之前的文章中[聊聊我对React Hooks的理解](https://icantunderstand.github.io/blog/thinking-in-react)中,梳理了对react引入hooks的理解
-* 通过的代码复用方式
-* 解决老的问题 比如生命周期函数可能存在多次调用、组件内监听解绑逻辑分离
-* 规范使用范式
-这篇文章的作者通过例子说明在使用函数组件的一些问题，比如hooks很多缺少治理，hooks的依赖问题，代码可读性问题等。对于这个问题的确在react中没有强制的一些限制解法。自己在开发中也遇到一个组件多个useState声明造成代码可读性下降的问题。对于函数组件的hooks它更应该是可插拔的复用能力或者偏向于与组件结合的业务逻辑，一些数据或者非视图层逻辑应该做到更好的拆分.
+## [The problem with functional components](https://romgrk.com/posts/react-functional-components/)
 
-## [动态表单的设计思想及实现策略](https://miaomiaozhenren.com/index.php/2023/01/20/dynamic-form/)  
+在之前的文章中[聊聊我对React Hooks的理解](https://icantunderstand.github.io/blogNew/blog/react/thinkingInHooks)中,梳理了对react引入hooks的理解
+
+- 通过的代码复用方式
+- 解决老的问题 比如生命周期函数可能存在多次调用、组件内监听解绑逻辑分离
+- 规范使用范式
+  这篇文章的作者通过例子说明在使用函数组件的一些问题，比如hooks很多缺少治理，hooks的依赖问题，代码可读性问题等。对于这个问题的确在react中没有强制的一些限制解法。自己在开发中也遇到一个组件多个useState声明造成代码可读性下降的问题。对于函数组件的hooks它更应该是可插拔的复用能力或者偏向于与组件结合的业务逻辑，一些数据或者非视图层逻辑应该做到更好的拆分.
+
+## [动态表单的设计思想及实现策略](https://miaomiaozhenren.com/index.php/2023/01/20/dynamic-form/)
+
 这篇文章主要介绍动态表单的设计思想，在中后台系统的一些表单项是可以通过动态表单来实现的。
 
-## [bfcache](https://web.dev/articles/bfcache?ref=sabatino.dev&hl=zh-cn)  
+## [bfcache](https://web.dev/articles/bfcache?ref=sabatino.dev&hl=zh-cn)
+
 浏览器的往返缓存，在一些特定场景需要针对bfcache做处理逻辑
 
 ## 工具
 
 ### [Bun](https://bun.sh/blog/bun-v1.1)
+
 Bun现在支持windows了，Bun选择的JavaScript执行引擎和实现语言使得Bun有一定的性能优势，值得尝试
 
 ### [react-responsive](https://github.com/yocontra/react-responsive)
+
 一个用于在react代码中做媒体查询实现动态逻辑的库。在阅读源码的过程中发现它使用了css-mediaquery实现静态查询的匹配
 
 ```javascript
-        var mediaQuery = require('css-mediaquery');
-        
-        var isMatch = mediaQuery.match('screen and (min-width: 40em)', {
-            type : 'screen',
-            width: '1024px'
-        });
+var mediaQuery = require('css-mediaquery')
+
+var isMatch = mediaQuery.match('screen and (min-width: 40em)', {
+  type: 'screen',
+  width: '1024px',
+})
 ```
 
 使用[window.matchMedia](https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia)做动态的查询变更通知能力
 
-### [Preview.js](https://previewjs.com/)  
+### [Preview.js](https://previewjs.com/)
+
 Previerw.js可以实现一些UI组件的预览，可以实现动态属性修改的预览、控制台的console输出、不同设备下查看样式等
 
 ## 源码解读
 
-### [use-local-storage-state](https://github.com/astoilkov/use-local-storage-state)  
+### [use-local-storage-state](https://github.com/astoilkov/use-local-storage-state)
 
 ```javascript
-        import useLocalStorageState from 'use-local-storage-state'
+import useLocalStorageState from 'use-local-storage-state'
 
-        export default function Todos() {
-            const [todos, setTodos] = useLocalStorageState('todos', {
-                defaultValue: ['buy avocado', 'do 50 push-ups']
-            })
-        }
+export default function Todos() {
+  const [todos, setTodos] = useLocalStorageState('todos', {
+    defaultValue: ['buy avocado', 'do 50 push-ups'],
+  })
+}
 ```
 
-在之前的[聊聊页面间的通信机制](https://icantunderstand.github.io/blog/window-message)中有介绍到localStorage可以实现跨Tab的消息通信，在前端的数据存储中localStorage是一种常用的前端存储方案，use-local-storage-state这个库实现了数据的存储和数据的变更通知，下面分别从这两个点看下具体实现
+在之前的[聊聊页面间的通信机制](https://icantunderstand.github.io/blogNew/blog/webBase/message)中有介绍到localStorage可以实现跨Tab的消息通信，在前端的数据存储中localStorage是一种常用的前端存储方案，use-local-storage-state这个库实现了数据的存储和数据的变更通知，下面分别从这两个点看下具体实现
 
 ### 数据存储
+
 ```javascript
-    try {
-        // 支持localStorage的时候使用localStorage存储
-        localStorage.setItem(key, stringify(value))
-        inMemoryData.delete(key)
-    } catch {
-        // 不支持localStorage的时候使用内存对数据存储
-        inMemoryData.set(key, value)
-    }
+try {
+  // 支持localStorage的时候使用localStorage存储
+  localStorage.setItem(key, stringify(value))
+  inMemoryData.delete(key)
+} catch {
+  // 不支持localStorage的时候使用内存对数据存储
+  inMemoryData.set(key, value)
+}
 ```
 
 ### 数据变更通知
@@ -138,5 +149,3 @@ Previerw.js可以实现一些UI组件的预览，可以实现动态属性修改�
         return (): void => window.removeEventListener('storage', onStorage)
     }, [key, storageSync])
 ```
-
-
