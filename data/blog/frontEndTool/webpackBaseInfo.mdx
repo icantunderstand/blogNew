@@ -121,11 +121,11 @@ Loader是通过数组进行配置的,loader-runner会从配置的末尾依次执
 并行编译：使用 thread-loader 或者 Webpack 自身的多线程能力加速资源处理。  
 文件查找优化:  resolve.modules(指定模块解析路径)/resolve.alias(别名)/resolve.extensions(扩展名尝试)/noParse(不解析特定的文件)
 ### 打包体积性能优化  
-Tree Shaking: 去除无用的代码
-按需加载Polyfills: 按需加载polyfills
-三方库: 单独拆分或者CDN引入
-代码分割: optimization.splitChunks 
-环境变量: definePlugin
+Tree Shaking: 去除无用的代码  
+按需加载Polyfills: 按需加载polyfills  
+三方库: 单独拆分或者CDN引入  
+代码分割: optimization.splitChunks   
+环境变量: definePlugin  
 
 ## webpack相关概念/配置项
 
@@ -153,9 +153,9 @@ Tree Shaking: 去除无用的代码
 | compilation | compilation对象是每一次构建的上下文对象,包含当次构建的所有信息 |
 
 ## 打包工具对比
-大型项目和企业级应用：选择 Webpack,因为它的高度可配置性和强大的插件生态系统可以满足复杂的需求。
-快速原型开发和中小型项目：选择 Parcel,因为它的零配置和自动优化特性可以显著提高开发效率。
-库开发和中小型项目：选择 Rollup,因为它的简洁配置和优秀的 Tree Shaking 支持可以有效减小打包体积。
+大型项目和企业级应用：选择 Webpack,因为它的高度可配置性和强大的插件生态系统可以满足复杂的需求。  
+快速原型开发和中小型项目：选择 Parcel,因为它的零配置和自动优化特性可以显著提高开发效率.  
+库开发和中小型项目：选择 Rollup,因为它的简洁配置和优秀的 Tree Shaking 支持可以有效减小打包体积。  
 
 | 特性           | Webpack                | Parcel                           | Rollup                        |
 | -------------- | ---------------------- | -------------------------------- | ----------------------------- |
