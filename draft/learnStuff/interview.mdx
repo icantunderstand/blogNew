@@ -221,7 +221,7 @@ categories:
 
     function Foo() {}
     // Foo是一个函数对象 是通过Function.prototype => function Function() {} 构造出来的
-    // 注意理解下面的几个
+    // 注意理解下面的几个 在理解一下这里
     Foo.__proto__ === Function.prototype
     Foo.prototype.__proto__ === Object.prototype
     Foo.prototype.constructor === Foo
