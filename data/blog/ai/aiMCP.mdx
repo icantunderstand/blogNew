@@ -1,0 +1,51 @@
+---
+title: AI探秘-大话MCP
+date: '2025-06-10'
+tags: ['AI']
+---
+
+MCP(Model Context Protocal)是由Anthropic发布了一种大模型与外部数据源工具的集成标准.通过MCP,大模型就能高效的访问和利用外部资源.
+本文先从MCP的一些基础概念出发,最后通过图解的方式理解MCP整个实现的交互过程.
+
+## 为什么需要MCP
+
+- 模型幻觉 当我们问大模型一它不了解的问题,有可能所问非所答.
+- 失效问题 大模型基于数据进行训练,所以我们得到的答案有可能是过时的
+- 功能扩展 希望大模型有更多能力,比如文件读写而不是简单的会话
+
+通过MCP**_标准_**的定义赋予了大模型更多的能力,**丰富**大模型的功能.
+
+## 主要概念
+
+### MCP Host
+
+通常是LLM的宿主应用.主要负责
+
+- 创建管理MCP Client
+- 与大模型LLM交互
+- 实现安全策略
+
+### MCP Client
+
+MCP Clien通过与MCP Server交互获取Server可用的Tools,在大模型调用的时候,MCP Client会完成对MCP Server Tools的调用并返回结果给大模型.
+
+### MCP Server
+
+MCP Server提供给MCP Client工具调用.MCP Server和MCP Client通过双向的JSON-RPC通知,支持的通信方式:
+
+- stdio 通过标准的输入输出管道通信
+- Streamable HTTP + SSE 基于SSE通信
+
+开放的MCP Server:  
+[MCP.so](https://mcp.so/)  
+[Smithery](https://smithery.ai/)
+
+### MCP架构
+
+![MCP架构](/static/images/aiStatic/aiMCP/mcpStruct.jpg)
+
+## 漫画MCP
+
+## 参考
+
+[MCP(Model Context Protocol)的理解和快速实践](https://mp.weixin.qq.com/s/NU62Dvq3SMO6O-He9lcQ4Q)
