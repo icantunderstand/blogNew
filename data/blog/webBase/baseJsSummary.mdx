@@ -1,197 +1,287 @@
 ---
 title: JavaScript基础梳理
-date: "2023-08-10"
-tags: ["JavaScript"]
+date: '2025-06-18'
+tags: ['JavaScript']
 ---
 
 ## [AsyncFunction](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncFunction)
+
 在项目中需要根据配置生成Async Function来保证配置的串行执行,Async Function在创建的时候只能访问到全局作用域的变量，需要注意。
 在node中可以通过[vm.runInNewContext](https://github.com/nodejs/node/issues/9474)来解决。
+
+## javascript基础类型和复杂类型
+
+| 类型     | 内容                                               | 区别                                                    |
+| -------- | -------------------------------------------------- | ------------------------------------------------------- |
+| 基础类型 | boolean/string/number/null/undefined/symbol/BigInt | 按值传递,值不可变.通常存储在栈中(string/BigInt存在堆中) |
+| 复杂类型 | object/array/function/date/regexp/Map/Set          | 按引用传递,值可变.存储在堆内存中                        |
+
+通过typeof可以返回对应的类型
+
+### 基础类型的包装
+
+JavaScript 中的基础类型在需要调用方法时会自动包装成对应的包装对象，使用完毕后立即销毁。
+
+```javascript
+const str = 'hello'
+// 包装成String('hello')
+str.toUpperCase() // "HELLO"
+// 销毁包装对象
+console.log(str) // "hello"
+```
+
+包装对象可以转换成基础类型.
+
+```javascript
+const strWrapper = new String('hello')
+typeof strWrapper // "object"
+const str = String(strWrapper)
+typeof str // "string"
+```
+
+基础类型与包装对象的对比
+
+```javascript
+const a = 'hello'
+const b = 'hello'
+const c = new String('hello')
+console.log(a === b) // true
+console.log(c === a) // false
+```
+
+### 隐式转换&显式转化
+
+显式转化指显式的通过转换函数做类型转换.
+
+```javascript
+const a = '123'
+const b = Boolean(a)
+console.log(b) // true
+```
+
+隐式转化指在运算过程中,js引擎会自动进行类型转换.可能导致意外的结果.通常发生在字符串拼接/数学运算/比较运算/逻辑运算等
+
+```javascript
+const a = '123'
+// + 运算符有字符串的时候 会按字符串拼接都转换成字符串处理 否则都转换成数字
+const b = a + 1
+console.log(b) // '1231'
+const c = 1 + true
+console.log(c) // 2
+```
+
 ## 变量
+
 在javascript中声明变量有下面的几种方式: var/const(let)
 
-| 声明方式 | 声明提升 | 作用域| 
-| ------ | ------ | ------ |  
-| let/const(不允许修改指向) | Temporal Dead Zone | 块级作用域, 在进入声明该变量的块级作用域的时候,会为其分配空间此时这个变量是未初始化的(引用一个未初始化的变量会导致引用错误),运行到对该变量的赋值语句时对变量赋值(未赋值为undefined) |  
-| var | 提升 | 函数作用域, 进入到声明该变量的函数作用域分配空间并且初始化值为undefined,执行到赋值语句后进行赋值 |  
+| 声明方式                  | 声明提升           | 作用域                                                                                                                                                                              |
+| ------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| let/const(不允许修改指向) | Temporal Dead Zone | 块级作用域, 在进入声明该变量的块级作用域的时候,会为其分配空间此时这个变量是未初始化的(引用一个未初始化的变量会导致引用错误),运行到对该变量的赋值语句时对变量赋值(未赋值为undefined) |
+| var                       | 提升               | 函数作用域, 进入到声明该变量的函数作用域分配空间并且初始化值为undefined,执行到赋值语句后进行赋值                                                                                    |
+
 ```javascript
-    let tmp = true;
-    if (true) {
-        // 引用未初始化的变量引用错误
-        //  console.log(tmp); // ReferenceError
-        let tmp; // 初始化为undefined
-        console.log(tmp); // undefined
-        tmp = 123;
-        console.log(tmp); // 123
-    }
-    console.log(tmp);// true
-    if (true) {
-      const func = function () {
-        console.log(myVar); // 3
-      };
-      let myVar = 3; 
-      func();  
-    }
+let tmp = true
+if (true) {
+  // 引用未初始化的变量引用错误
+  //  console.log(tmp); // ReferenceError
+  let tmp // 初始化为undefined
+  console.log(tmp) // undefined
+  tmp = 123
+  console.log(tmp) // 123
+}
+console.log(tmp) // true
+if (true) {
+  const func = function () {
+    console.log(myVar) // 3
+  }
+  let myVar = 3
+  func()
+}
 ```
-在循环中var和let/const的表现  
+
+在循环中var和let/const的表现
+
 ```javascript
-    const arr = [];
-    for (var i=0; i < 3; i++) {
-        arr.push(() => i);
-    }
-    arr.map(x => x()); // [3,3,3]  每个变量都指向一个绑定i 所以都为3
-    
-    const arr = [];
-    for (let i=0; i < 3; i++) {
-        arr.push(() => i);
-    }
-    arr.map(x => x()); // [0,1,2]   每次为let创建一个当前值的绑定 所以为[0,1,2] 
+const arr = []
+for (var i = 0; i < 3; i++) {
+  arr.push(() => i)
+}
+arr.map((x) => x()) // [3,3,3]  每个变量都指向一个绑定i 所以都为3
+
+const arr = []
+// 这里还可以使用IIFE/bind入参/闭包等方案变量问题
+for (let i = 0; i < 3; i++) {
+  arr.push(() => i)
+}
+arr.map((x) => x()) // [0,1,2]   每次为let创建一个当前值的绑定 所以为[0,1,2]
 ```
+
 ### var和let声明变量对参数的影响
 
-| 声明方式 | 表现 | 
-| ------ | ------ |
-| var    | 声明的变量会覆盖函数的参数 |
-| let/const | 重复定义 |
+| 声明方式  | 表现                       |
+| --------- | -------------------------- |
+| var       | 声明的变量会覆盖函数的参数 |
+| let/const | 重复定义                   |
 
 ```javascript
-    // var 声明会覆盖参数
-    function test(name) {
-        console.log(name); // 输出 "Tom"
-        var name = "Jerry";  // var 声明会覆盖参数
-        console.log(name); // 输出 "Jerry"
-    }
-    test("Tom");
-    //  let/const 不会覆盖参数
-    function test(name) {
-        console.log(name); // 输出 "Tom"
-        let name = "Jerry";  // 报错：Identifier 'name' has already been declared
-    }
-    test("Tom");
+// var 声明会覆盖参数
+function test(name) {
+  console.log(name) // 输出 "Tom"
+  var name = 'Jerry' // var 声明会覆盖参数
+  console.log(name) // 输出 "Jerry"
+}
+test('Tom')
+//  let/const 不会覆盖参数
+function test(name) {
+  console.log(name) // 输出 "Tom"
+  let name = 'Jerry' // 报错：Identifier 'name' has already been declared
+}
+test('Tom')
 ```
-####  理解默认参数的行为
-默认参数可以理解成let的行为  默认参数的访问范围是与函数体内部相隔离开的,只能访问到外部的变量  
+
+#### 理解默认参数的行为
+
+默认参数可以理解成let的行为 默认参数的访问范围是与函数体内部相隔离开的,只能访问到外部的变量
+
 ```javascript
-    // OK: `y` accesses `x` after it has been declared
-    function foo(x=1, y=x) {
-        return [x, y];
-    }
-    foo(); // [1,1]
-    // 在初始化x=y的时候 y处于TDZ 出现引用错误
-    function bar(x=y, y=2) {
-        return [x, y];
-    }
-    bar(); // ReferenceError
-    const foo = 'outer';
-    function bar(func = x => foo) {
-        const foo = 'inner';
-        console.log(func()); // outer
-    }
-    bar();  //  如果在这个例子的外部不存在foo 会引用错误
-    function noParameter() {
-        throw new Error('no parameter');
-    }
-    function test(a = noParameter()) {
-        return a;
-    }  // 使用默认参数来做参数的校验
+// OK: `y` accesses `x` after it has been declared
+function foo(x = 1, y = x) {
+  return [x, y]
+}
+foo() // [1,1]
+// 在初始化x=y的时候 y处于TDZ 出现引用错误
+function bar(x = y, y = 2) {
+  return [x, y]
+}
+bar() // ReferenceError
+const foo = 'outer'
+function bar(func = (x) => foo) {
+  const foo = 'inner'
+  console.log(func()) // outer
+}
+bar() //  如果在这个例子的外部不存在foo 会引用错误
+function noParameter() {
+  throw new Error('no parameter')
+}
+function test(a = noParameter()) {
+  return a
+} // 使用默认参数来做参数的校验
 ```
+
 ## 解构
+
 解构是跟变量的操作关联到一起的,主要用于变量的声明,赋值,函数参数的定义以及提供默认值。对象解构的时候,会把右边的操作值转化成对象。数组解构的时候相当于调用数组的迭代器实现
+
 ```javascript
-    const { length } = 'aaa';
-    console.log(length) // 3
-    const [x, y] = new Set([1,2]);
-    console.log(x,y); // 1 2  
-    // 解构默认赋值
-    const {
-        name = 'haha',
-        desc = 'ss',
-        age = 10
-    } = { name: '', desc: undefined }
-    // name = ''  desc = 'ss' age = 10
+const { length } = 'aaa'
+console.log(length) // 3
+const [x, y] = new Set([1, 2])
+console.log(x, y) // 1 2
+// 解构默认赋值
+const { name = 'haha', desc = 'ss', age = 10 } = { name: '', desc: undefined }
+// name = ''  desc = 'ss' age = 10
 ```
+
 在对数组进行解构的时候,还可以通过越过某些数组项或者通过剩余参数获取数组后面的值
-```javascript
-    const [,, x, y] = ['a', 'b', 'c', 'd']; // x = 'c'; y = 'd'
-    const [x,...y] = [1,2,3] // x = 1  y =  [2,3]
 
-    const num = [1,2,3];
-    const b = [];
-    b.push(...num); // 扩展符
-```
-也可以通过解构来进行赋值(解构的声明和赋值不能同步进行并且解构的赋值需要在外边包上括号)  
 ```javascript
-    const arr = [];
-    ({ bar: arr[0] } = { bar: true });
-    console.log(arr); // [true]  
+const [, , x, y] = ['a', 'b', 'c', 'd'] // x = 'c'; y = 'd'
+const [x, ...y] = [1, 2, 3] // x = 1  y =  [2,3]
+
+const num = [1, 2, 3]
+const b = []
+b.push(...num) // 扩展符
 ```
+
+也可以通过解构来进行赋值(解构的声明和赋值不能同步进行并且解构的赋值需要在外边包上括号)
+
+```javascript
+const arr = []
+;({ bar: arr[0] } = { bar: true })
+console.log(arr) // [true]
+```
+
 ## ES6 模块
-ES6模块本质上是一种规定静态化的加载和导出代码的方式,通过编译时加载使基于代码的静态分析成为可能(webapck中的tree Shaking).CommonJs的模块(运行时加载)就是对象.
-### ES6模块的特点和CommonJs的对比
-不能动态的引入并且引入是有提升的 
-```javascript
-    // 不能动态的引入
-    if (Math.random()) {
-      import 'foo'; // SyntaxError
-    }  
-    // 引入的提升
-    foo();
-    import { foo } from 'my_module';
-```
-引入是只读的引用
-```javascript
-    // a.js 
-    export let a = 100;
-    export const count = () => {
-      a++;
-    }
-    // b.js
-    import { a, count } from './a.js'
-    console.log(a); // 100
-    count();
-    console.log(a); // 101
-    a = 100; // error  a是只读的
-    // CommonJs是值的复制,相当于修改一个值.
-```
-ES6的模块可以导出单个值,CommonJS必须导出一个对象.ES6的引入是只读的引用,CommonJs的引入对于基本类型是值的复制,复杂类型是引用. 
-```javascript
-    // a.js  CommonJS值拷贝的例子
-    let a = 100;
-    module.exports = { 
-      a,
-      count: () => { a++ },
-    };
-    // b.js
-    let { a, count } = require('./a.js')
-    console.log(a); //100
-    count();
-    console.log(a); //100
-    a++; // 相当于对本模块的a变量进行了赋值
-    console.log(a);  // 101
-    const b = require('./a.js'); // 会使用第一次require的结果
-    console.log(b.a);  // 100
 
-    // a.js  CommonJs 引用的例子
-    let a = {
-      name: 'haha',
-    };
-    module.exports = { 
-      a,
-      setStr: (str) => { a.name = str; },
-    };
-    // b.js  
-    let { a, setStr } = require('./a.js')
-    console.log(a); // { name: 'haha' }
-    setStr('ss');
-    console.log(a); // { name: 'ss' }
-    a.name = 100;
-    console.log(a);  // { name: 100 }
-    const b = require('./a.js');  // 仍然使用的是第一次的缓存结果 但是由于引用的设置 导致原来的值被修改了
-    console.log(b);  // { a: { name: 100 }, setStr: function() {} }
+ES6模块本质上是一种规定静态化的加载和导出代码的方式,通过编译时加载使基于代码的静态分析成为可能(webapck中的tree Shaking).CommonJs的模块(运行时加载)就是对象.
+
+### ES6模块的特点和CommonJs的对比
+
+不能动态的引入并且引入是有提升的
+
+```javascript
+// 不能动态的引入
+if (Math.random()) {
+  import 'foo' // SyntaxError
+}
+// 引入的提升
+foo()
+import { foo } from 'my_module'
 ```
-CommonJs循环加载时,属于加载时执行.即脚本代码在require的时候,就会全部执行.一旦出现某个模块被循环加载,就只输出已经执行的部分,还未执行的部分不会输出.ES6模块属于动态只读引用. 
+
+引入是只读的引用
+
+```javascript
+// a.js
+export let a = 100
+export const count = () => {
+  a++
+}
+// b.js
+import { a, count } from './a.js'
+console.log(a) // 100
+count()
+console.log(a) // 101
+a = 100 // error  a是只读的
+// CommonJs是值的复制,相当于修改一个值.
+```
+
+ES6的模块可以导出单个值,CommonJS必须导出一个对象.ES6的引入是只读的引用,CommonJs的引入对于基本类型是值的复制,复杂类型是引用.
+
+```javascript
+// a.js  CommonJS值拷贝的例子
+let a = 100
+module.exports = {
+  a,
+  count: () => {
+    a++
+  },
+}
+// b.js
+let { a, count } = require('./a.js')
+console.log(a) //100
+count()
+console.log(a) //100
+a++ // 相当于对本模块的a变量进行了赋值
+console.log(a) // 101
+const b = require('./a.js') // 会使用第一次require的结果
+console.log(b.a) // 100
+
+// a.js  CommonJs 引用的例子
+let a = {
+  name: 'haha',
+}
+module.exports = {
+  a,
+  setStr: (str) => {
+    a.name = str
+  },
+}
+// b.js
+let { a, setStr } = require('./a.js')
+console.log(a) // { name: 'haha' }
+setStr('ss')
+console.log(a) // { name: 'ss' }
+a.name = 100
+console.log(a) // { name: 100 }
+const b = require('./a.js') // 仍然使用的是第一次的缓存结果 但是由于引用的设置 导致原来的值被修改了
+console.log(b) // { a: { name: 100 }, setStr: function() {} }
+```
+
+CommonJs循环加载时,属于加载时执行.即脚本代码在require的时候,就会全部执行.一旦出现某个模块被循环加载,就只输出已经执行的部分,还未执行的部分不会输出.ES6模块属于动态只读引用.
 CommonJs在引用同一个模块的时候存在会使用第一次的缓存.
-```javascript 
+
+```javascript
     // b.js
     exports.done = false
     let a = require('./a.js')
@@ -226,7 +316,7 @@ CommonJs在引用同一个模块的时候存在会使用第一次的缓存.
     bar(); // 'bar'
 
     // b.js
-    import {foo} from './a.js'; 
+    import {foo} from './a.js';
     export function bar() {
        console.log('bar');
     }
@@ -240,24 +330,30 @@ CommonJs在引用同一个模块的时候存在会使用第一次的缓存.
     const { test } = require('./a.js')
     console.log(test); // undefined
 ```
-### 动态引入  
-可以通过按需引入模块来优化首屏代体积
-```javascript
-        import("module").then(module => {
-            module.default();
-            module.namedExport();
-        });
 
-        // Or with async/await
-        (async () => {
-            const module = await import("module");
-            module.default();
-            module.namedExport();
-        })();
+### 动态引入
+
+可以通过按需引入模块来优化首屏代体积
+
+```javascript
+import('module').then((module) => {
+  module.default()
+  module.namedExport()
+})
+
+// Or with async/await
+;(async () => {
+  const module = await import('module')
+  module.default()
+  module.namedExport()
+})()
 ```
+
 ## iterator(迭代器)
-   在ES6中的可以使用数组解构,for of等语句遍历数组、Map、Set是因为在ES6中默认为这些结构创建了[Symbol.iterator]方法.通过这个方法的调用返回一个可以遍历该数据结构的对象(iterator),通过这个对象来遍历数据结构的属性.
-  ![iterator](/static/images/javascriptBaseStatic/iterator.png)  
+
+在ES6中的可以使用数组解构,for of等语句遍历数组、Map、Set是因为在ES6中默认为这些结构创建了[Symbol.iterator]方法.通过这个方法的调用返回一个可以遍历该数据结构的对象(iterator),通过这个对象来遍历数据结构的属性.
+![iterator](/static/images/javascriptBaseStatic/iterator.png)
+
 ```javascript
     const iterable = {
       [Symbol.iterator]() {
@@ -288,326 +384,422 @@ CommonJs在引用同一个模块的时候存在会使用第一次的缓存.
     iterator === iterator[Symbol.iterator]() // true
     iterator.next();  // { done: false, value: 'world' }
 ```
+
 ## generator
-生成器对象是由一个 generator function 返回的,并且它符合可迭代协议和迭代器协议。  
+
+生成器对象是由一个 generator function 返回的,并且它符合可迭代协议和迭代器协议。
 
 ### generator方法
-| 方法 | 含义 |
-| ------ | ------ | 
-| Generator.prototype.next(value) | 返回一个有done 布尔值属性 value 值属性的对象,value是当次执行的入参 | 
-| Generator.prototype.return(value) | 返回给定的value值并结束生成器 | 
-| Generator.prototype.throw(exception) | 向生成器抛出异常，并恢复生成器的执行 | 
+
+| 方法                                 | 含义                                                               |
+| ------------------------------------ | ------------------------------------------------------------------ |
+| Generator.prototype.next(value)      | 返回一个有done 布尔值属性 value 值属性的对象,value是当次执行的入参 |
+| Generator.prototype.return(value)    | 返回给定的value值并结束生成器                                      |
+| Generator.prototype.throw(exception) | 向生成器抛出异常，并恢复生成器的执行                               |
 
 生成器函数有如下特性:
+
 1. 当一个generator函数被调用，函数体内代码并不立即执行。它返回一个遵循了迭代器协议的迭代器对象:它有next方法.
 2. 执行生成器函数体内代码的唯一方法就是在返回的迭代器对象上调用next方法.每一次调用next，函数体内代码就执行到一个yield表达式处，这个表达式的右值赋值给迭代器。
-3. next方法也可以接受参数，使用参数调用将会用参数值替换上一条yield表达式的左值，然后执行并返回当前yield表达式的右值  
+3. next方法也可以接受参数，使用参数调用将会用参数值替换上一条yield表达式的左值，然后执行并返回当前yield表达式的右值
 
 ```javascript
-        function* func() {
-            const y = yield 1;
-            yield 2 + y;
-        }
-        const generator = func();
-        generator.next() // { value: 1, done: false }
-        generator.next(100) // { value: 102, done: false }  
+function* func() {
+  const y = yield 1
+  yield 2 + y
+}
+const generator = func()
+generator.next() // { value: 1, done: false }
+generator.next(100) // { value: 102, done: false }
 ```
+
 ## async function
+
 async function是ES7提出的对异步调用的一种解决方案.通常可以通过下面的方式生成async function
+
 ```javascript
-    async function foo() {
-    }
-    const a = async function() {}
-    let obj = { async foo() { return 1; }}
-    const b = async () => { return 1 }
+async function foo() {}
+const a = async function () {}
+let obj = {
+  async foo() {
+    return 1
+  },
+}
+const b = async () => {
+  return 1
+}
 ```
+
 async函数执行结果返回**promise**.在async函数体内可以使用await来等待一个promise的状态变成settled(fulfilled or rejected)
 
 ```javascript
-    async function foo() {
-      console.log('async func');
-      // await已经是一个微任务  
-      const ret = await 1
-      // const ret = await Promise.resove(1)
-      return ret;
-    }
-    foo().then(value => {
-      console.log(value)
-    })
-    console.log('main')
-    // 上面代码的输出是  async func  main 1
+async function foo() {
+  console.log('async func')
+  // await已经是一个微任务
+  const ret = await 1
+  // const ret = await Promise.resove(1)
+  return ret
+}
+foo().then((value) => {
+  console.log(value)
+})
+console.log('main')
+// 上面代码的输出是  async func  main 1
 ```
+
 通过generator + promise来模拟async function
+
 ```javascript
-    function spawn(genF) {
-      return new Promise((resolve, reject) => {
-        const itr = genF()
-        function step(nextFn) {
-            let next;
-            try {
-                next = nextFn()
-            } catch(e) {
-                return reject(e)
-            }
-            if(next.done) {
-                return resolve(next.value)
-            }
-            Promise.resolve(next.value).then(function(v) {
-                step(function(){ return itr.next(v) });
-            }, function(v) {
-                step(function() { return itr.throw(v); })
-            })
+function spawn(genF) {
+  return new Promise((resolve, reject) => {
+    const itr = genF()
+    function step(nextFn) {
+      let next
+      try {
+        next = nextFn()
+      } catch (e) {
+        return reject(e)
+      }
+      if (next.done) {
+        return resolve(next.value)
+      }
+      Promise.resolve(next.value).then(
+        function (v) {
+          step(function () {
+            return itr.next(v)
+          })
+        },
+        function (v) {
+          step(function () {
+            return itr.throw(v)
+          })
         }
-        step(function() { return itr.next(undefined); })
-      })
+      )
     }
+    step(function () {
+      return itr.next(undefined)
+    })
+  })
+}
 ```
+
 ## Reflect
-Reflect是一个内置对象，提供了一些方法来完成javascript的操作。  
- 
-| 方法 | 含义 |
-| ------ | ------ | 
-| Reflect.apply(target, thisArg, args ) | 用户给函数绑定this并执行 | 
-| Reflect.get(target, name, receiver) | 返回target上的name属性，没有undefined，如果name在target上设置了getter，则读取函数的this绑定receiver | 
-| Reflect.set(target, name, value, receiver) | 设置target对象的name属性的值为value, 如果name属性有setter函数，则setter函数的this绑定receiver | 
-| Reflect.has(obj,name) | 判断对象上是否有对应的属性 相当于 name in obj | 
-| Reflect.deleteProperty(obj,name) | 删除对象的属性 相当于 delete obj[name] | 
-| Reflect.construct(target, args) | target是对象的构造函数，args是参数数组，相当于new target(...args) | 
-| Reflect.getPrototypeOf(obj) | 返回对象的__proto__属性, 相当于Object.getPrototypeof(obj) | 
-| Reflect.setPrototypeOf(obj,newProto) | 设置对象的原型， 相当于Object.setPrototypeOf(obj, newProto)  | 
-| Reflect.defineProperty(target,propertyKey, attributes) | 相当于Object.defineProperty, 定义对象的属性  | 
+
+Reflect是一个内置对象，提供了一些方法来完成javascript的操作。
+
+| 方法                                                   | 含义                                                                                                |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Reflect.apply(target, thisArg, args )                  | 用户给函数绑定this并执行                                                                            |
+| Reflect.get(target, name, receiver)                    | 返回target上的name属性，没有undefined，如果name在target上设置了getter，则读取函数的this绑定receiver |
+| Reflect.set(target, name, value, receiver)             | 设置target对象的name属性的值为value, 如果name属性有setter函数，则setter函数的this绑定receiver       |
+| Reflect.has(obj,name)                                  | 判断对象上是否有对应的属性 相当于 name in obj                                                       |
+| Reflect.deleteProperty(obj,name)                       | 删除对象的属性 相当于 delete obj[name]                                                              |
+| Reflect.construct(target, args)                        | target是对象的构造函数，args是参数数组，相当于new target(...args)                                   |
+| Reflect.getPrototypeOf(obj)                            | 返回对象的**proto**属性, 相当于Object.getPrototypeof(obj)                                           |
+| Reflect.setPrototypeOf(obj,newProto)                   | 设置对象的原型， 相当于Object.setPrototypeOf(obj, newProto)                                         |
+| Reflect.defineProperty(target,propertyKey, attributes) | 相当于Object.defineProperty, 定义对象的属性                                                         |
+
 ```javascript
-    const myObject = {
-        foo: 1,
-        get name() {
-            return this.name
-        }
-    }
-    const test = {
-        name: 'haha'
-    }
-    Reflect.get(myObject, 'name', test) // haha 
+const myObject = {
+  foo: 1,
+  get name() {
+    return this.name
+  },
+}
+const test = {
+  name: 'haha',
+}
+Reflect.get(myObject, 'name', test) // haha
 ```
+
 ## Set和Map
 
 ### Set
+
 Set对象是值的集合，可以按照拆入的顺序迭代它的元素且Set中的元素是唯一的。
 
-| 方法(属性) | 含义 |
-| ------ | ------ | 
-| Set.prototype.size | 返回Set对象中的值的个数 | 
-| Set.prototype.add(value) | 在set对象尾部添加一个元素，**返回该set对象** | 
-| Set.prototype.clear() | 移除set对象内的所有元素 | 
-| Set.prototype.delete(value) | 移除set中与这个值相等的元素 | 
-| Set.prototype.has(value) | 返回一个布尔值, 表示该值是否在set中 | 
-| Set.prototype.keys() | 返回键值的遍历器 **遍历顺序是插入顺序** | 
-| Set.prototype.values() | 返回键值的遍历器 | 
-| Set.prototype.entries() | 返回键值对的遍历器 | 
-| Set.prototype.forEach() | 使用回调函数遍历每个成员 | 
+| 方法(属性)                  | 含义                                         |
+| --------------------------- | -------------------------------------------- |
+| Set.prototype.size          | 返回Set对象中的值的个数                      |
+| Set.prototype.add(value)    | 在set对象尾部添加一个元素，**返回该set对象** |
+| Set.prototype.clear()       | 移除set对象内的所有元素                      |
+| Set.prototype.delete(value) | 移除set中与这个值相等的元素                  |
+| Set.prototype.has(value)    | 返回一个布尔值, 表示该值是否在set中          |
+| Set.prototype.keys()        | 返回键值的遍历器 **遍历顺序是插入顺序**      |
+| Set.prototype.values()      | 返回键值的遍历器                             |
+| Set.prototype.entries()     | 返回键值对的遍历器                           |
+| Set.prototype.forEach()     | 使用回调函数遍历每个成员                     |
 
 ### WeakSet
+
 WeakSet与Set类似
+
 1. WeakSet的成员只能是对象不能是其他类型的值。
 2. WeakSet对对象的引用是弱引用,不能阻止垃圾回收机制。
 3. WeakSet不支持遍历
 
-| 方法(属性) | 含义 |
-| ------ | ------ | 
-| WeakSet.prototype.add(value) | 在WeakSet对象尾部添加一个元素，**返回该WeakSet对象** | 
-| WeakSet.prototype.delete(value) | 移除WeakSet对象内的所有元素 | 
-| WeakSet.prototype.has(value) | 返回一个布尔值, 表示该值是否在WeakSet中 | 
+| 方法(属性)                      | 含义                                                 |
+| ------------------------------- | ---------------------------------------------------- |
+| WeakSet.prototype.add(value)    | 在WeakSet对象尾部添加一个元素，**返回该WeakSet对象** |
+| WeakSet.prototype.delete(value) | 移除WeakSet对象内的所有元素                          |
+| WeakSet.prototype.has(value)    | 返回一个布尔值, 表示该值是否在WeakSet中              |
 
 ### Map
+
 Map对象可以保存键值对并且能够记住键的原始插入顺序，任何值(对象或者原始值)都可以作为Map的一个键或者值。在频繁删除键值或者对键值对的顺序有要求的场景，使用Map对象更加合适。
 
-| 方法(属性) | 含义 |
-| ------ | ------ | 
-| Map(new Map(args)) | 构造函数, 具有Iterator接口且每个成员都是一个双元素数组的数据结构可以作为Map的构造函数参数 | 
-| Map.prototype.size | 返回Map对象中的值的个数 | 
-| Map.prototype.set(key,value) | 设置键名对应的键值为value(存在键名则更新键值), **返回当前的Map对象**  | 
-| Map.prototype.get(key) | 读取对应key的键值，没有key返回undefined | 
-| Map.prototype.has(key) | 返回布尔值，判断该键是否存在Map中 | 
-| Map.prototype.delete(key) | 如果Map对象中存在该元素，则移除它并返回true否则返回false |  
-| Map.prototype.clear() | 移除Map对象内的所有元素 | 
-| Map.prototype.keys() | 返回键名的遍历器**遍历顺序是插入顺序** | 
-| Map.prototype.values() | 返回键值的遍历器 | 
-| Map.prototype.entries() | 返回键值对的遍历器 | 
-| Map.prototype.forEach() | 使用回调函数遍历每个成员 | 
+| 方法(属性)                   | 含义                                                                                      |
+| ---------------------------- | ----------------------------------------------------------------------------------------- |
+| Map(new Map(args))           | 构造函数, 具有Iterator接口且每个成员都是一个双元素数组的数据结构可以作为Map的构造函数参数 |
+| Map.prototype.size           | 返回Map对象中的值的个数                                                                   |
+| Map.prototype.set(key,value) | 设置键名对应的键值为value(存在键名则更新键值), **返回当前的Map对象**                      |
+| Map.prototype.get(key)       | 读取对应key的键值，没有key返回undefined                                                   |
+| Map.prototype.has(key)       | 返回布尔值，判断该键是否存在Map中                                                         |
+| Map.prototype.delete(key)    | 如果Map对象中存在该元素，则移除它并返回true否则返回false                                  |
+| Map.prototype.clear()        | 移除Map对象内的所有元素                                                                   |
+| Map.prototype.keys()         | 返回键名的遍历器**遍历顺序是插入顺序**                                                    |
+| Map.prototype.values()       | 返回键值的遍历器                                                                          |
+| Map.prototype.entries()      | 返回键值对的遍历器                                                                        |
+| Map.prototype.forEach()      | 使用回调函数遍历每个成员                                                                  |
 
 ### WeakMap
+
 WeakMap与Map类似。
+
 1. WeakMap的键值只能是对象不能是其他类型的值。
 2. WeakMap对对象的引用是弱引用,不能阻止垃圾回收机制。
 3. WeakMap不支持遍历
 
-| 方法(属性) | 含义 |
-| ------ | ------ | 
-| WeakMap.prototype.set(key,value) | 在WeakMap对象尾部添加一个元素，**返回该WeakSet对象** | 
-| WeakMap.prototype.delete(value) | 移除WeakMap对象内的所有元素 | 
-| WeakMap.prototype.has(value) | 返回一个布尔值, 表示该值是否在WeakMap中 | 
-| WeakMap.prototype.get(key) | 读取对应key的键值，没有key返回undefined | 
+| 方法(属性)                       | 含义                                                 |
+| -------------------------------- | ---------------------------------------------------- |
+| WeakMap.prototype.set(key,value) | 在WeakMap对象尾部添加一个元素，**返回该WeakSet对象** |
+| WeakMap.prototype.delete(value)  | 移除WeakMap对象内的所有元素                          |
+| WeakMap.prototype.has(value)     | 返回一个布尔值, 表示该值是否在WeakMap中              |
+| WeakMap.prototype.get(key)       | 读取对应key的键值，没有key返回undefined              |
+
+## JavaScript对象修饰符
+
+### 对象修饰符
+
+Object.defineProperty来设置对象属性描述符
+
+- value: 属性值
+- writable: 属性是否可写
+- enumerable: 属性是否可枚举
+- configurable: 属性是否可配置
+
+Object.getOwnPropertyDescriptor(obj, key)来获取对象属性描述符
+
+```javascript
+const obj = {}
+Object.defineProperty(obj, 'name', {
+  value: '张三',
+  writable: true,
+  enumerable: true,
+  configurable: true,
+})
+console.log(obj.name) // 张三
+console.log(Object.getOwnPropertyDescriptor(obj, 'name'))
+```
+
+### 设置访问器属性
+
+```javascript
+const obj = {
+  _name: '张三',
+}
+Object.defineProperty(obj, 'name', {
+  get: function () {
+    return this._name
+  },
+  set: function (value) {
+    this._name = value
+  },
+  enumerable: true,
+  configurable: true,
+})
+console.log(obj.name) // 张三
+```
 
 ## node中模块加载机制
 
-* 路径解析(Resolution) 根据模块标识找出对应模块入口的绝对路径
-    * 如果是文件，会自动按照后缀.js、.json、.node进行文件后缀补齐
-    * 如果是目录 会查找目录下的package.json,读取main字段并加载指定的模块，如果没有package.json就尝试加载目录下的index.js、index.json、index.node
-    * 非文件路径 非原生模块会按照node_modules目录逐级查找，在查找全局目录
-* 加载(Loading) 如果是JSON或者js文件,将文件读入内存。如果是内置原生模块将其动态链接库加载动当前Node.js进程
-* 包装(Wrapping) 将文件内容包装进一个函数，建立模块作用域，将exports, require, module等作为参数注入
-   
+- 路径解析(Resolution) 根据模块标识找出对应模块入口的绝对路径
+  - 如果是文件，会自动按照后缀.js、.json、.node进行文件后缀补齐
+  - 如果是目录 会查找目录下的package.json,读取main字段并加载指定的模块，如果没有package.json就尝试加载目录下的index.js、index.json、index.node
+  - 非文件路径 非原生模块会按照node_modules目录逐级查找，在查找全局目录
+- 加载(Loading) 如果是JSON或者js文件,将文件读入内存。如果是内置原生模块将其动态链接库加载动当前Node.js进程
+- 包装(Wrapping) 将文件内容包装进一个函数，建立模块作用域，将exports, require, module等作为参数注入
+
 ```javascript
-        (function(exports, require, module, __filename, __dirname) {
-            // Module code actually lives in here
-        });
+;(function (exports, require, module, __filename, __dirname) {
+  // Module code actually lives in here
+})
 ```
-* 执行(Evaluation) 传入参数，执行包装得到的参数
-* 缓存(Caching) 函数执行完毕后，将module缓存起来，并将module.exports作为require的返回值
+
+- 执行(Evaluation) 传入参数，执行包装得到的参数
+- 缓存(Caching) 函数执行完毕后，将module缓存起来，并将module.exports作为require的返回值
 
 ## node部署实现大规模并发处理
-* 容器化技术 使用Docker或者Kubernetes部署多个Node.js实例
-* 使用反向代理技术将请求转发给多个Node.js实例
-* 使用PM2(cluster)管理node.js进程的启动, PM2会创建多个子进程来运行同一个应用程序的多个实现，每个子进程会监听相同的端口
+
+- 容器化技术 使用Docker或者Kubernetes部署多个Node.js实例
+- 使用反向代理技术将请求转发给多个Node.js实例
+- 使用PM2(cluster)管理node.js进程的启动, PM2会创建多个子进程来运行同一个应用程序的多个实现，每个子进程会监听相同的端口
 
 ## monorepo
-monorepo是一种单一仓库的软件开发结构，通过将相同业务的多个项目集合一个项目中进行版本控制。主要解决了以下的问题: 
- * 代码共享 对于跨项目的共享模块、组件、库有好处
- * 一致的构建和部署 monorepo为项目提供一致的构建和部署流程，减少项目之间的差异
- * 统一的版本控制 所用项目共享相同的版本控制历史，使得跨项目的版本控制更好管理能统一的进行版本回退等
- * 原子提交 提交是原子性的，避免了跨项目的不一致性
- * 协同开发 开发者可以很容易的访问和修改整个仓库的代码，提供了工作的效率
- * 统一的依赖管理 monorepo允许仓库级别的管理依赖项，确保所有版本使用相同的依赖项版本
- * 一体化测试 可以实施一体化测试
+
+monorepo是一种单一仓库的软件开发结构，通过将相同业务的多个项目集合一个项目中进行版本控制。主要解决了以下的问题:
+
+- 代码共享 对于跨项目的共享模块、组件、库有好处
+- 一致的构建和部署 monorepo为项目提供一致的构建和部署流程，减少项目之间的差异
+- 统一的版本控制 所用项目共享相同的版本控制历史，使得跨项目的版本控制更好管理能统一的进行版本回退等
+- 原子提交 提交是原子性的，避免了跨项目的不一致性
+- 协同开发 开发者可以很容易的访问和修改整个仓库的代码，提供了工作的效率
+- 统一的依赖管理 monorepo允许仓库级别的管理依赖项，确保所有版本使用相同的依赖项版本
+- 一体化测试 可以实施一体化测试
 
 ## babel编译React代码生成AST的过程
 
-* 词法分析(Lexical Analysis) 将源代码字符串分解成一系列令牌，包括JSX语法中的标签、属性等
-* 语法分析(Parsing) 将令牌序列转换成抽象语法树(AST),其中每个节点代表JSX的元素属性等
-* 转换(Transformation) 对AST进行遍历修改，将JSX语法转换成对应的JavaScript代码(这里可以添加babel插件,  @babel/preset-env  @babel/preset-react @babel/plugin-transform-runtime)
-* 生成(Code Generation) 将修改后的AST装换成最终的JavaScript代码
+- 词法分析(Lexical Analysis) 将源代码字符串分解成一系列令牌，包括JSX语法中的标签、属性等
+- 语法分析(Parsing) 将令牌序列转换成抽象语法树(AST),其中每个节点代表JSX的元素属性等
+- 转换(Transformation) 对AST进行遍历修改，将JSX语法转换成对应的JavaScript代码(这里可以添加babel插件, @babel/preset-env @babel/preset-react @babel/plugin-transform-runtime)
+- 生成(Code Generation) 将修改后的AST装换成最终的JavaScript代码
 
 ## 造成内存泄露一些情况
-* 闭包
-* 循环引用 两个对象相互引用，当对象不在使用的时候但是他们的引用关系让JavaScript引擎认为他们仍在使用中，所以不会被回收
+
+- 闭包
+- 循环引用 两个对象相互引用，当对象不在使用的时候但是他们的引用关系让JavaScript引擎认为他们仍在使用中，所以不会被回收
 
 ```javascript
-        let obj1 = {};
-        let obj2 = {};
+let obj1 = {}
+let obj2 = {}
 
-        obj1.ref = obj2;
-        obj2.ref = obj1;
+obj1.ref = obj2
+obj2.ref = obj1
 
-        // 解除引用
-        obj1 = null;
-        obj2 = null;
+// 解除引用
+obj1 = null
+obj2 = null
 ```
-* 定时器/监听器/IntersectionObserver/ResizeObserver/MutationObserver 等在不需要的时候 需要清除
-* 全局对象存储,一些场景可以使用WeakMap/WeakSet/WeakRef来存储数据
-* bind
-```javascript
-    function MyClass() {
-        this.largeData = new Array(1000000).fill('leak');
-        window.addEventListener('click', this.handleClick.bind(this));
-    }
 
-    MyClass.prototype.handleClick = function() {
-        console.log('Clicked');
-    };
+- 定时器/监听器/IntersectionObserver/ResizeObserver/MutationObserver 等在不需要的时候 需要清除
+- 全局对象存储,一些场景可以使用WeakMap/WeakSet/WeakRef来存储数据
+- bind
+
+```javascript
+function MyClass() {
+  this.largeData = new Array(1000000).fill('leak')
+  window.addEventListener('click', this.handleClick.bind(this))
+}
+
+MyClass.prototype.handleClick = function () {
+  console.log('Clicked')
+}
 ```
 
 ## IntersectionObserver
-IntersectionObserver 是用来检测元素是否进入视口（可见区域）的 API.
-```javascript
-    function lazyLoadImages() {
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                img.src = img.dataset.src;  // 加载真实图片
-                observer.unobserve(img);    // 加载后停止观察
-            }
-            });
-        });
 
-        // 观察所有懒加载图片
-        document.querySelectorAll('img[data-src]').forEach(img => {
-            imageObserver.observe(img);
-        });
-    }
+IntersectionObserver 是用来检测元素是否进入视口（可见区域）的 API.
+
+```javascript
+function lazyLoadImages() {
+  const imageObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const img = entry.target
+        img.src = img.dataset.src // 加载真实图片
+        observer.unobserve(img) // 加载后停止观察
+      }
+    })
+  })
+
+  // 观察所有懒加载图片
+  document.querySelectorAll('img[data-src]').forEach((img) => {
+    imageObserver.observe(img)
+  })
+}
 ```
 
 ## ResizeObserver
+
 ResizeObserver用于监听元素尺寸变化
+
 ```javascript
-    // 创建观察者
-    const resizeObserver = new ResizeObserver(entries => {
-        entries.forEach(entry => {
-            const { width, height } = entry.contentRect;
-            console.log('元素尺寸变化:', width, height);
-        });
-    });
-    // 开始观察目标元素
-    const target = document.querySelector('.target');
-    resizeObserver.observe(target);
+// 创建观察者
+const resizeObserver = new ResizeObserver((entries) => {
+  entries.forEach((entry) => {
+    const { width, height } = entry.contentRect
+    console.log('元素尺寸变化:', width, height)
+  })
+})
+// 开始观察目标元素
+const target = document.querySelector('.target')
+resizeObserver.observe(target)
 ```
 
-## MutationObserver 
+## MutationObserver
+
 MutationObserver用于监听DOM节点变化
+
 ```javascript
 // 创建观察者
 const observer = new MutationObserver((mutations) => {
-  mutations.forEach(mutation => {
+  mutations.forEach((mutation) => {
     // mutation.type: 'attributes' | 'childList' | 'characterData'
-    console.log('DOM变化类型:', mutation.type);
-    console.log('变化的目标节点:', mutation.target);
-  });
-});
+    console.log('DOM变化类型:', mutation.type)
+    console.log('变化的目标节点:', mutation.target)
+  })
+})
 // 配置观察选项
 const config = {
-  attributes: true,      // 观察属性变化
-  childList: true,      // 观察子节点变化
-  characterData: true,  // 观察文本内容变化
-  subtree: true         // 观察所有后代节点
-};
+  attributes: true, // 观察属性变化
+  childList: true, // 观察子节点变化
+  characterData: true, // 观察文本内容变化
+  subtree: true, // 观察所有后代节点
+}
 // 开始观察
-const targetNode = document.querySelector('#target');
-observer.observe(targetNode, config);
+const targetNode = document.querySelector('#target')
+observer.observe(targetNode, config)
 ```
 
 ## PerformanceObserver
-PerformanceObserver用于监听页面性能指标 
+
+PerformanceObserver用于监听页面性能指标
+
 ```javascript
 // 创建性能观察器
 const observer = new PerformanceObserver((list) => {
-    // 获取性能条目
-    const entries = list.getEntries();
-    entries.forEach(entry => {
-        console.log('性能条目:', {
-            name: entry.name,
-            entryType: entry.entryType,
-            startTime: entry.startTime,
-            duration: entry.duration
-        });
-    });
-});
+  // 获取性能条目
+  const entries = list.getEntries()
+  entries.forEach((entry) => {
+    console.log('性能条目:', {
+      name: entry.name,
+      entryType: entry.entryType,
+      startTime: entry.startTime,
+      duration: entry.duration,
+    })
+  })
+})
 // 开始观察
-observer.observe({ 
-    entryTypes: [
-        'resource',      // 资源加载
-        'navigation',    // 页面导航
-        'paint',         // 绘制时间
-        'largest-contentful-paint', // 最大内容绘制
-        'first-input',   // 首次输入延迟
-        'layout-shift'   // 累积布局偏移
-    ] 
-});
+observer.observe({
+  entryTypes: [
+    'resource', // 资源加载
+    'navigation', // 页面导航
+    'paint', // 绘制时间
+    'largest-contentful-paint', // 最大内容绘制
+    'first-input', // 首次输入延迟
+    'layout-shift', // 累积布局偏移
+  ],
+})
 ```
+
 ## script脚本
-async  异步下载 下载后立即执行
-defer  异步下载 下载后等html解析完毕后执行
-无async/defer设置  阻塞html解析 下载后立即执行
+
+async 异步下载 下载后立即执行
+defer 异步下载 下载后等html解析完毕后执行
+无async/defer设置 阻塞html解析 下载后立即执行
 
 ## 参考
+
 [Async functions](http://exploringjs.com/es2016-es2017/ch_async-functions.html)  
 [async函数的实现原理](https://es6.ruanyifeng.com/#docs/async#async-%E5%87%BD%E6%95%B0%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86)  
 [Node模块加载机制](http://www.ayqy.net/blog/node%E6%A8%A1%E5%9D%97%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/)
