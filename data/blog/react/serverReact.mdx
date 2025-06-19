@@ -25,11 +25,12 @@ use可以在组件或者hook内部读取Promise或者Context的值.
 更小的JavaScript bundle: Server Component不需要发送到客户端
 更好的性能: 服务器端数据获取，减少客户端网络请求
 渐进式增强: 可以混合使用Server和Client Component
-SEO友好: 内容在服务器端生成
+SEO友好: 内容在服务器端  
 
 流式支持：支持流式渲染 的意思是不断的创建script标签
 self.\_\_next_f.push组件结构吗
-不断生成标签
+不断生成标签  流的挂起 恢复  模拟个10s的
+
 
 graph TD
 A[服务器开始渲染] -->|1. 遇到 Suspense| B[立即渲染 fallback]
@@ -40,6 +41,10 @@ D -->|5. 发送到客户端| E[客户端执行 push]
 ## Server Actions
 
 可以理解server action 在编译进前端bundle的时候 相当于注入了一段特定请求的代码吗
+
+
+需要更多的服务端资源、
+
 
 ## 参考
 
