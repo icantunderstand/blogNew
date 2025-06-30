@@ -68,16 +68,10 @@ react的diff策略基于以下三点:
 - element diff React提供了三种节点操作：插入(INSERT_MARKUP)/移动(MOVE_EXISTING)/删除(REMOVE_NODE)来达到同类型子节点复用的目的
   ![element diff](/static/images/reactStatic/reactBase/elementDiff.png)
 
-## react fiber reconciler过程
+## react渲染模式
 
-reconciler分为render阶段和commit阶段
-
-- 任务调度-scheduler阶段
-- render阶段利用已有的fiber tree生成workInprogressFiber render阶段可以被高优先打断
-- commit阶段是更新阶段,将render阶段需要更新的操作执行,commit阶段有三个主要阶段钩子
-  1. before mutation-执行DOM操作前执行,会执行getSnapshotBeforeUpdate/componentDidUpdate
-  2. mutation-执行DOM操作
-  3. layout阶段(执行DOM操作之后) 尺寸变化会触发页面重排
+- Legacy模式(同步渲染)
+- Concurrent模式(异步渲染)
 
 ## 自定义hook实现
 
