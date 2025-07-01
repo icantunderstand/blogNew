@@ -73,27 +73,6 @@ react的diff策略基于以下三点:
 - Legacy模式(同步渲染)
 - Concurrent模式(异步渲染)
 
-## 自定义hook实现
-
-### useDebounceValue
-
-```javascript
-const useDebounce = (value, delay = 500) => {
-  const [debouncedValue, setDebouncedValue] = useState('')
-  const timerRef = useRef()
-
-  useEffect(() => {
-    timerRef.current = setTimeout(() => setDebouncedValue(value), delay)
-
-    return () => {
-      clearTimeout(timerRef.current)
-    }
-  }, [value, delay])
-
-  return debouncedValue
-}
-```
-
 ## 高阶组件/render props
 
 [高阶组件/render props](https://icantunderstand.github.io/blogNew/blog/react/hoc)

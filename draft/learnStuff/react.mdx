@@ -1,0 +1,50 @@
+## 自定义hook实现
+
+### useDebounceValue
+
+```javascript
+const useDebounce = (value, delay = 500) => {
+  const [debouncedValue, setDebouncedValue] = useState('')
+  const timerRef = useRef()
+
+  useEffect(() => {
+    timerRef.current = setTimeout(() => setDebouncedValue(value), delay)
+
+    return () => {
+      clearTimeout(timerRef.current)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+```
+
+```javascript
+export const useHover = (): [React.RefObject<HTMLElement>, boolean] => {
+  const [isHovering, setIsHovering] = useState(false)
+  const ref = useRef<HTMLElement>(null)
+
+  const handleMouseEnter = useCallback(() => {
+    setIsHovering(true)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovering(false)
+  }, [])
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+
+    element.addEventListener('mouseenter', handleMouseEnter)
+    element.addEventListener('mouseleave', handleMouseLeave)
+
+    return () => {
+      element.removeEventListener('mouseenter', handleMouseEnter)
+      element.removeEventListener('mouseleave', handleMouseLeave)
+    }
+  }, [handleMouseEnter, handleMouseLeave])
+
+  return [ref, isHovering]
+}
+```
