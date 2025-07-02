@@ -65,7 +65,7 @@ react的diff策略基于以下三点:
 
 - tree diff 对虚拟Dom分层diff,不存在直接删除不考虑移动的复用
 - component diff 不同类型组件直接替换,同类型组件可以通过组件的属性变化来判断是否需要更新
-- element diff React提供了三种节点操作：插入(INSERT_MARKUP)/移动(MOVE_EXISTING)/删除(REMOVE_NODE)来达到同类型子节点复用的目的
+- element diff React提供了三种节点操作：插入(INSERT_MARKUP)/移动(MOVE_EXISTING)/删除(REMOVE_NODE)来达到同类型子节点复用的目的(会复用dom节点更新属性)
   ![element diff](/static/images/reactStatic/reactBase/elementDiff.png)
 
 ## react渲染模式

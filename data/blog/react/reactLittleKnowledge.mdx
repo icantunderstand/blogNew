@@ -1,0 +1,237 @@
+---
+title: react知识点必知必会
+date: '2025-07-02'
+tags: ['React']
+---
+
+在之前的文章[react基础知识梳理](https://icantunderstand.github.io/blogNew/blog/react/reactBase)中,我们主要关注react中技术细节比如hooks实现、
+事件系统等,这篇文章主要梳理react中一些基础api的使用,做到由里及表熟悉react的使用
+
+## 相关api梳理
+
+### useRef
+
+- 保存DOM元素的引用
+- 保存任何可变值(函数/变量)
+  useRef值的变化不会重新渲染组件
+  createRef 用于类组件 useRef 用于函数组件
+
+```javascript
+import { useRef } from 'react'
+
+function MyComponent() {
+  const inputRef = useRef < HTMLInputElement > null
+
+  const focusInput = () => {
+    inputRef.current?.focus()
+  }
+
+  return (
+    <div>
+      <input ref={inputRef} placeholder="请输入内容" />
+      <button onClick={focusInput}>聚焦输入框</button>
+    </div>
+  )
+}
+```
+
+### forwardRef
+
+将ref转发到子组件
+实现组件间的ref传递
+
+```javascript
+const MyInput = forwardRef<HTMLInputElement, Props>((props, ref) => {
+  return <input ref={ref} {...props} />
+})
+```
+
+### useImperativeHandle
+
+自定义暴露给父组件的方法
+与forwardRef配合使用
+
+```javascript
+const CustomInput = forwardRef<InputHandle, InputProps>((props, ref) => {
+  const { placeholder, defaultValue = '' } = props
+  const [value, setValue] = useState(defaultValue)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // 暴露方法给父组件
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      inputRef.current?.focus()
+    },
+    clear: () => {
+      setValue('')
+    },
+    getValue: () => value,
+    setValue: (newValue: string) => {
+      setValue(newValue)
+    }
+  }), [])
+
+  return (
+    <input
+      ref={inputRef}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      placeholder={placeholder}
+    />
+  )
+})
+```
+
+### useCallback
+
+缓存函数
+避免不必要的重新渲染
+
+```javascript
+function ParentComponent() {
+  const [count, setCount] = useState(0)
+
+  // 只有当 count 变化时才创建新的函数
+  const handleClick = useCallback(() => {
+    console.log('点击了', count)
+  }, [count])
+
+  return (
+    <div>
+      <p>计数: {count}</p>
+      <button onClick={() => setCount(count + 1)}>增加</button>
+      <ChildComponent onButtonClick={handleClick} />
+    </div>
+  )
+}
+```
+
+### useMemo
+
+作用： 缓存计算结果，避免在每次渲染时重复执行昂贵的计算(也可以缓存函数)
+语法： useMemo(createValue, dependencies)
+返回值： 缓存的计算结果
+
+```javascript
+// 另一个计算：只有当 text 变化时才重新计算
+const processedText = useMemo(() => {
+  console.log('处理文本...')
+  return text.toUpperCase().split('').reverse().join('')
+}, [text])
+```
+
+### React.memo
+
+作用： 包装组件，避免不必要的重新渲染(会有默认的浅比较行为)
+语法： React.memo(Component, arePropsEqual?)
+返回值： 记忆化的组件
+
+```javascript
+// 自定义比较函数
+const CustomChild = memo(
+  ({ user, onUpdate }) => {
+    console.log('CustomChild 重新渲染')
+
+    return (
+      <div>
+        <h3>自定义比较的子组件</h3>
+        <p>用户: {user.name}</p>
+        <p>年龄: {user.age}</p>
+        <button onClick={onUpdate}>更新用户</button>
+      </div>
+    )
+  },
+  (prevProps, nextProps) => {
+    // 只有当 name 或 age 变化时才重新渲染
+    return prevProps.user.name === nextProps.user.name && prevProps.user.age === nextProps.user.age
+  }
+)
+```
+
+### React.createPortal
+
+作用： 将子组件渲染到父组件DOM层级之外的DOM节点中
+
+```javascript
+// 模态框组件
+function Modal({ isOpen, onClose, children }) {
+  if (!isOpen) return null
+
+  return createPortal(
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="close-btn" onClick={onClose}>
+          ×
+        </button>
+        {children}
+      </div>
+    </div>,
+    document.body // 渲染到 body 元素下
+  )
+}
+```
+
+### useEffect
+
+useEffect(setup, dependencies?),在DOM渲染后执行可以获取到DOM节点
+
+- 无依赖数组 每次渲染都执行
+- 空数组 只在组件挂载时候执行一次
+- 有依赖数组 依赖变化时执行
+
+在react18+中严格模式下开发环境会执行两次副作用,需要明确指定清空函数
+
+### useLayoutEffect
+
+useLayoutEffect(setup, dependencies?),通常的使用场景是需要对页面做UI修改防止页面卡顿,会阻塞浏览器绘制.
+
+## 自定义hook实现
+
+### useDebounceValue
+
+```javascript
+const useDebounce = (value, delay = 500) => {
+  const [debouncedValue, setDebouncedValue] = useState('')
+  const timerRef = useRef()
+
+  useEffect(() => {
+    timerRef.current = setTimeout(() => setDebouncedValue(value), delay)
+
+    return () => {
+      clearTimeout(timerRef.current)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+```
+
+```javascript
+export const useHover = (): [React.RefObject<HTMLElement>, boolean] => {
+  const [isHovering, setIsHovering] = useState(false)
+  const ref = useRef<HTMLElement>(null)
+
+  const handleMouseEnter = useCallback(() => {
+    setIsHovering(true)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovering(false)
+  }, [])
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+
+    element.addEventListener('mouseenter', handleMouseEnter)
+    element.addEventListener('mouseleave', handleMouseLeave)
+
+    return () => {
+      element.removeEventListener('mouseenter', handleMouseEnter)
+      element.removeEventListener('mouseleave', handleMouseLeave)
+    }
+  }, [handleMouseEnter, handleMouseLeave])
+
+  return [ref, isHovering]
+}
+```

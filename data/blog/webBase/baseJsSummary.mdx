@@ -798,7 +798,20 @@ async 异步下载 下载后立即执行
 defer 异步下载 下载后等html解析完毕后执行
 无async/defer设置 阻塞html解析 下载后立即执行
 
-## canvas相关
+## 弹层滚动穿透
+
+滚动穿透: 当弹层打开时，背景页面仍然可以滚动，影响用户体验。
+解决方案: 禁用背景滚动
+
+```javascript
+// 获取原有的滚动高度
+const scrollY = window.scrollY
+// 禁用背景滚动
+document.body.style.position = 'fixed'
+document.body.style.top = `-${scrollY}px`
+document.body.style.width = '100%'
+document.body.style.overflow = 'hidden'
+```
 
 ## 参考
 

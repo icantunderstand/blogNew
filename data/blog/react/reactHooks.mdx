@@ -47,7 +47,7 @@ render阶段主要根据已有的Fiber节点构造对应的workInProgress节点 
 
 ##### commit阶段
 
-1. before mutation: DOM 节点还没有渲染到页面中,执行 getSnapshotBeforeUpdate/useEffect
+1. before mutation: DOM即将更新
 2. mutation:渲染 DOM
    - 根据 effectList 的 tag 标注进行 DOM 操作
    - 更新、删除、替换 DOM 元素
