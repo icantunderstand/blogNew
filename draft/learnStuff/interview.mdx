@@ -640,59 +640,6 @@ async function showLightWithCountdown(color, duration) {
 }
 ```
 
-```javascript
-/**
- * 控制并发请求
- * @param {Array} urls - 请求地址数组
- * @param {Number} maxNum - 最大并发数
- * @returns {Promise} 所有请求的结果
- */
-async function multiRequest(urls, maxNum) {
-  // 请求总数
-  const len = urls.length
-  // 结果数组
-  const result = new Array(len)
-  // 记录start位置
-  let count = 0
-  let finishedCount = 0
-  // 返回新的Promise
-  return new Promise((resolve, reject) => {
-    // 首次启动最大并发数的请求
-    for (let i = 0; i < maxNum; i++) {
-      next()
-    }
-    function next() {
-      let current = count++
-      // 添加边界检查
-      if (current >= len) {
-        return
-      }
-      fetch(urls[current])
-        .then((res) => res.json())
-        .then((res) => {
-          // 保存请求结果
-          result[current] = res
-          if (finishedCount === len) {
-            resolve(result)
-          } else {
-            next()
-          }
-        })
-        .catch((err) => {
-          result[current] = err
-          // 继续下一个请求
-          finishedCount++ // 同样需要增加完成计数
-          if (finishedCount === len) {
-            resolve(result) // 所有请求完成后返回结果
-          } else {
-            next() // 继续下一个请求
-          }
-        })
-    }
-  })
-}
-```
-
 ## curry函数
 
 ```javascript
