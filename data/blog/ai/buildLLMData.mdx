@@ -1,0 +1,51 @@
+---
+title: AI探秘-构建大模型数据准备流程
+date: "2025-09-11"
+tags: ["AI"]
+---
+
+## 相关概念
+
+- **Byte Pair Encoding（BPE，字节对编码）**：常用的子词分词算法，用于把文本切成更稳定的子词 token，兼顾未登录词处理与词表大小控制。
+- **Embedding（嵌入）**：把离散对象映射到稠密向量空间的过程或机制。主要目的是把非数值型数据转换成神经网络可处理的数值表示。
+- **Embedding model（嵌入模型）**：专门将输入（文本/图像/音频/ID 等）映射为稠密向量的模型，用于语义相似度、检索、聚类与下游任务特征输入。
+
+![embedding](/static/images/aiStatic/buildLLMData/embedding.png)
+
+- **词表（vocabulary）**：token ↔ id 的映射表，用于编码（token→id）与解码（id→token），通常包含特殊符号（如 `<eos>`、`[PAD]`、`[UNK]`）。
+
+## 构建大模型步骤
+
+![buildLLM](/static/images/aiStatic/buildLLMData/buildLLM.png)
+
+1. 实现 LLM 的架构并完成数据准备流程。
+2. 预训练 LLM，得到基座（基础）模型。
+3. 在基座模型上进行微调，使其成为个人助手或文本分类器等下游任务模型。
+
+## 数据准备流程
+
+1. 分词（Tokenized text）
+   - 将原始文本按规则切分为更小的单位（token），如词、子词、字符或标点。
+
+2. ID 化与样本构造
+   - 将获得的 token 结合 vocabulary（词表/词汇表）转换为 Token IDs。
+   - 生成词表：
+     
+     ![生成词表的过程](/static/images/aiStatic/buildLLMData/vocabulary.png)
+   - 生成 Token ID：
+     
+     ![生成Token ID的过程](/static/images/aiStatic/buildLLMData/tokenID.png)
+   - 构造输入–目标对（input–target pairs）用于训练：
+     
+     ![生成输入–目标对](/static/images/aiStatic/buildLLMData/samping.png)
+
+3. 向量化（Embeddings）
+   - **Token embeddings（词元嵌入）**：把每个 token 的 ID 映射为 d 维稠密向量，表达内容语义。
+   - **Positional embeddings（位置嵌入）**：为序列中第 i 个位置提供位置信息的向量，弥补自注意力对顺序不敏感的问题。
+   - **合成输入向量（Input embeddings）**：通常为 Token embeddings 与 Positional embeddings 逐元素相加后的结果，输入到模型中。
+
+
+
+
+
+
