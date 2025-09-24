@@ -82,7 +82,7 @@ class AsyncQueue {
   }
 
   /**
-   * 等待所有任务完成
+   * 等待所有任务完成  等待结束不需要依赖其他
    * @returns {Promise<Object>} 返回所有任务的结果和错误
    */
   async waitForAll() {

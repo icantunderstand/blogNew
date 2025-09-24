@@ -15,32 +15,43 @@ categories:
 ### 防抖函数
 
 ```javascript
-// debounce 多次触发只有最后一次执行
-function debounce(fn, delay, mustRun) {
+
+// debounce 多次触发只有最后一次执行   当前连续触发轮次等待时间
+// debounce：支持首击立即触发（immediate），且始终有尾随触发；可选最长等待（maxWait）
+function debounce(fn, delay, { immediate = false, maxWait = 0 } = {}) {
   let timer = null
-  let lastTime = null
-  let realDelay = 0
-  return function debounced(args) {
-    const curr = +new Date()
-    const context = this
-    if (!lastTime) {
-      lastTime = curr
+  let burstStart = 0
+  let lastArgs, lastThis
+
+  return function debounced(...args) {
+    const now = Date.now()
+    lastArgs = args
+    lastThis = this
+    if (burstStart === 0) burstStart = now
+
+    // 命中最长等待：立刻执行，并重置本轮
+    if (maxWait && now - burstStart >= maxWait) {
+      burstStart = 0
+      // 这里需要清空timer
+      clearTimeout(timer)
+      timer = null
+      return fn.apply(lastThis, lastArgs)
     }
-    // 要先clearTimeout
+
+    const shouldCallNow = immediate && timer == null
+
     clearTimeout(timer)
-    // 增加了必须执行的逻辑
-    if (curr - lastTime >= mustRun) {
-      lastTime = curr
-      // 这里的context重要
-      return fn.apply(context, args)
-    }
+
+    // 尾随触发：总是在最后一次输入后的 delay 执行一次
     timer = setTimeout(() => {
-      lastTime = +new Date()
-      return fn.apply(context, args)
-    }, realDelay)
-    // 这里是处理只点一下就执行的情况
-    if (realDelay === 0) {
-      realDelay = delay
+      burstStart = 0
+      timer = null
+      fn.apply(lastThis, lastArgs)
+    }, delay)
+
+    // 首击立即触发：仅在新一轮开始且 immediate=true 时
+    if (shouldCallNow) {
+      return fn.apply(lastThis, lastArgs)
     }
   }
 }
