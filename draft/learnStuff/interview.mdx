@@ -22,7 +22,7 @@ function debounce(fn, delay, { immediate = false, maxWait = 0 } = {}) {
   let timer = null
   let burstStart = 0
   let lastArgs, lastThis
-
+  let reallyImmediate = immediate
   return function debounced(...args) {
     const now = Date.now()
     lastArgs = args
@@ -38,19 +38,24 @@ function debounce(fn, delay, { immediate = false, maxWait = 0 } = {}) {
       return fn.apply(lastThis, lastArgs)
     }
 
-    const shouldCallNow = immediate && timer == null
+    const shouldCallNow = reallyImmediate && timer == null
 
     clearTimeout(timer)
 
     // 尾随触发：总是在最后一次输入后的 delay 执行一次
-    timer = setTimeout(() => {
-      burstStart = 0
-      timer = null
-      fn.apply(lastThis, lastArgs)
-    }, delay)
+    if(!shouldCallNow) {
+        timer = setTimeout(() => {
+          burstStart = 0
+          timer = null
+        fn.apply(lastThis, lastArgs)
+      }, delay)
+    }
+    
 
     // 首击立即触发：仅在新一轮开始且 immediate=true 时
     if (shouldCallNow) {
+      reallyImmediate = false
+      // 这里不需要设置burstStart
       return fn.apply(lastThis, lastArgs)
     }
   }
@@ -71,20 +76,18 @@ function throttle(func, t = 50) {
     if (!lastRunTime) {
       lastRunTime = now
     }
-    // clear的逻辑要提前
+    
     clearTimeout(timer)
+    
     if (now - lastRunTime >= t) {
       lastRunTime = now
-      return fn.apply(context, args)
+      return func.apply(context, args)
     } else {
-      timer = setTimeout(
-        () => {
-          lastRunTime = +new Date()
-          return fn.apply(context, args)
-        },
-        lastRunTime + t - now
-      )
-      // 注意这里的lastRunTime + t
+      const remaining = lastRunTime + t - now
+      timer = setTimeout(() => {
+        lastRunTime = +new Date()
+        func.apply(context, args)
+      }, Math.max(remaining, 0)) // 确保不为负数
     }
   }
 }
@@ -93,58 +96,39 @@ function throttle(func, t = 50) {
 ### 深拷贝
 
 ```javascript
-Function.prototype.clone = function clone() {
-  const that = this
-  const temp = function (...args) {
-    return that.apply(this, args)
-  }
-  for (const key in this) {
-    temp[key] = this[key]
-  }
-  return temp
-}
+
 function deepClone(obj, hash = new Map()) {
-  if (obj === null) return obj // 如果是null或者undefined就不进行拷贝操作
-  // instanceof 这里注意
+  if (obj === null || typeof obj !== 'object') return obj
+
+  if (hash.get(obj)) return hash.get(obj)
+  
   if (obj instanceof Date) return new Date(obj)
   if (obj instanceof RegExp) return new RegExp(obj)
-  if (Object.prototype.toString.call(obj) === '[object Function]') return obj.clone()
-  // 可能是对象或者普通的值  如果是函数的话是不需要深拷贝
-  if (typeof obj !== 'object') return obj
-  // 是对象的话就要进行深拷贝  别忘记这步
-  if (hash.get(obj)) return hash.get(obj)
-
   if (obj instanceof Map) {
     const cloneMap = new Map()
     hash.set(obj, cloneMap)
     obj.forEach((value, key) => {
-      // 递归克隆 Map 的键和值
       cloneMap.set(deepClone(key, hash), deepClone(value, hash))
     })
     return cloneMap
   }
-  // 处理 Set
   if (obj instanceof Set) {
     const cloneSet = new Set()
     hash.set(obj, cloneSet)
-
-    obj.forEach((value) => {
-      // 递归克隆 Set 的值
+    obj.forEach(value => {
       cloneSet.add(deepClone(value, hash))
     })
-
     return cloneSet
   }
-
-  let cloneObj = new obj.constructor() // 这里注意
-  // 找到的是所属类原型上的constructor,而原型上的 constructor指向的是当前类本身
+  
+  let cloneObj = new obj.constructor()
   hash.set(obj, cloneObj)
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      // 实现一个递归拷贝
-      cloneObj[key] = deepClone(obj[key], hash)
-    }
-  }
+  
+  // 处理普通属性和 Symbol 属性
+  Reflect.ownKeys(obj).forEach(key => {
+    cloneObj[key] = deepClone(obj[key], hash)
+  })
+  
   return cloneObj
 }
 ```
@@ -161,22 +145,22 @@ function spawn(genF) {
       try {
         next = nextFn()
       } catch (e) {
-        reject(e)
+        return reject(e)
       }
-      // done的场景
+      
       if (next.done) {
-        resolve(next.value)
+        return resolve(next.value)
       }
-      //  往下走的场景 能处理值或者Promise
+      
       Promise.resolve(next.value).then(
         function (v) {
           step(function () {
             return itr.next(v)
           })
         },
-        function (v) {
+        function (e) {
           step(function () {
-            return itr.throw(v)
+            return itr.throw(e)
           })
         }
       )
@@ -194,10 +178,11 @@ function spawn(genF) {
 
 ```javascript
 Function.prototype.myApply = function (context, args) {
-  // apply接受数组
-  context.fn = this
-  const result = context.fn(...args) // 已传入的context调用函数 作为调用的this
-  delete context.fn
+  context = context || window
+  const fn = Symbol('fn')
+  context[fn] = this
+  const result = context[fn](...args)
+  delete context[fn]
   return result
 }
 ```
@@ -207,9 +192,11 @@ Function.prototype.myApply = function (context, args) {
 ```javascript
 // call的性能更好 不需要处理参数转换
 Function.prototype.myCall = function (context, ...args) {
-  context.fn = this
-  const result = context.fn(...args)
-  delete context.fn
+  context = context || window
+  const fn = Symbol('fn')
+  context[fn] = this
+  const result = context[fn](...args)
+  delete context[fn]
   return result
 }
 ```
@@ -219,19 +206,24 @@ Function.prototype.myCall = function (context, ...args) {
 ```javascript
 Function.prototype.myBind = function (context, ...args) {
   const fn = this
-  return function fnToBind(...restArgs) {
-    if (this instanceof fnToBind) {
+  const boundFn = function (...restArgs) {
+    if (this instanceof boundFn) {
       return new fn(...args, ...restArgs)
     } else {
       return fn.apply(context, args.concat(restArgs))
     }
   }
+  
+  // 保持原型链  注意
+  boundFn.prototype = Object.create(fn.prototype)
+  
+  return boundFn
 }
 ```
 
 ## 理解new操作符
 
-1. 以构造器的原型为属性创建新对象
+1. 以构造器的原型创建新对象
 2. 将新对象作为this调用构造器
 3. 如果构造器返回的是对象则返，否则返回第一步创建的对象
 
@@ -239,11 +231,11 @@ Function.prototype.myBind = function (context, ...args) {
 
 ```javascript
 function myNew(Con, ...args) {
-  // 这里需要注意
   const obj = Object.create(Con.prototype)
   const ret = Con.call(obj, ...args)
-  // instanceof 注意
-  if (ret instanceof Object && ret !== null) {
+  
+  // 更严格的类型检查：只返回对象或 null/undefined
+  if ((typeof ret === 'object' || typeof ret === 'function') && ret !== null) {
     return ret
   }
   return obj
