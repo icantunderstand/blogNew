@@ -316,6 +316,7 @@ function Parent(age) {
   }
 }
 function Child(age) {
+  // 这里需要call
   Parent.call(this, age)
 }
 ```
@@ -345,9 +346,9 @@ function Animal(name) {
   this.name = name
 }
 
-function Cat(age) {
+function Cat(name, age) {
   // 别忘了这里的借用构造函数 这里需要注意
-  Animal.call(this, age)
+  Animal.call(this, name)
   this.age = age
 }
 
@@ -420,46 +421,59 @@ function pipe(...funcs) {
 }
 ```
 
+## curry函数
+
+```javascript
+function curry(fn) {
+  return function curried(...args) {
+    // 如果参数够了，直接执行
+    if (args.length >= fn.length) {
+      return fn.apply(this, args)
+    }
+
+    // 参数不够，返回新函数 这里需要理解下
+    return function (...moreArgs) {
+      // apply
+      return curried.apply(this, args.concat(moreArgs))
+    }
+  }
+}
+```
+
 ### 实现一个jsonp
 
 ```javascript
 function jsonp(url, params, callback) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script')
-    const callBackName = `jsonp_${new Date().getTime()}`
+    const callbackName = `jsonp_${new Date().getTime()}`
     const searchParams = new URLSearchParams(params)
-    searchParams.append('callback', callBackName)
-    script.src = `${url}?${searchParams.toString()}`
-
+    searchParams.append('callback', callbackName)
+    
     const timeout = setTimeout(() => {
       cleanup()
-      reject(new Error(`JSONP request to ${opts.url} timed out`))
+      reject(new Error(`JSONP request to ${url} timed out`))
     }, 5000)
-    // 清理函数
+    
     const cleanup = () => {
-      // 删除 script 标签
       if (script.parentNode) {
         script.parentNode.removeChild(script)
       }
-
-      // 清除全局回调函数
-      delete window[callBackName]
-
-      // 清除超时计时器
+      delete window[callbackName]
       clearTimeout(timeout)
     }
-    // 定义全局回调函数
+    
     window[callbackName] = (data) => {
       cleanup()
       resolve(data)
     }
-    // 处理 script 加载错误
+    
     script.onerror = () => {
       cleanup()
-      reject(new Error(`JSONP request to ${opts.url} failed`))
+      reject(new Error(`JSONP request to ${url} failed`))
     }
-    // 设置 script 的 src 属性并添加到文档中
-    script.src = url
+    
+    script.src = `${url}?${searchParams.toString()}`
     document.head.appendChild(script)
   })
 }
@@ -491,99 +505,6 @@ Promise.allSellted 返回一个Promsie 所有Promise都有结果的时候返回 
 value: 返回的值 reason: 原因
 Promise.any 任何一个fulfilled就返回解决的Promise 所有都失败的时候 AggregateError: All promises were rejected
 Promise.race 被第一个有状态的promise结果决定整个Promise状态
-
-## 移动端适配
-
-禁止缩放 并且是响应式可以解决
-
-```html
-<meta name="viewport" content="user-scalable=no" />
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-```
-
-## js中0.1 + 0.2 !== 0.3的问题
-
-JavaScript使用Number类型表示数字(整数和浮点数)，遵循 IEEE 754 标准 通过64位来表示一个数字
-
-```javascript
-function add(a, b) {
-  const factor =
-    10 **
-    Math.max((a.toString().split('.')[1] || '').length, (b.toString().split('.')[1] || '').length)
-  return (a * factor + b * factor) / factor
-}
-```
-
-## 相关题
-
-```javascript
-// 可以按照路径进行排序 先处理短路径 在处理长路径
-function parseObj(obj) {
-  const ret = {}
-  for (const [key, value] of Object.entries(obj)) {
-    const arr = key.split('.')
-    // 前面的值
-    let prev = ret
-    for (let i = 0; i < arr.length; i++) {
-      if (i < arr.length - 1) {
-        if (prev[arr[i]]) {
-          prev = prev[arr[i]]
-          continue
-        } else {
-          prev[arr[i]] = {}
-          prev = prev[arr[i]]
-        }
-      } else if (i === arr.length - 1) {
-        // 这里会出现重复问题
-        prev[arr[i]] = value
-      }
-    }
-  }
-  return ret
-}
-```
-
-```javascript
-// 实现类似koa中间件的处理逻辑
-function onionMiddle(...middlewares) {
-  // 返回一个接受最后middleware的函数
-  return (next) => {
-    let index = -1
-    function dispatch(i) {
-      if (i <= index) throw new Error('next() called multiple time')
-      index = i
-      let fn = middlewares[i]
-      if (i === middlewares.length) fn = next
-      if (!fn) return
-      return fn(() => dispatch(i + 1))
-    }
-    return dispatch(0)
-  }
-}
-```
-
-```javascript
-// 实现lodash的get方法
-function customGet(obj, path, defaultValue) {
-  if (obj === null) {
-    return defaultValue
-  }
-  // 将路径字符串转换为路径数组
-  const pathArray = Array.isArray(path) ? path : path.split('.')
-  let result = object
-  // 遍历路径数组，逐层获取属性值
-  for (let i = 0; i < pathArray.length; i++) {
-    if (result === null) {
-      // 如果中途遇到 undefined 或非对象值，则返回默认值
-      return defaultValue
-    }
-    result = result[pathArray[i]]
-  }
-
-  // 返回获取到的属性值或默认值
-  return result === undefined ? defaultValue : result
-}
-```
 
 ```javascript
 // 实现一个Promise.All
@@ -619,153 +540,99 @@ function promiseAll(promises) {
 }
 ```
 
+## js中0.1 + 0.2 !== 0.3的问题
+
+JavaScript使用Number类型表示数字(整数和浮点数)，遵循 IEEE 754 标准 通过64位来表示一个数字
+
 ```javascript
-// 使用Promise实现红绿灯
-function trafficLight(color, duration) {
-  return new Promise((resolve) => {
-    // 等待指定时间后解决Promise
-    setTimeout(() => {
-      resolve()
-    }, duration)
-  })
-}
-async function showLightWithCountdown(color, duration) {
-  while (true) {
-    // 红灯10秒
-    await trafficLight('red', 10000)
-
-    // 绿灯10秒
-    await trafficLight('green', 10000)
-
-    // 黄灯3秒
-    await trafficLight('yellow', 3000)
-  }
+function add(a, b) {
+  const factor =
+    10 **
+    Math.max((a.toString().split('.')[1] || '').length, (b.toString().split('.')[1] || '').length)
+  return (a * factor + b * factor) / factor
 }
 ```
 
-## curry函数
+## 相关题
 
 ```javascript
-function curry(fn) {
-  return function curried(...args) {
-    // 如果参数够了，直接执行
-    if (args.length >= fn.length) {
-      return fn.apply(this, args)
-    }
-
-    // 参数不够，返回新函数
-    return function (...moreArgs) {
-      return curried.apply(this, args.concat(moreArgs))
-    }
-  }
-}
-```
-
-```javascript
-class RequestClient {
-  constructor() {
-    // 缓存存储
-    this.cache = new Map()
-    // 正在进行的请求
-    this.pendingRequests = new Map()
-  }
-
-  async request(url, options = {}) {
-    const cacheKey = this.getCacheKey(url, options)
-
-    try {
-      // 1. 检查缓存是否有效
-      const cachedData = this.getCache(cacheKey)
-      if (cachedData) {
-        return cachedData
-      }
-
-      // 2. 检查是否有相同的请求正在进行
-      if (this.pendingRequests.has(cacheKey)) {
-        return this.pendingRequests.get(cacheKey)
-      }
-
-      // 3. 发起新请求
-      const promise = this.fetchData(url, options, cacheKey)
-      // 将请求添加到pending列表
-      this.pendingRequests.set(cacheKey, promise)
-
-      const response = await promise
-      return response
-    } finally {
-      // 请求完成后，从pending列表中移除
-      this.pendingRequests.delete(cacheKey)
-    }
-  }
-
-  // 生成缓存key
-  getCacheKey(url, options) {
-    return `${options.method || 'GET'}-${url}-${JSON.stringify(options.body || '')}`
-  }
-
-  // 获取缓存数据
-  getCache(key) {
-    const cached = this.cache.get(key)
-    if (!cached) return null
-
-    // 检查缓存是否过期
-    if (cached.expires && Date.now() > cached.expires) {
-      this.cache.delete(key)
-      return null
-    }
-
-    return cached.data
-  }
-
-  // 设置缓存
-  setCache(key, data, ttl = 5 * 60 * 1000) {
-    // 默认缓存5分钟
-    this.cache.set(key, {
-      data,
-      expires: Date.now() + ttl,
-    })
-  }
-
-  // 实际发起请求
-  async fetchData(url, options, cacheKey) {
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      // 缓存响应数据
-      this.setCache(cacheKey, data)
-
-      return data
-    } catch (error) {
-      // 请求失败时删除缓存
-      this.cache.delete(cacheKey)
-      throw error
-    }
-  }
-
-  // 清除指定URL的缓存
-  clearCache(url) {
-    if (url) {
-      for (const key of this.cache.keys()) {
-        if (key.includes(url)) {
-          this.cache.delete(key)
+// 可以按照路径进行排序 先处理短路径 在处理长路径
+function parseObj(obj) {
+  const ret = {}
+  
+  // 按路径长度排序，短路径优先处理
+  const sortedEntries = Object.entries(obj).sort((a, b) => 
+    a[0].split('.').length - b[0].split('.').length
+  )
+  
+  for (const [key, value] of sortedEntries) {
+    const arr = key.split('.')
+    let prev = ret
+    
+    for (let i = 0; i < arr.length; i++) {
+      if (i < arr.length - 1) {
+        // 检查路径冲突
+        if (prev[arr[i]] !== undefined && typeof prev[arr[i]] !== 'object') {
+          console.warn(`路径冲突: ${key} 与已存在的值 ${prev[arr[i]]} 冲突，跳过此路径`)
+          break
         }
+        
+        if (!prev[arr[i]]) {
+          prev[arr[i]] = {}
+        }
+        prev = prev[arr[i]]
+      } else {
+        // 最后一个键
+        if (prev[arr[i]] !== undefined && typeof prev[arr[i]] === 'object') {
+          console.warn(`路径冲突: ${key} 会覆盖已存在的对象`)
+        }
+        prev[arr[i]] = value
       }
-    } else {
-      this.cache.clear()
     }
   }
+  
+  return ret
+}
+```
+
+```javascript
+// 实现类似koa中间件的处理逻辑
+function onionMiddle(...middlewares) {
+  return (next) => {
+    let index = -1
+    function dispatch(i) {
+      if (i <= index) throw new Error('next() called multiple time')
+      index = i
+      let fn = middlewares[i]
+      if (i === middlewares.length) fn = next
+      if (!fn) return Promise.resolve()
+      return Promise.resolve(fn(() => dispatch(i + 1)))
+    }
+    return dispatch(0)
+  }
+}
+```
+
+```javascript
+// 实现lodash的get方法
+function customGet(obj, path, defaultValue) {
+  if (obj === null) {
+    return defaultValue
+  }
+  // 将路径字符串转换为路径数组
+  const pathArray = Array.isArray(path) ? path : path.split('.')
+  let result = object
+  // 遍历路径数组，逐层获取属性值
+  for (let i = 0; i < pathArray.length; i++) {
+    if (result === null) {
+      // 如果中途遇到 undefined 或非对象值，则返回默认值
+      return defaultValue
+    }
+    result = result[pathArray[i]]
+  }
+
+  // 返回获取到的属性值或默认值
+  return result === undefined ? defaultValue : result
 }
 ```
 
