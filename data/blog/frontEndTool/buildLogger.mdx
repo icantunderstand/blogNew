@@ -169,6 +169,7 @@ api监控通过PerformanceObserver和请求异常的统一上报入口进行上�
 
 ## 组合不同类型监控逻辑
 ![聚合逻辑](/static/images/frontEndToolStatic/buildLogger/logger.jpg)  
+
 在组合逻辑的时候，通过插件的机制组合不同的收集器,在功能划分上:
 * 主包实现插件的注册、数据的存储上报、通用参数的处理
 * 收集器基类封装与主包的联动逻辑

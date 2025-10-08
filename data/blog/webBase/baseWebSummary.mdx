@@ -54,18 +54,18 @@ socket.addEventListener('message', (event) => {
 
 1.  客户端申请协议升级
 
-        GET ws://example.com/ HTTP/1.1
-        Connection: Upgrade  //升级协议
-        Upgrade: websocket  // 升级websocket
-        Origin: http://example.com
-        Sec-WebSocket-Version: 13  // 指定  websocket版本 如果服务端不支持服务端会返回支持的版本
+        GET ws://example.com/ HTTP/1.1  
+        Connection: Upgrade  //升级协议  
+        Upgrade: websocket  // 升级websocket  
+        Origin: http://example.com  
+        Sec-WebSocket-Version: 13  // 指定  websocket版本 如果服务端不支持服务端会返回支持的版本  
         Sec-WebSocket-Key: d4egt7snxxxxxx2WcaMQlA==  // 与服务端的返回头Sec-WebSocket-Accept相匹配,提供保护防止恶意连接等
 
 2.  服务端响应协议升级
 
-        HTTP/1.1 101 Switching Protocols // 101切换协议
-        Connection:Upgrade
-        Upgrade: websocket
+        HTTP/1.1 101 Switching Protocols // 101切换协议  
+        Connection:Upgrade  
+        Upgrade: websocket  
         Sec-WebSocket-Accept: Oy4NRAQ13jhfONC7bP8dTKb4PTU= // 根据请求Sec-WebSocket-key生成
 
 ### 连接保持
@@ -130,7 +130,7 @@ socket.addEventListener('message', (event) => {
 | 403 Forbidden           | 客户端错误,指服务端有能力处理请求,但是拒绝授权访问                   |
 | 400 Bad Request         | 客户端错误,服务端无法处理该请求                                      |
 | 405 Method Not Allowed  | 表明服务器禁止了使用当前HTTP方法                                     |
-| 502                     | 网关错误                                                             |
+| 502                     | 网关错误,表示网关或代理服务器从上游服务器接收到无效响应                                                              |
 | 503 Service Unavailable | 服务不可用                                                           |
 
 ## 前端存储(cookie/localStorage/sessionStorage)
@@ -210,52 +210,52 @@ SSO一般都需要一个独立的认证中心（passport）,子系统的登录�
 
 请求端请求头:
 
-    GET /resources/public-data/ HTTP/1.1
-    Host: bar.other
-    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:71.0) Gecko/20100101 Firefox/71.0
-    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-    Accept-Language: en-us,en;q=0.5
-    Accept-Encoding: gzip,deflate
-    Connection: keep-alive
+    GET /resources/public-data/ HTTP/1.1  
+    Host: bar.other  
+    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:71.0) Gecko/20100101 Firefox/71.0  
+    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8  
+    Accept-Language: en-us,en;q=0.5  
+    Accept-Encoding: gzip,deflate  
+    Connection: keep-alive  
     Origin: https://foo.example  // 标识请求来源
 
 服务端响应头:
 
-    HTTP/1.1 200 OK
-    Date: Mon, 01 Dec 2008 00:23:53 GMT
-    Server: Apache/2
-    Access-Control-Allow-Origin: * // 告知浏览器该资源可以被哪些域名访问
-    Keep-Alive: timeout=2, max=100
-    Connection: Keep-Alive
-    Transfer-Encoding: chunked
+    HTTP/1.1 200 OK  
+    Date: Mon, 01 Dec 2008 00:23:53 GMT  
+    Server: Apache/2  
+    Access-Control-Allow-Origin: * // 告知浏览器该资源可以被哪些域名访问  
+    Keep-Alive: timeout=2, max=100  
+    Connection: Keep-Alive  
+    Transfer-Encoding: chunked  
     Content-Type: application/xml
 
 #### 复杂请求跨域交互
 
 请求端预检请求
 
-    OPTIONS /doc HTTP/1.1
-    Host: bar.other
-    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:71.0) Gecko/20100101 Firefox/71.0
-    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-    Accept-Language: en-us,en;q=0.5
-    Accept-Encoding: gzip,deflate
-    Connection: keep-alive
-    Origin: https://foo.example
-    Access-Control-Request-Method: POST // 跨域请求方法
+    OPTIONS /doc HTTP/1.1  
+    Host: bar.other  
+    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:71.0) Gecko/20100101 Firefox/71.0  
+    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8  
+    Accept-Language: en-us,en;q=0.5  
+    Accept-Encoding: gzip,deflate  
+    Connection: keep-alive  
+    Origin: https://foo.example  
+    Access-Control-Request-Method: POST // 跨域请求方法  
     Access-Control-Request-Headers: X-PINGOTHER, Content-Type // 跨域请求的自定义请求头
 
 服务端响应预检请求
 
-    HTTP/1.1 204 No Content
-    Date: Mon, 01 Dec 2008 01:15:39 GMT
-    Server: Apache/2
-    Access-Control-Allow-Origin: https://foo.example
-    Access-Control-Allow-Methods: POST, GET, OPTIONS
-    Access-Control-Allow-Headers: X-PINGOTHER, Content-Type
-    Access-Control-Max-Age: 86400
-    Vary: Accept-Encoding, Origin
-    Keep-Alive: timeout=2, max=100
+    HTTP/1.1 204 No Content  
+    Date: Mon, 01 Dec 2008 01:15:39 GMT  
+    Server: Apache/2  
+    Access-Control-Allow-Origin: https://foo.example  
+    Access-Control-Allow-Methods: POST, GET, OPTIONS  
+    Access-Control-Allow-Headers: X-PINGOTHER, Content-Type  
+    Access-Control-Max-Age: 86400  
+    Vary: Accept-Encoding, Origin  
+    Keep-Alive: timeout=2, max=100  
     Connection: Keep-Alive
 
 在完成预检请求后进行正常的请求交互响应
@@ -278,7 +278,7 @@ SSO一般都需要一个独立的认证中心（passport）,子系统的登录�
 
 超文本传输协议(HyperText Transfer Protocol-http)
 http1.1三种连接方式:
-![http 1.1 三种连接模式](/static/images/javascriptBaseStatic/baseWebSummary/http1.1.png)
+![http 1.1 三种连接模式](/static/images/javascriptBaseStatic/baseWebSummary/http.png)
 
 - 短连接模式(Short-lived Connection): Connection: close
 - 长连接模式(Persistent Connection): 长连接模式能减少TCP传输慢启动和握手时间  
@@ -290,7 +290,7 @@ http1.1三种连接方式:
 ## http2
 
 http2通过二进制分帧层,将需要发送的数据拆分成帧,通过帧的首部的流标识信息组装成信息。
-![二进制分帧层](/static/images/javascriptBaseStatic/baseWebSummary/binaryFrame.png)
+![二进制分帧层](/static/images/javascriptBaseStatic/baseWebSummary/binaryFrameLayer.png)
 
 http2对比http1.1有如下的优势:
 

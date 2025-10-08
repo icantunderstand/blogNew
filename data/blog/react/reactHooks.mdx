@@ -65,7 +65,7 @@ render阶段主要根据已有的Fiber节点构造对应的workInProgress节点 
 Hooks在组件初次挂载和组件更新阶段是调用的不同的[实现逻辑](https://github.com/facebook/react/blob/1d1e49cfa453b58769e87c3c8d321024d58c948f/packages/react-reconciler/src/ReactFiberHooks.new.js#L389)  
 ![挂载不同的hook](/static/images/reactStatic/reactHooks/differentHook.png)
 
-![mount阶段hook](/static/images/reactStatic/reactHooks/mountHookCode.png)
+![mount阶段hook](/static/images/reactStatic/reactHooks/mountHookCodeExample.png)
 
 ![update阶段hook](/static/images/reactStatic/reactHooks/updateHookCode.png)
 下面先整体的介绍不同阶段Hooks的实现过程然后在深入到源码中看具体的实现.
