@@ -43,22 +43,27 @@ tags: ['JavaScript']
   ![nextTick](/static/images/javascriptBaseStatic/eventloop/nextTick.png)
 
 ```javascript
-        setTimeout(function(){
-          console.log(1);
-        });
-        new Promise(function(resolve){
-          console.log(2)
-          for( var i=100000 ; i>0 ; i-- ){
-              i==1 && resolve()
-          }
-          console.log(3)
-        }).then(function(){
-          console.log(4)
-        });
-
-        console.log(5);
-        process.nextTick(() => { console.log('nextTick'); })
-        输出的顺序依次是 2 3 5 nextTick 4 1
+    setTimeout(function(){
+        console.log(1);
+        Promise.resolve().then(() => {
+            console.log(7);
+        })
+    }, 0);
+    new Promise(function(resolve){
+      console.log(2)
+      for( var i=100000 ; i>0 ; i-- ){
+          i==1 && resolve()
+      }
+      console.log(3)
+    }).then(function(){
+      console.log(4)
+    });
+    setTimeout(function(){
+      console.log(6);  
+    }, 0);
+    console.log(5);
+    process.nextTick(() => { console.log('nextTick'); })
+    // 2 3 5 nextTick 4 1 7 6
 ```
 
 - requestIdleCallback
@@ -68,8 +73,8 @@ tags: ['JavaScript']
 
 在具体的实现中只会有一个microTasks队列,简单的理解事件循:
 
-1. 浏览器或者node会按照顺序执行自己环境的多个macrotasks队列
-2. 每执行完一个macrotask队列就会拿出micortasks队列的任务全部执行，然后继续执行下一个macrotask队列
+1. 浏览器或者node中有多个macrotasks队列,一个微任务队列
+2. 每执行完一个macrotask任务就会拿出micortasks队列的任务全部执行，然后继续执行下一个macrotask任务
 
 ![runTask](/static/images/javascriptBaseStatic/eventloop/runTask.jpg)
 
