@@ -1,6 +1,6 @@
 ---
 title: AI探秘-LangChain使用不完全指南
-date: "2025-10-23"
+date: "2025-10-28"
 tags: ["AI"]
 ---
 
@@ -13,7 +13,11 @@ LangChain是一个强大的框架，用于构建基于大语言模型(LLM)的应
 1. [什么是LangChain](#什么是langchain)
 2. [LangChain包分类](#langchain包分类)
 3. [环境搭建](#环境搭建)
-4. [核心概念与组件](#核心概念与组件)
+4. [核心组件](#核心组件)
+   - [Agents 代理](#1-agents---代理)
+   - [Models 模型](#2-models---模型)
+   - [Messages 消息](#3-messages---消息)
+   - [Middleware 中间件](#4-middleware---中间件)
 
 ## 什么是LangChain
 
@@ -65,7 +69,38 @@ print(response)
 
 ## 核心组件
 
-### 1. Models - 模型
+### 1. Agents - 代理
+Agents将语言模型与工具结合，构建出能够对任务进行推理、决定使用哪些工具，并以迭代方式推进求解的系统。
+
+<CollapsibleCode title="创建智能代理" language="python">
+```python
+from langchain_ollama import ChatOllama
+from langchain.agents import create_agent
+# 本地模型（Ollama）
+llm = ChatOllama(model="qwen3:1.7b")
+
+# 创建 Agent
+agent = create_agent(
+    llm,
+)
+# 发起对话
+result = agent.invoke(
+    {"messages": [{"role": "user", "content": "你好呀 你是谁"}]}, 
+)
+
+# 展示最终回复
+print(result["messages"][-1].content)
+
+```
+</CollapsibleCode>
+
+
+### 2. Models - 模型
+
+模型可以通过两种方式使用：
+
+**1. 与代理配合使用** - 在创建代理时可以动态指定模型
+**2. 独立使用** - 模型可以直接调用（在代理循环之外），用于文本生成、分类或提取等任务，无需代理框架
 
 LangChain提供了标准化的模型接口，支持多种LLM提供商：
 
@@ -77,171 +112,164 @@ from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 
 # 本地模型
-local_llm = OllamaLLM(model="llama2")
-
-# OpenAI模型
-openai_llm = ChatOpenAI(model="gpt-3.5-turbo")
-
+local_llm = OllamaLLM(model="deepseek-r1:1.5b")
+# OpenAI模型  调用其他模型的时候  需要指定特定模型的API KEY
+#  openai_llm = ChatOpenAI(model="gpt-3.5-turbo")
 # Anthropic模型
-anthropic_llm = ChatAnthropic(model="claude-3-sonnet")
+# anthropic_llm = ChatAnthropic(model="claude-3-sonnet")
 
 # 统一的调用接口
 def call_model(llm, prompt):
     return llm.invoke(prompt)
 
-# 可以无缝切换不同模型
 response1 = call_model(local_llm, "你好")
-response2 = call_model(openai_llm, "你好")
 ```
 </CollapsibleCode>
 
-### 2. Messages - 消息
+#### 模型调用方法
 
-LangChain使用标准化的消息格式来处理对话：
+| 方法 | 功能 | 使用场景 | 返回值 |
+|------|------|----------|--------|
+| `invoke()` | 同步调用模型 | 单次请求，需要等待结果 | 直接返回完整结果 |
+| `stream()` | 流式调用模型 | 实时显示生成过程 | 返回生成器，逐块返回内容 |
+| `batch()` | 批量异步处理 | 并行处理多个请求 | 返回所有结果列表 |
+| `batch_as_completed()` | 批量异步处理（完成即返回） | 无需等待所有完成 | 完成一个返回一个 |
+
+#### 工具调用
+通过绑定工具在大模型会返回请求调用工具的指令,然后根据指令调用工具函数并返回结果.在agent模式中会自动处理这个调用过程
+
+<CollapsibleCode title="工具调用示例" language="python">
+```python
+from langchain_ollama import ChatOllama
+from langchain.tools import tool
+# 定义工具函数
+@tool
+def get_weather(location: str) -> str:
+    # 函数的文档字符串
+    """Get the weather at a location."""
+    return f"It's bad weather in {location}."
+# 使用 ChatOllama 而不是 OllamaLLM（ChatOllama 支持工具绑定）
+local_llm = ChatOllama(model="qwen3:1.7b")
+model_with_tools = local_llm.bind_tools([get_weather]) 
+messages = [{"role": "user", "content": "What's the weather in Boston?"}]
+ai_msg = model_with_tools.invoke(messages)
+messages.append(ai_msg)
+
+#工具注册
+tool_registry = {
+    "get_weather": get_weather,
+}
+# 遍历工具调用
+for tool_call in ai_msg.tool_calls:
+    tool = tool_registry.get(tool_call['name'])
+    if not tool:
+        continue
+    # 调用工具函数
+    tool_result = tool.invoke(tool_call['args'])
+    # 将工具返回的结果添加到消息列表中
+    messages.append(tool_result)
+# 最终响应
+final_response = model_with_tools.invoke(messages)
+print(final_response.content)
+```
+</CollapsibleCode>
+
+#### 工具调用流程示意
+
+```text
+用户输入
+   |
+   v
+LLM 接收 messages 并生成响应（可能包含 tool_calls）
+   |
+   |-- 若无 tool_calls -------------------------------> 直接返回最终回答
+   |
+   |-- 若包含 tool_calls:
+   |       |
+   |       v
+   |   解析 tool_calls 列表（name, args）
+   |       |
+   |       v
+   |   查找并调用对应工具（tool_registry[name].invoke(args)）
+   |       |
+   |       v
+   |   将工具返回结果封装为 ToolMessage，追加到 messages
+   |       |
+   |       v
+   |   将扩展后的 messages 再次发送给 LLM（model_with_tools.invoke）
+   |       |
+   |       v
+   |   生成结合工具结果的最终回答
+   |
+   v
+返回给用户
+```
+#### 结构化输出 
+
+可以通过Model实现格式化处理,可以实现在后续的环节更好的处理
+<CollapsibleCode title="结构化输出示例" language="python">
+```python
+from langchain_ollama import ChatOllama
+from pydantic import BaseModel, Field
+# 使用 ChatOllama 而不是 OllamaLLM（ChatOllama 支持工具绑定）
+local_llm = ChatOllama(model="qwen3:1.7b")
+
+class Movie(BaseModel):
+    """A movie with details."""
+    title: str = Field(..., description="The title of the movie")
+    year: int = Field(..., description="The year the movie was released")
+    director: str = Field(..., description="The director of the movie")
+    rating: float = Field(..., description="The movie's rating out of 10")
+# 使用结构化输出
+model_with_structure = local_llm.with_structured_output(Movie)
+response = model_with_structure.invoke("Provide details about the movie Inception")
+print(response) 
+```
+</CollapsibleCode>
+
+### 3. Messages - 消息
+消息是 LangChain 中模型上下文的基本单元，代表模型的输入与输出。Message 通常包含角色（role）、内容（content）以及元数据（metadata）；
 
 <CollapsibleCode title="消息格式示例" language="python">
 ```python
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-
+from langchain_ollama import ChatOllama
+from langchain.messages import HumanMessage, AIMessage, SystemMessage
+local_llm = ChatOllama(model="qwen3:1.7b")
 # 创建不同类型的消息
+# SystemMessage：系统/角色指令，用于设定模型的全局行为与语气（通常放在最前面）
 system_msg = SystemMessage(content="你是一个有用的AI助手")
+# HumanMessage：用户输入，表示人类的提问或请求
 human_msg = HumanMessage(content="请介绍一下Python")
+# AIMessage：模型输出，表示上一次 AI 的回答（可用于提供上下文历史）
 ai_msg = AIMessage(content="Python是一种高级编程语言...")
-
+# 消息列表（通常顺序是：System → 交替的 Human/AI 历史 → 当前 Human）
+messages = [system_msg, human_msg, ai_msg]
 # 消息列表
 messages = [system_msg, human_msg, ai_msg]
-
 # 使用消息进行对话
-from langchain_ollama import OllamaLLM
-llm = OllamaLLM(model="llama2")
-response = llm.invoke(messages)
+response = local_llm.invoke(messages)
+print(response.content) 
 ```
 </CollapsibleCode>
 
-### 3. Tools - 工具
+#### Message类型
 
-工具让AI能够执行具体操作：
+| 类型 | 作用 | 典型内容 | 备注 |
+|------|------|----------|------|
+| System message | 告诉模型如何行为，并为交互提供全局上下文 | 规则、角色设定、风格要求 | 通常放在最前面，影响整轮对话走向 |
+| Human message | 代表用户输入与模型的交互 | 问题、指令、数据 | 也可包含文件摘要、外部信息等 |
+| AI message | 模型生成的响应 | 文字内容；可能包含工具调用信息（tool_calls）及元数据 | 当触发工具调用时，会携带调用的工具名与参数 |
+| Tool message | 工具调用的输出 | 工具执行结果，如检索内容、计算结果、API响应 | 通常作为后续消息再次提供给模型以生成最终回答 |
 
-<CollapsibleCode title="工具定义示例" language="python">
-```python
-from langchain_core.tools import tool
 
-# 定义工具
-@tool
-def get_weather(city: str) -> str:
-    """获取指定城市的天气信息"""
-    # 这里应该是真实的API调用
-    return f"{city}今天天气晴朗，温度25度"
-
-@tool
-def calculate(expression: str) -> str:
-    """计算数学表达式"""
-    try:
-        result = eval(expression)
-        return str(result)
-    except:
-        return "无法计算该表达式"
-
-# 工具列表
-tools = [get_weather, calculate]
-```
-</CollapsibleCode>
-
-### 4. Agents - 智能代理
-
-代理是LangChain的核心，能够使用工具完成任务：
-
-<CollapsibleCode title="创建智能代理" language="python">
-```python
-from langchain.agents import create_agent
-from langchain_ollama import OllamaLLM
-
-# 定义工具
-@tool
-def get_weather(city: str) -> str:
-    """获取天气信息"""
-    return f"{city}今天天气晴朗，温度25度"
-
-@tool
-def calculate(expression: str) -> str:
-    """计算数学表达式"""
-    try:
-        result = eval(expression)
-        return str(result)
-    except:
-        return "无法计算"
-
-# 创建代理
-agent = create_agent(
-    model=OllamaLLM(model="llama2"),
-    tools=[get_weather, calculate],
-    system_prompt="你是一个有用的助手，可以使用工具来帮助用户"
-)
-
-# 运行代理
-response = agent.invoke({
-    "messages": [{"role": "user", "content": "计算 15 * 8，然后告诉我北京的天气"}]
-})
-```
-</CollapsibleCode>
-
-### 5. Short-term Memory - 短期记忆
-
-让AI记住当前对话的上下文：
-
-<CollapsibleCode title="对话记忆示例" language="python">
-```python
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationChain
-from langchain_ollama import OllamaLLM
-
-# 创建记忆
-memory = ConversationBufferMemory()
-
-# 创建对话链
-llm = OllamaLLM(model="llama2")
-conversation = ConversationChain(
-    llm=llm,
-    memory=memory,
-    verbose=True
-)
-
-# 进行多轮对话
-response1 = conversation.predict(input="我叫张三，是一名Python开发者")
-response2 = conversation.predict(input="我刚才说我叫什么名字？")
-print(response2)  # AI会记住你的名字
-```
-</CollapsibleCode>
-
-### 6. Streaming - 流式输出
-
-支持实时流式响应：
-
-<CollapsibleCode title="流式输出示例" language="python">
-```python
-from langchain_ollama import OllamaLLM
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-
-# 创建支持流式输出的LLM
-streaming_llm = OllamaLLM(
-    model="llama2",
-    streaming=True,
-    callbacks=[StreamingStdOutCallbackHandler()]
-)
-
-# 流式响应
-response = streaming_llm.invoke("请详细解释什么是机器学习")
-```
-</CollapsibleCode>
-
-### 7. Middleware - 中间件
+### 4. Middleware - 中间件
 
 用于处理请求和响应的中间件：
 
 <CollapsibleCode title="中间件示例" language="python">
 ```python
 from langchain_core.runnables import RunnableLambda
-from langchain_ollama import OllamaLLM
+from langchain_ollama import ChatOllama
 
 # 定义中间件
 def log_requests(inputs):
@@ -253,7 +281,7 @@ def log_responses(outputs):
     return outputs
 
 # 创建带中间件的链
-llm = OllamaLLM(model="llama2")
+llm = ChatOllama(model="qwen3:1.7b")
 
 # 添加中间件
 chain = (
@@ -264,46 +292,6 @@ chain = (
 
 # 使用链
 response = chain.invoke("你好")
-```
-</CollapsibleCode>
-
-### 8. Structured Output - 结构化输出
-
-将AI输出解析为结构化数据：
-
-<CollapsibleCode title="结构化输出示例" language="python">
-```python
-from langchain_core.output_parsers import PydanticOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_ollama import OllamaLLM
-from pydantic import BaseModel, Field
-
-# 定义输出结构
-class CodeReview(BaseModel):
-    score: int = Field(description="代码质量评分，1-10分")
-    strengths: list[str] = Field(description="代码优点")
-    improvements: list[str] = Field(description="改进建议")
-
-# 创建解析器
-parser = PydanticOutputParser(pydantic_object=CodeReview)
-
-# 创建提示模板
-prompt = ChatPromptTemplate.from_template(
-    "请审查以下代码：\n{code}\n{format_instructions}"
-)
-
-# 创建链
-llm = OllamaLLM(model="llama2")
-chain = prompt | llm | parser
-
-# 使用链
-result = chain.invoke({
-    "code": "def hello(): print('Hello World')",
-    "format_instructions": parser.get_format_instructions()
-})
-
-print(f"评分：{result.score}")
-print(f"优点：{result.strengths}")
 ```
 </CollapsibleCode>
 
