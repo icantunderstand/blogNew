@@ -1,0 +1,171 @@
+---
+title: AI探秘-大模型:我的记忆不止5秒
+date: '2025-11-25'
+tags: ['AI']
+---
+
+
+## 导航
+
+- [如何启用短期记忆](#如何启用短期记忆)
+- [控制消息长度的常见策略](#控制消息长度的常见策略)
+  - [压缩消息](#压缩消息)
+  - [总结消息](#总结消息)
+
+
+在[AI探秘-LangChain使用不完全指南](https://icantunderstand.github.io/blogNew/blog/ai/langChain)中介绍了LangChain核心组件的基本使用方式.通过对
+基本组件的了解我们知道如何简单构建一个agent.但是我们对构建大模型的一些交互细节还不明确.AI探秘系列会继续在这个方向进行探索,本文将了解在大模型中是如何实现记忆的.
+在大语言模型的上下文窗口有限,对话轮数越多,越容易丢失关键信息.短期记忆(Short-term Memory)的核心是把当前对话历史保存到一份状态里,在下一次调用模型之前再读出来,从而让Agent拥有连贯的对话上下文.
+在LangChain中,这份状态由`AgentState`管理,并通过`checkpointer`持久化.
+
+![内容汇总](/static/images/aiStatic/aiMemory/summary.png)
+
+
+## 如何启用短期记忆
+
+在创建Agent时指定`checkpointer`,LangChain就会在状态里记录每一次的消息流.
+本地开发时可以使用 anggraph.checkpoint.memory.InMemorySaver将对话状态保存在内存中,方便快速调试和实验。
+线上环境则推荐`langgraph-checkpoint-postgres`等数据库后端,持久化存储对话状态.
+
+<CollapsibleCode title="记忆例子" language="python">
+```
+from langchain.messages import SystemMessage, HumanMessage
+from langchain_ollama import OllamaLLM
+from langchain.agents import create_agent
+from langgraph.checkpoint.memory import InMemorySaver  
+
+# 初始化要驱动智能体的本地 Ollama 模型。
+llm = OllamaLLM(model="deepseek-r1:1.5b")
+
+# 使用该 LLM创建智能体，并用内存保存对话状态。
+agent = create_agent(
+    llm,
+    tools=[],
+    checkpointer=InMemorySaver(),
+)
+messages = [
+    SystemMessage("you are a helpful assistant"),
+    HumanMessage("2 plus 2 equals to what?")
+]
+
+# 在指定配置中执行对话，并输出智能体的最终回答。
+response = agent.invoke(
+    {   
+        "messages": messages,
+    },
+    # 指定ID，用于区分不同的对话。
+    {"configurable": {"thread_id": "1"}},  
+)
+print(response["messages"][-1].content)
+```
+</CollapsibleCode>
+
+
+## 控制消息长度的常见策略
+
+默认的`AgentState`只维护`messages`,可以通过扩展AgentState和添加中间件来实现对消息的处理逻辑.启用短期记忆后,历史记录可能超出上下文窗口,需要配合裁剪策略:
+
+| 策略               | 说明                                                                 |
+| ------------------ | -------------------------------------------------------------------- |
+| Trim messages      | 通过 `@before_model` 中间件统计消息数量/Token 并保留最近的若干轮,必要时可以先固定保留第一条系统信息再拼接最近的 N 条对话。 |
+| Delete messages    | 借助 `RemoveMessage` 直接从状态里删除某些消息,常用场景包括清理敏感信息或过期内容。 |
+| Summarize messages | 将较早的多轮对话压缩成摘要再放回状态,用更少的 Token 保留关键信息。      |
+| Custom strategies  | 例如按角色过滤消息等,可以根据业务需求自定义更多裁剪策略。              |
+
+### 压缩消息
+
+<CollapsibleCode title="压缩消息示例" language="python">
+```
+from langchain_ollama import OllamaLLM
+from langchain.agents.middleware import before_model
+from langchain.messages import RemoveMessage
+from langchain.agents import create_agent,AgentState
+from langgraph.checkpoint.memory import InMemorySaver  
+from langgraph.graph.message import REMOVE_ALL_MESSAGES
+
+# 初始化要驱动智能体的本地 Ollama 模型。
+llm = OllamaLLM(model="qwen3:1.7b")
+
+@before_model
+# 该中间件会在每次调用模型前执行，用于裁剪消息历史。
+def trim_messages(state: AgentState, runtime):
+    """保留首条系统消息 + 最近 3 轮对话"""
+    messages = state["messages"]
+
+    # 消息没有超过 4 条（系统 + 最近 3 轮）时无需处理。
+    if len(messages) <= 4:
+        return None
+    first_msg = messages[0]
+    # 通过奇偶判断当前位于用户还是 AI 回合，保证截取的是完整轮次。
+    recent_messages = (
+        messages[-3:]
+        if len(messages) % 2 == 0
+        else messages[-4:]
+    )
+    new_messages = [first_msg] + recent_messages
+
+    return {
+        "messages": [
+            RemoveMessage(id=REMOVE_ALL_MESSAGES),
+            *new_messages
+        ]
+    }
+
+# 创建智能体并挂上裁剪中间件，以防记忆爆炸。
+agent = create_agent(
+    llm,
+    tools=[],
+    middleware=[trim_messages],
+    checkpointer=InMemorySaver(),
+)
+
+# 配置里只用到 thread_id，用于标记会话。
+config = {"configurable": {"thread_id": "1"}}
+```
+</CollapsibleCode>
+
+### 总结消息
+![总结消息](/static/images/aiStatic/aiMemory/summarization.png)
+
+<CollapsibleCode title="总结消息的实现" language="python">
+```
+from langchain_ollama import OllamaLLM
+from langchain.agents import create_agent
+from langgraph.checkpoint.memory import InMemorySaver  
+from langchain.agents.middleware import SummarizationMiddleware
+
+# 初始化要驱动智能体的本地 Ollama 模型。
+llm = OllamaLLM(model="qwen3:1.7b")
+
+# 使用InMemorySaver来持久化会话状态，便于多轮对话追踪。
+checkpointer = InMemorySaver()
+
+# 创建一个不带工具的最简单智能体，并挂载总结中间件用于长对话压缩。
+agent = create_agent(
+    llm,
+    tools=[],
+    middleware=[
+        SummarizationMiddleware(
+            llm,
+            max_tokens_before_summary=4000,
+            messages_to_keep=20,
+        )
+    ],
+    checkpointer=checkpointer,
+)
+
+# 配置里只用到 thread_id，用于标记会话。
+config = {"configurable": {"thread_id": "1"}}
+```
+</CollapsibleCode>
+
+
+短期记忆并不是无限制地存放所有内容,而是通过合理的持久化与裁剪策略,把最重要的信息留在Agent的“脑海”里.这也是LangChain在构建工业级Agent时的一项关键能力.
+## 参考
+[LangChain Short-term Memory 官方文档](https://docs.langchain.com/oss/python/langchain/short-term-memory).
+
+
+
+
+
+
