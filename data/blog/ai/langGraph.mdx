@@ -1,0 +1,130 @@
+---
+title: AI探秘-5分钟了解LangGraph
+date: "2025-12-13"
+tags: ["AI"]
+---
+
+## 导航
+1. [什么是LangGraph](#什么是langgraph)
+   - [使用模式](#使用模式)
+     - [Prompt chaining(链式)](#prompt-chaining链式)
+     - [Parallelization(并行)](#parallelization并行)
+     - [Routing(路由)](#routing路由)
+     - [Orchestrator-worker(编排器-工作节点)](#orchestrator-worker编排器-工作节点)
+     - [Evaluator-optimizer(评估优化模式)](#evaluator-optimizer评估优化模式)
+     - [Agents](#Agents)
+2. [核心概念](#核心概念)
+   - [1. 节点（Nodes）](#1-节点nodes)
+   - [2. 边（Edges）](#2-边edges)
+3. [附录](#附录)
+
+![langgraph](/static/images/aiStatic/langGraph/base.png)
+
+LangGraph是一个偏底层的编排框架和运行时环境，专为构建、管理和部署Agent而设计,本文将带你从基础概念开始，逐步深入LangGraph的各个核心功能。
+
+
+## 什么是LangGraph
+![langgraph核心](/static/images/aiStatic/langGraph/concept.png)
+LangGraph 利用 StateGraph 将代理流程建模为有状态的图，开发者可以以工作流的方式精细编排节点、状态与条件边，构建高度定制化的代理交互.下面可以先从官网上的一些示例
+感受下LangGraph的使用
+
+### 使用模式
+
+#### Prompt chaining(链式)
+
+![chain](/static/images/aiStatic/langGraph/chain.png)    
+
+场景: 每一步 LLM 调用基于前一步输出，适合将大任务精确拆分成小任务的工作流
+
+#### Parallelization(并行)
+
+![parallelization](/static/images/aiStatic/langGraph/parallelization.png)    
+
+场景: 
+* 将大任务拆分多个子任务并行执行,提供速度
+* 同时执行当前任务最后对比不同的输出
+
+#### Routing(路由)
+
+![routing](/static/images/aiStatic/langGraph/routing.png)    
+
+场景: 多个不相关任务组合一起,通过路由方式分发执行
+
+#### Orchestrator-worker(编排器-工作节点)
+
+![worker](/static/images/aiStatic/langGraph/worker.png)    
+
+场景: 区别于Parallelization,编排器-工作节点模式适用于子任务无法被预先定义的情况下.通过编排器拆分任务指定对应的worker执行
+
+#### Evaluator-optimizer(评估优化模式)
+
+![optimizer](/static/images/aiStatic/langGraph/optimizer.png)   
+
+场景: 适用于多轮评估优化生成的内容结果
+
+#### Agents
+
+![agents](/static/images/aiStatic/langGraph/agents.png)   
+
+场景: Agents 模式对使用者来说定制程度没那么高，但是还是能够通过工具来影响 LLM 对工具的调用
+
+## 核心概念
+
+Graph（尤其是 StateGraph）是 LangGraph 的核心抽象
+
+- **状态（State）**：代表当前应用的状态
+- **节点（Node）**：执行特定功能的函数，接受当前 state 作为入参，在函数逻辑中基于当前 state 生成并返回新的 state
+- **边（Edge）**：定义节点之间的连接关系，决定在当前的 state 下哪个节点应该执行
+
+#### 1. 节点（Nodes）
+
+节点是执行实际工作的函数，接收状态并返回状态更新：
+
+<CollapsibleCode title="节点定义示例" language="python">
+```python
+def node_1(state: InputState) -> OverallState:
+    # Write to OverallState
+    return {"foo": state["user_input"] + " name"}
+```
+</CollapsibleCode>
+
+- **START Node**：定义最开始被调用的处理函数
+- **END Node**：定义结束节点
+- **缓存（Cache）**：可以在添加节点的时候通过 `cache_policy` 启用缓存
+
+#### 2. 边（Edges）
+
+边定义了节点之间的连接：
+
+- **普通边(Normal Edges)**：使用 `add_edge()` 定义固定的连接
+- **条件边**：使用 `add_conditional_edges()` 根据条件动态选择下一个节点
+- **入口节点(Entry Point)**：定义最开始被调用的node节点
+- **条件入口节点(Conditional Entry Point)**：根据条件动态选择入口节点
+
+
+<CollapsibleCode title="条件边示例" language="python">
+```python
+from langgraph.graph import StateGraph, MessagesState, START, END
+# 返回值被用作下一个节点
+def should_continue(state: MessagesState):
+    """决定下一个节点"""
+    messages = state["messages"]
+    last_message = messages[-1]
+    if last_message["role"] == "user":
+        return "process"
+    else:
+        return END
+
+graph = StateGraph(MessagesState)
+graph.add_node("process", process_message)
+graph.add_edge(START, "process")
+graph.add_conditional_edges("process", should_continue)
+```
+</CollapsibleCode>
+
+
+## 附录
+
+- [LangGraph官方文档](https://docs.langchain.com/oss/python/langgraph/overview)
+- [LangGraph GitHub仓库](https://github.com/langchain-ai/langgraph)
+- [LangChain官方文档](https://python.langchain.com/)
