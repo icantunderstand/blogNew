@@ -1,62 +1,106 @@
 ---
-title: AI探秘-工作流工具n8n初体验
-date: '2025-06-06'
+title: AI探秘-工作流:大师我悟了!
+date: '2025-12-05'
 tags: ['AI']
 ---
 
-[n8n](https://github.com/n8n-io/n8n)是一个开源的工作流工具.在学习AI的过程中,有一点思考就是如何能通过AI定制化一些工作流程从而使AI跟实际工作更好的结合.
-n8n就是一个不错的选择.本文通过n8n实现一个简单的PDF内容读取的功能对n8n进行简单的介绍.
+─── ✦ ✧ ❖ ❋ ❂
 
-## n8n安装
+引子: 自古以来都有若干上流心法,掌握心法便能淡定自若,成为某个门派的大师.当然也有对江湖不羁者,自创一门也能独霸一方.
 
-这里通过本地安装的方式启动本地服务,具体部署服务的话可以通过docker部署.
+─── ✦ ✧ ❖ ❋ ❂  
+
+(还有结语✦ ✧ ❖ ❋ ❂)
+
+    武功可以算是一门技艺,如果有一种方式可以快速的掌握多门武功且能融会贯通组合,那一定会变成绝顶的武林高手.在与工作流软件[n8n](https://n8n.io/)持续斗争了许久之后,我才明白
+n8n就像一个武林大师
+* 可以使用现有的[工作流](https://n8n.io/workflows/)流程化日常的工作
+* 自定义工作流组合任务
+   本文从n8n的使用入手,构建一个基于AI agent的工作流,在文章的末尾会梳理一下最近对使用AI工具的心得体会.
+
+## 安装n8n
+
+参考[n8n](https://github.com/n8n-io/n8n)官网安装.
 
 ```javascript
+   
     npx n8n
+
 ```
+启动之后,点击命令行中的地址就可以访问本地的n8n服务.
 
-启动后通过访问命令行提供的地址访问n8n的web界面.
-![本地访问](/static/images/aiStatic/aiWorkFlow/overView.png)
+![website](/static/images/aiStatic/aiWorkFlow/website.png)
 
-## 创建工作流
+## 基于已有的工作流搭建
 
-n8n有很多[工作流模版](https://n8n.io/workflows/)可以直接使用,这里我们为了体验n8n创建工作流的过程,从头开始定义一个读取PDF内容的工作流.
+### 使用已有工作流
+n8n提供了大量的可直接使用的[工作流](https://n8n.io/workflows/).这里我们直接使用[Build Your First AI Agent](https://n8n.io/workflows/6270-build-your-first-ai-agent/)这个工作
+流来构建.
+1. 点击Use for Free直接复制当前工作流的JSON数据.
+2. 在本地n8n服务中点击Create workflow 
+3. 在进入的工作流详情页直接粘贴刚才的JSON数据
+通过上面三个步骤,就可以完成工作流的复用了.
 
-点击创建工作流进入新建页面
-![创建页面](/static/images/aiStatic/aiWorkFlow/create.png)
+![复制工作流](/static/images/aiStatic/aiWorkFlow/copyWorkflow.png)
 
-## 添加执行节点
+(在图片中我删除了原工作流的部分图例)
+### 工作流适配
+在原工作流中,使用的Gemini大模型.这里我们直接使用已有的模型不做修改
+1. 在[ai studio](https://aistudio.google.com/app/api-keys)上申请免费的api keys.
+2. 双击模型节点,在Credential to connect with中填入刚才申请的api keys
+3. 关闭配置,查看模型配置成功
 
-![添加trigger节点](/static/images/aiStatic/aiWorkFlow/trigger.png)
+![模型成功](/static/images/aiStatic/aiWorkFlow/modelOK.png)
 
-## 添加读取文件节点
+这里也可以选择其他大模型,右键模型节点使用替换功能,可以实现模型切换.它内置支持了多种大模型.
+如果想使用本地模型,更推荐使用轻量的模型代码实现,比如[AI探秘-LangChain使用不完全指南](https://icantunderstand.github.io/blogNew/blog/ai/langChain).
 
-![选择读取节点](/static/images/aiStatic/aiWorkFlow/readFileNode.png)
+#### 修改系统提示
+在编辑agent节点的时候,可以修改agent的系统提示.设定模型的上下文和工具能力.
 
-![成功读取文件](/static/images/aiStatic/aiWorkFlow/readFileSuccess.png)
+![系统提示](/static/images/aiStatic/aiWorkFlow/systemPrompt.png)
 
-## 添加解析节点
+#### 添加MCP工具
 
-在上面读取成功后.PDF内容是以二进制被我们读取的.需要添加解析节点去解析PDF的内容生成JSON结构用来后续的处理逻辑
-![添加解析](/static/images/aiStatic/aiWorkFlow/extractPDF.png)
+![工具](/static/images/aiStatic/aiWorkFlow/tool.png)
+在添加工具的时候,可以看下它支持:
+* 直接调用已有的n8n工具流
+* 调用配置的代码片段
+* 通过http协议定义好的MCP工具
+* 一些公开的MCP工具,比如存储、文档等
 
-![解析成功](/static/images/aiStatic/aiWorkFlow/extractSuccess.png)
+### 使用工作流
 
-## 添加处理节点
+![使用工具](/static/images/aiStatic/aiWorkFlow/useWorkflow.png)
 
-这里我们添加Code节点对读取的JSON数据进行处理
-![添加Code节点](/static/images/aiStatic/aiWorkFlow/addCode.png)
 
-![添加Code节点](/static/images/aiStatic/aiWorkFlow/processJSON.png)
-这里只是为了演示,把页数进行了修改,在执行节点之后JSON数据中页数已经变成100.
+## AI使用心得
+在最近与AI工具的一些交互过程中,对AI的使用似乎逐渐有了一些认知.以下尝试总结一些后面如果有更多的想法会单独写文章梳理
+* 不要与AI一起钻牛角尖,模型总归是存在幻觉的,如果在一条路问的太深,它真的会给你来一套答非所问.
 
-## 添加生成文件节点
+* 更多把AI当做一个辅助去使用. 
 
-Convert TO File可以把JSON数据转换成多种文件格式,这里为了演示选择转换成文本文件.
-![添加转换文件节点](/static/images/aiStatic/aiWorkFlow/convertToFile.png)
+![辅助](/static/images/aiStatic/aiWorkFlow/helper.png)
 
-![生成文件](/static/images/aiStatic/aiWorkFlow/convertText.png)
+* 在问AI的时候,学会让AI先懂'你'.
 
-![文件内容展示](/static/images/aiStatic/aiWorkFlow/fileOk.png)
+    - **明确自己的问题**
+    - **清晰分步骤的给AI任务而不是笼统的任务**
+    - **提供足够的上下文**
 
-这样就完成了一个简单的读取PDF => 处理文件内容 => 生成新文件的工作流.在体验上n8n的使用还是挺容易上手的,在遇到不懂的地方一定要看官网去了解.
+* 学会改变自己的思维方式,适应AI
+比如对于同一个任务人和AI的理解角度就会有不同.用更自然、非程序化的思维去面对AI
+
+* 不要为了AI而生造需求.
+
+
+─── ✦ ✧ ❖ ❋ ❂  
+
+后来的江湖: 后来我学会了邪修,江湖不再有我的名字. 
+
+─── ✦ ✧ ❖ ❋ ❂
+
+
+
+
+
