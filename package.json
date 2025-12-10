@@ -24,8 +24,10 @@
     "gray-matter": "^4.0.2",
     "hast-util-from-html-isomorphic": "^2.0.0",
     "image-size": "1.0.0",
+    "mermaid": "^11.12.2",
     "next": "14.2.3",
     "next-contentlayer2": "0.4.6",
+    "next-mdx-remote": "^5.0.0",
     "next-themes": "^0.3.0",
     "pliny": "0.2.1",
     "postcss": "^8.4.24",
@@ -41,6 +43,7 @@
     "remark": "^15.0.0",
     "remark-gfm": "^4.0.0",
     "remark-math": "^6.0.0",
+    "remark-mermaidjs": "^7.0.0",
     "tailwindcss": "^3.4.3",
     "unist-util-visit": "^5.0.0",
     "valine": "^1.5.1"
