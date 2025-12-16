@@ -81,7 +81,7 @@ const siteMetadata = {
   search: {
     provider: 'kbar', // kbar or algolia
     kbarConfig: {
-      searchDocumentsPath: '/blogNew/search.json', // path to load documents to search
+      searchDocumentsPath: 'blogNew/search.json', // 修改：去掉开头的斜杠
     },
     // provider: 'algolia',
     // algoliaConfig: {
