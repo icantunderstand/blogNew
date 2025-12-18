@@ -19,7 +19,6 @@ tags: ["AI"]
   - [单个位置损失](#单个位置损失)
 - [实现训练步骤](#实现训练步骤)
   - [详细训练步骤](#详细训练步骤)
-- [文本生成策略](#文本生成策略)
 - [保存预训练权重](#保存预训练权重)
 
 在[AI探秘-理解大模型注意力机制](https://icantunderstand.github.io/blogNew/blog/ai/buildLLMAttention)中,我们了解自注意力包含可训练权重,优化这些权重会直接影响模型的生成效果。
@@ -127,15 +126,6 @@ PPL = exp(loss)
       ├─ 反向传播 → 计算梯度
       └─ 更新参数 (step)
 ```
-
-### 文本生成策略
-
-文本生成时，模型在每个位置输出 `logits`，通过 softmax 得到概率分布。根据该分布选择下一个词元有多种策略：
-
-- **Greedy 解码（贪婪解码）**: 直接选择概率最大的词元，即 `argmax(softmax(logits))`
-- **温度缩放（Temperature Scaling）**: 通过温度参数 T 调整概率分布的尖锐程度，然后采样
-- **Top-k 采样**: 只保留概率最高的 k 个词元，重新归一化后采样
-![生成策略](/static/images/aiStatic/buildLLMTrain/strategy.png)
 
 ### 保存预训练权重
 通过保存模型权重，可以方便后续模型的微调和使用。
