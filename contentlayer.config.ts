@@ -1,5 +1,5 @@
 import { defineDocumentType, ComputedFields, makeSource } from 'contentlayer2/source-files'
-import { writeFileSync } from 'fs'
+import { readFileSync, writeFileSync } from 'fs'
 import readingTime from 'reading-time'
 import { slug } from 'github-slugger'
 import path from 'path'
@@ -89,6 +89,16 @@ function createSearchIndex(allBlogs) {
   }
 }
 
+
+/**
+ * Load blog documents from the JSON output to avoid import assertion issues.
+ */
+function loadBlogsFromJson() {
+  const blogIndexPath = path.join(root, '.contentlayer/generated/Blog/_index.json')
+  const fileContent = readFileSync(blogIndexPath, 'utf-8')
+  return JSON.parse(fileContent)
+}
+
 export const Blog = defineDocumentType(() => ({
   name: 'Blog',
   filePathPattern: 'blog/**/*.mdx',
@@ -172,8 +182,10 @@ export default makeSource({
       rehypePresetMinify,
     ],
   },
-  onSuccess: async (importData) => {
-    const { allBlogs } = await importData()
+  onSuccess: async () => {
+    // Use JSON output to stay compatible with environments that don't support
+    // ESM import assertions.
+    const allBlogs = loadBlogsFromJson()
     createTagCount(allBlogs)
     createSearchIndex(allBlogs)
   },
