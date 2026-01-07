@@ -1,10 +1,11 @@
 ---
 title: AI探秘-5分钟了解LangGraph
-date: "2025-12-03"
-tags: ["AI"]
+date: '2025-12-03'
+tags: ['AI']
 ---
 
 ## 导航
+
 1. [什么是LangGraph](#什么是langgraph)
    - [使用模式](#使用模式)
      - [Prompt chaining(链式)](#prompt-chaining链式)
@@ -22,8 +23,8 @@ tags: ["AI"]
 
 LangGraph是一个偏底层的编排框架和运行时环境，专为构建、管理和部署Agent而设计,本文将带你从基础概念开始，逐步深入LangGraph的各个核心功能。
 
-
 ## 什么是LangGraph
+
 ![langgraph核心](/static/images/aiStatic/langGraph/concept.png)
 LangGraph 利用 StateGraph 将代理流程建模为有状态的图，开发者可以以工作流的方式精细编排节点、状态与条件边，构建高度定制化的代理交互.下面可以先从官网上的一些示例
 感受下LangGraph的使用
@@ -32,39 +33,40 @@ LangGraph 利用 StateGraph 将代理流程建模为有状态的图，开发者�
 
 #### Prompt chaining(链式)
 
-![chain](/static/images/aiStatic/langGraph/chain.png)    
+![chain](/static/images/aiStatic/langGraph/chain.png)
 
 场景: 每一步 LLM 调用基于前一步输出，适合将大任务精确拆分成小任务的工作流
 
 #### Parallelization(并行)
 
-![parallelization](/static/images/aiStatic/langGraph/parallelization.png)    
+![parallelization](/static/images/aiStatic/langGraph/parallelization.png)
 
-场景: 
-* 将大任务拆分多个子任务并行执行,提供速度
-* 同时执行当前任务最后对比不同的输出
+场景:
+
+- 将大任务拆分多个子任务并行执行,提供速度
+- 同时执行当前任务最后对比不同的输出
 
 #### Routing(路由)
 
-![routing](/static/images/aiStatic/langGraph/routing.png)    
+![routing](/static/images/aiStatic/langGraph/routing.png)
 
 场景: 多个不相关任务组合一起,通过路由方式分发执行
 
 #### Orchestrator-worker(编排器-工作节点)
 
-![worker](/static/images/aiStatic/langGraph/worker.png)    
+![worker](/static/images/aiStatic/langGraph/worker.png)
 
 场景: 区别于Parallelization,编排器-工作节点模式适用于子任务无法被预先定义的情况下.通过编排器拆分任务指定对应的worker执行
 
 #### Evaluator-optimizer(评估优化模式)
 
-![optimizer](/static/images/aiStatic/langGraph/optimizer.png)   
+![optimizer](/static/images/aiStatic/langGraph/optimizer.png)
 
 场景: 适用于多轮评估优化生成的内容结果
 
 #### Agents
 
-![agents](/static/images/aiStatic/langGraph/agents.png)   
+![agents](/static/images/aiStatic/langGraph/agents.png)
 
 场景: Agents 模式对使用者来说定制程度没那么高，但是还是能够通过工具来影响 LLM 对工具的调用
 
@@ -101,7 +103,6 @@ def node_1(state: InputState) -> OverallState:
 - **入口节点(Entry Point)**：定义最开始被调用的node节点
 - **条件入口节点(Conditional Entry Point)**：根据条件动态选择入口节点
 
-
 <CollapsibleCode title="条件边示例" language="python">
 ```python
 from langgraph.graph import StateGraph, MessagesState, START, END
@@ -119,6 +120,7 @@ graph = StateGraph(MessagesState)
 graph.add_node("process", process_message)
 graph.add_edge(START, "process")
 graph.add_conditional_edges("process", should_continue)
+
 ```
 </CollapsibleCode>
 
@@ -128,3 +130,4 @@ graph.add_conditional_edges("process", should_continue)
 - [LangGraph官方文档](https://docs.langchain.com/oss/python/langgraph/overview)
 - [LangGraph GitHub仓库](https://github.com/langchain-ai/langgraph)
 - [LangChain官方文档](https://python.langchain.com/)
+```

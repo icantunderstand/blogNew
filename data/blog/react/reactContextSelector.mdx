@@ -1,72 +1,75 @@
 ---
 title: use-context-selector源码解读&思考
-date: "2025-04-16"
-tags: ["React"]
+date: '2025-04-16'
+tags: ['React']
 ---
 
 React可以通过Context来解决跨组件的属性共享问题,但是Context方案会存在性能问题,Context更新会触发使用该Context的组件渲染.
 React提出过[Context selectors](https://github.com/reactjs/rfcs/pull/119)的提案,use-context-selector就通过实现Context selectors
 来解决Context的性能问题.
+
 ## use-context-selector简单使用
+
 ```javascript
+import { createContext, useContextSelector } from 'use-context-selector'
+// 创建Context 这个使用方式跟React提供的createContext是一样的
+const Context = createContext(null)
 
-    import { createContext, useContextSelector } from 'use-context-selector';
-    // 创建Context 这个使用方式跟React提供的createContext是一样的
-    const Context = createContext(null);
+const Counter1 = () => {
+  // 通过useContextSelector获取想要的属性
+  const count1 = useContextSelector(Context, (v) => v[0].count1)
+  // 获取设置Context的函数,可以看上去有reducer的感觉
+  const setState = useContextSelector(Context, (v) => v[1])
+  // 更新调用
+  const increment = () =>
+    setState((s) => ({
+      ...s,
+      count1: s.count1 + 1,
+    }))
+  return (
+    <div>
+      <span>Count1: {count1}</span>
+      <button type="button" onClick={increment}>
+        +1
+      </button>
+      {Math.random()}
+    </div>
+  )
+}
+const StateProvider = ({ children }) => (
+  <Context.Provider value={useState({ count1: 0 })}>{children}</Context.Provider>
+)
 
-    const Counter1 = () => {
-        // 通过useContextSelector获取想要的属性
-        const count1 = useContextSelector(Context, (v) => v[0].count1);
-        // 获取设置Context的函数,可以看上去有reducer的感觉
-        const setState = useContextSelector(Context, (v) => v[1]);
-        // 更新调用
-        const increment = () =>
-            setState((s) => ({
-            ...s,
-            count1: s.count1 + 1,
-            }));
-        return (
-            <div>
-                <span>Count1: {count1}</span>
-                <button type="button" onClick={increment}>
-                    +1
-                </button>
-                {Math.random()}
-            </div>
-        );
-    };
-    const StateProvider = ({ children }) => (
-        <Context.Provider value={useState({ count1: 0})}>
-            {children}
-        </Context.Provider>
-    );
-
-    const App = () => (
-        <StateProvider>
-            <Counter1 />
-        </StateProvider>
-    );
+const App = () => (
+  <StateProvider>
+    <Counter1 />
+  </StateProvider>
+)
 ```
+
 在上面的例子中Context的value是一个useState的返回值,这里就留下一个疑问,use-context-selector是如何实现订阅更新的呢??!!
+
 ## use-context-selector原理
+
 ![use-context-selector前后对比](/static/images/reactStatic/reactContextSelector/struct.jpg)  
 react的context方案中,子组件通过useContext获取Context的值和触发更新.Context的值变化的时候会触发所有使用该Context组件的更新.
 use-context-selector中提供Ref的方式来存储Context的值,通过订阅的方式实现更新,这样就实现了渲染的优化
 
 ### Provider值生成/订阅逻辑
+
 ```javascript
 // 通过ref来存储context的值
-const contextValue = useRef(undefined);
+const contextValue = useRef(undefined)
 if (!contextValue.current) {
-  const listeners = new Set();
+  const listeners = new Set()
   const update = (fn, options) => {
-    versionRef.current += 1;
+    versionRef.current += 1
     const action = {
       n: versionRef.current,
-    };
-    listeners.forEach((listener) => listener(action));
-    fn();
-  };
+    }
+    listeners.forEach((listener) => listener(action))
+    fn()
+  }
   contextValue.current = {
     [CONTEXT_VALUE]: {
       /* "v"alue     */ v: valueRef,
@@ -76,74 +79,73 @@ if (!contextValue.current) {
       // context更新函数
       /* "u"pdate    */ u: update,
     },
-  };
+  }
 }
 // 传给Provider的是useRef创建的contextValue
-return createElement(
-  ProviderOrig,
-  { value: contextValue.current },
-  children,
-);
+return createElement(ProviderOrig, { value: contextValue.current }, children)
 ```
-### useContextSelectord订阅更新实现
-```javascript
-    const {
-        v: { current: value },
-        n: { current: version },
-        l: listeners,
-    } = contextValue;
-    // 通过selector从contextValue中获取想要的属性
-    const selected = selector(value);
-    // 生成useReducer  每个组件都对应自己的useReducer 
-    // 只有selected变化的时候 当前组件才会更新
-    const [state, dispatch] = useReducer(
-        (prev, action) => {
-            if (!action) {
-                return [value, selected];
-            }
-            if ('p' in action) {
-                throw action.p;
-            }
-            if (action.n === version) {
-                if (Object.is(prev[1], selected)) {
-                    return prev;
-                }
-                return [value, selected];
-            }
-            try {
-                if ('v' in action) {
-                    if (Object.is(prev[0], action.v)) {
-                        return prev;
-                    }
-                    const nextSelected = selector(action.v);
-                    if (Object.is(prev[1], nextSelected)) {
-                        return prev;
-                    }
-                    return [action.v, nextSelected];
-                }
-            } catch {
-            }
-            return [...prev];
-        },
-        [value, selected]
-    );
 
-    if (!Object.is(state[1], selected)) {
-        dispatch();
+### useContextSelectord订阅更新实现
+
+```javascript
+const {
+  v: { current: value },
+  n: { current: version },
+  l: listeners,
+} = contextValue
+// 通过selector从contextValue中获取想要的属性
+const selected = selector(value)
+// 生成useReducer  每个组件都对应自己的useReducer
+// 只有selected变化的时候 当前组件才会更新
+const [state, dispatch] = useReducer(
+  (prev, action) => {
+    if (!action) {
+      return [value, selected]
     }
-    useIsomorphicLayoutEffect(() => {
-        // 添加订阅
-        listeners.add(dispatch);
-            return () => {
-                listeners.delete(dispatch);
-            };
-    }, [listeners]);
-    // 返回useReducer中的值 这个值会关联更新
-    return state[1];
+    if ('p' in action) {
+      throw action.p
+    }
+    if (action.n === version) {
+      if (Object.is(prev[1], selected)) {
+        return prev
+      }
+      return [value, selected]
+    }
+    try {
+      if ('v' in action) {
+        if (Object.is(prev[0], action.v)) {
+          return prev
+        }
+        const nextSelected = selector(action.v)
+        if (Object.is(prev[1], nextSelected)) {
+          return prev
+        }
+        return [action.v, nextSelected]
+      }
+    } catch {}
+    return [...prev]
+  },
+  [value, selected]
+)
+
+if (!Object.is(state[1], selected)) {
+  dispatch()
+}
+useIsomorphicLayoutEffect(() => {
+  // 添加订阅
+  listeners.add(dispatch)
+  return () => {
+    listeners.delete(dispatch)
+  }
+}, [listeners])
+// 返回useReducer中的值 这个值会关联更新
+return state[1]
 ```
+
 ## 一点思考
+
 use-context-selector会在一些场景下用于Context的渲染优化,在看它的源码实现上也比较巧妙做到了不需要对原来的Context使用方式做较大改变就能
 实现代码的升级.这点在在进行代码重构或者架构设计的时候可以借鉴.
-* 在代码重构的时候去hack中间层,减少对代码大范围的改动
-* 在架构设计上,分层且封装中间层逻辑,降低代码对特定库或者使用方式的依赖.
 
+- 在代码重构的时候去hack中间层,减少对代码大范围的改动
+- 在架构设计上,分层且封装中间层逻辑,降低代码对特定库或者使用方式的依赖.

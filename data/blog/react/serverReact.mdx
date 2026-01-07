@@ -10,7 +10,7 @@ react的一些思考:
 - 隔离DOM
 - 对功能复用的思考
 - 渲染模式的探索
-- 超越UI框架的一些探索  
+- 超越UI框架的一些探索
 
 本文在之前的基础上,了解React Server Component/Server Actions的使用和原理从而实现知其所以然.
 
@@ -49,9 +49,8 @@ Server Component的渲染模式更像两种结合的混合渲染模式.这里只
 2. 返回初始的序列化数据 (包含同步的 Server Component/ client Component)
 3. 对于异步 Server Component:
 
-
-    * 先返回 Suspense fallback
-    * 异步逻辑完成后，通过 script 标签返回新的序列化数据
+   - 先返回 Suspense fallback
+   - 异步逻辑完成后，通过 script 标签返回新的序列化数据
 
 浏览器处理:
 

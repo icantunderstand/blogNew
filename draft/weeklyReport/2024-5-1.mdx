@@ -1,107 +1,109 @@
 ---
 title: 2024-5-第一期
-date: "2024-05-23"  
-tags: ["weeklyReport"]
+date: '2024-05-23'
+tags: ['weeklyReport']
 ---
 
 ## [React 19 Beta](https://react.dev/blog/2024/04/25/react-19)
-react 19已经在beta阶段了,初步看有以下的更新：
-* 基于UI层功能的封装,提出了Action的概念,用Action就可以管理起来提交过程中的加载异常处理,对Form的处理也有相应的封装。这部分功能一定程度上能更清晰化组件的逻辑和功能拆分
-* 一些已有功能的'大优化':
-    * ref可以作为属性传递了,不用再使用forwardRef了
-    * Context可以直接作为容器使用了,不用再用Context.Provider转化一下
-    * Custom Elements的支持
-    * 组件内部提供了对原生js标签的支持,包括stylesheets,预加载标签等
 
-            ```javascript
-            import { prefetchDNS, preconnect, preload, preinit } from 'react-dom'
-            function MyComponent() {
-                preinit('https://.../path/to/some/script.js', {as: 'script' }) // loads and executes this script eagerly
-                preload('https://.../path/to/font.woff', { as: 'font' }) // preloads this font
-                preload('https://.../path/to/stylesheet.css', { as: 'style' }) // preloads this stylesheet
-                prefetchDNS('https://...') // when you may not actually request anything from this host
-                preconnect('https://...') // when you will request something but aren't sure what
-            }
-            ```
-    
+react 19已经在beta阶段了,初步看有以下的更新：
+
+- 基于UI层功能的封装,提出了Action的概念,用Action就可以管理起来提交过程中的加载异常处理,对Form的处理也有相应的封装。这部分功能一定程度上能更清晰化组件的逻辑和功能拆分
+- 一些已有功能的'大优化':
+
+  - ref可以作为属性传递了,不用再使用forwardRef了
+  - Context可以直接作为容器使用了,不用再用Context.Provider转化一下
+  - Custom Elements的支持
+  - 组件内部提供了对原生js标签的支持,包括stylesheets,预加载标签等
+
+          ```javascript
+          import { prefetchDNS, preconnect, preload, preinit } from 'react-dom'
+          function MyComponent() {
+              preinit('https://.../path/to/some/script.js', {as: 'script' }) // loads and executes this script eagerly
+              preload('https://.../path/to/font.woff', { as: 'font' }) // preloads this font
+              preload('https://.../path/to/stylesheet.css', { as: 'style' }) // preloads this stylesheet
+              prefetchDNS('https://...') // when you may not actually request anything from this host
+              preconnect('https://...') // when you will request something but aren't sure what
+          }
+          ```
+
 ## [How to Securely Send a Request When Closing Tabs](https://webdeveloper.beehiiv.com/p/securely-send-request-closing-tabs)
+
 可以结合visibilitychange和navigator.sendBeacon实现关闭页面后的数据发送
 
 ## [You don't need useState in React](https://www.nico.fyi/blog/you-dont-need-usestate-in-react)
+
 ## [Sneaky React Memory Leaks: How useCallback and closures can bite you](https://schiener.io/2024-03-03/react-closures)
+
 react在写法上有着很大的自由度,这种自由度在多人协作或者项目的长期发展中容易造成一定的问题。比如组件内hooks的泛滥。需要做好UI逻辑和数据逻辑的拆分才能更好的梳理好代码的结构。
 这个问题就很像redux和mobx的对比。redux对属性的引入更加清晰,mobx的响应式更新能力不容易判断出组件的依赖,在做技术选型的时候需要有一定的考量。
 
-
 ## [Why Patching Globals Is Harmful](https://kettanaito.com/blog/why-patching-globals-is-harmful)
+
 在做工具库的时候,一种可能的实现方案就是对JavaScript执行环境的全局对象修改,但是这样会引入一些问题:
+
 1. 增加了项目的维护成本
 2. 存在不可预测的行为
 3. 有学习成本,不能形成良好的编程方式
 4. 对改动的方案有依赖,改动成本大
 5. 当JavaScript引擎提供的全局行为有变更的时候,会存在互斥的行为
-所以在进行基础库的方案设计的时候要减少对全局对象的修改,通过封装更好的api接口来实现对应的能力
+   所以在进行基础库的方案设计的时候要减少对全局对象的修改,通过封装更好的api接口来实现对应的能力
 
-## [why-react-query](https://ui.dev/why-react-query)  
+## [why-react-query](https://ui.dev/why-react-query)
+
 这篇文章通过一个简单的useState获取数据的例子出发,通过封装方法来解决代码的问题。React query不仅是一个获取数据的库,用React query还可以实现状态管理,值得一试
 
 ## [ECMAScript 2024 feature: Promise.withResolvers()](https://2ality.com/2024/05/proposal-promise-with-resolvers.html)
+
 Promise.withResolvers()提案已经进入到stage 4阶段,通过Promise.withResolvers可以将Promise的内部控制流暴露出来,赋予了代码更好的异步控制能力。
 
 ## 源码解读
 
-### [xhook](https://www.npmjs.com/package/xhook) 
+### [xhook](https://www.npmjs.com/package/xhook)
+
 在看[Why Patching Globals Is Harmful](https://kettanaito.com/blog/why-patching-globals-is-harmful)这篇文章的时候,想起项目中有用过xhook这个库,下面从源码角度去看下xhook如何实现请求中加入hook处理逻辑的。
 
 在引入xhook这个包的时候,它会默认开启patch方法。将全局对象上的XMLHttpRequest或者fetch方法替换成Xookf封装的对象
+
 ```javascript
-        export default {
-            patch() {
-                if (Native) {
-                windowRef.XMLHttpRequest = Xhook;
-                }
-            },
-            unpatch() {
-                if (Native) {
-                windowRef.XMLHttpRequest = Native;
-                }
-            },
-            Native,
-            Xhook,
-    };
+export default {
+  patch() {
+    if (Native) {
+      windowRef.XMLHttpRequest = Xhook
+    }
+  },
+  unpatch() {
+    if (Native) {
+      windowRef.XMLHttpRequest = Native
+    }
+  },
+  Native,
+  Xhook,
+}
 ```
 
 这样在页面代码中,使用全局对象的XMLHttpRequest请求的时候,就会走入到Xhook封装的功能中,实现请求hook的调用。上面这步完成了请求的代理,那hooks的调用是如何实现的呢?
 
 在封装的Xhook对象中,他代理了XMLHttpRequest的功能.也就是在调用Xhook的send方法其实在调用它内部持有的原生的XMLHttpRequest的send方法。通过原生XMLHttpRequest的onreadystatechange实现了注册hook的调用
 以下为伪代码
+
 ```javascript
+class Xhook {
+  xhr = new XMLHttpRequest()
 
-   class Xhook {
-    xhr = new XMLHttpRequest()
-
-    constructor() {
-        xhr.onreadystatechange = (event) => {
-            /**
-             * 这里识别state的值 调用注册的hooks
-             */
-        }
+  constructor() {
+    xhr.onreadystatechange = (event) => {
+      /**
+       * 这里识别state的值 调用注册的hooks
+       */
     }
-    send = () => {
-        // 在定义的send方法内部实际调用的是原生的XMLHttpRequest的send方法
-        this.xhr.send();
-    }
-   }
-
+  }
+  send = () => {
+    // 在定义的send方法内部实际调用的是原生的XMLHttpRequest的send方法
+    this.xhr.send()
+  }
+}
 ```
 
 xhook的实现思路并不复杂,它其实就是hack了原生的浏览器请求方式,从而实现相关逻辑的触发。但是它对浏览器的全局对象就行修改,就对代码的运行增加了不可预测的行为。同时xhook还是全局单例模式运行,这点不像[axios
 ](https://github.com/axios/axios)一样可以实例化多个请求对象
-
-
-
-
-
-
-
-

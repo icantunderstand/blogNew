@@ -1,7 +1,7 @@
 ---
 title: 对React的一点思考
-date: "2024-07-23"
-tags: ["React"]
+date: '2024-07-23'
+tags: ['React']
 ---
 
 在[对状态管理设计的一点思考](https://icantunderstand.github.io/blogNew/blog/react/store)结尾中提到了
@@ -10,38 +10,47 @@ tags: ["React"]
 
 ## react的哲学
 
-### 隔离DOM  
-通过虚拟DOM结合多平台renderer实现多端的渲染能力
-![react renderer](/static/images/reactStatic/setState/reactRenderer.png)  
+### 隔离DOM
 
-### 对功能复用的思考 
+通过虚拟DOM结合多平台renderer实现多端的渲染能力
+![react renderer](/static/images/reactStatic/setState/reactRenderer.png)
+
+### 对功能复用的思考
+
 ![复用](/static/images/reactStatic/thinkingInReact/commonUse.jpg)  
 在功能复用的探索上从高阶组件/render props进化到更加合理的hooks复用方式.这个过程中也伴随着底层架构的升级
-* 从类组件到函数式组件 
-* 复用方式从结构不清晰复杂到复用逻辑清晰
-* 底层架构从react stack到react fiber,react fiber结合scheduler解决了之前大型react系统渲染的问题
+
+- 从类组件到函数式组件
+- 复用方式从结构不清晰复杂到复用逻辑清晰
+- 底层架构从react stack到react fiber,react fiber结合scheduler解决了之前大型react系统渲染的问题
 
 ### 渲染模式的探索
-![渲染](/static/images/reactStatic/thinkingInReact/renderMode.jpg)  
-* 客户端渲染(CSR) 
-* 服务端渲染(SSR)
-* React Server Component(RSC) 可以实现组件在服务端渲染和客户端渲染的拆分
-* 已有渲染模式的实现: SSG(静态内容生成)/ISR(增量静态生成)
-通过上面的渲染模式的结合,在页面渲染上就可以实现Islands Architecture,每个组件有可选的渲染方式且渲染行为独立
+
+![渲染](/static/images/reactStatic/thinkingInReact/renderMode.jpg)
+
+- 客户端渲染(CSR)
+- 服务端渲染(SSR)
+- React Server Component(RSC) 可以实现组件在服务端渲染和客户端渲染的拆分
+- 已有渲染模式的实现: SSG(静态内容生成)/ISR(增量静态生成)
+  通过上面的渲染模式的结合,在页面渲染上就可以实现Islands Architecture,每个组件有可选的渲染方式且渲染行为独立
 
 ### 超越UI框架的一些探索
-![超越](/static/images/reactStatic/thinkingInReact/beyond.jpg)  
-* react在状态管理方面有react context/useReducer,通过useSyncExternalStore也可以与外部的状态管理方案结合
-* 在性能优化上,有useMemo/useCallback等,最近又有react compiler的推出可以在编译时对react组件进行性能优化
-* 在开放范式上,有useRef/useFormStatus等方案,将一些通用的开发模式抽象出来
+
+![超越](/static/images/reactStatic/thinkingInReact/beyond.jpg)
+
+- react在状态管理方面有react context/useReducer,通过useSyncExternalStore也可以与外部的状态管理方案结合
+- 在性能优化上,有useMemo/useCallback等,最近又有react compiler的推出可以在编译时对react组件进行性能优化
+- 在开放范式上,有useRef/useFormStatus等方案,将一些通用的开发模式抽象出来
 
 ## react使用过程的一些思考
+
 react似乎在变得越来越'重',对初学者来说上手成本略高.由于react的灵活度很大并且react本身在提供的开发范式上又不够充分,
 导致在团队中也不一定能写出相对统一的react风格代码.这里的风格有:
-* 数据的划分
-* 组件的拆分
-* 复用功能的设计
-* 组件间的逻辑交互等  
+
+- 数据的划分
+- 组件的拆分
+- 复用功能的设计
+- 组件间的逻辑交互等
 
 似乎只有通过框架才能约束这些方言,笔者最近在接触一些vue的项目,发现vue在使用上的确很简介,比如vue的Single File Component(SFC)
 就能相对集中的聚合组件的逻辑,在代码维护上就更加清晰.
@@ -49,11 +58,3 @@ react似乎在变得越来越'重',对初学者来说上手成本略高.由于re
 但是项目的基础框架也是项目的根基,是有很大的切换成本和长期的维护考虑,还是需要结合具体的业务场景去选择.有时候我们需要的不是'react',
 也许是'vue'或者'solid'.
 同样也引出项目治理的话题,要尽可能通过强约束或者范式来治理项目约束开发流程,这样项目在维护性上才能有提升.
-
-
-
-
-
-
-
-

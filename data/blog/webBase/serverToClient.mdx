@@ -1,50 +1,53 @@
 ---
 title: 一文搞懂服务端推送
-date: "2024-06-19"
-tags: ["JavaScript"]
+date: '2024-06-19'
+tags: ['JavaScript']
 ---
 
 服务端推送技术在一些实时要求比较高的场景下能比较好的提升用户体验,一定程度上降低服务端的负载。本文以[river.ts
 ](https://github.com/Bewinxed/river.ts)的源码解读作为引子进而梳理常用的服务端推送技术.
 
-
 ## [river.ts](https://github.com/Bewinxed/river.ts) 源码解读
+
 river.ts基于事件封装了的Server-Sent Events,可以分两部分看它具体的实现:
-* server端如何实现消息的推送
-* client端如何实现消息的订阅(获取)
+
+- server端如何实现消息的推送
+- client端如何实现消息的订阅(获取)
 
 ### server端消息推送
 
 #### server使用例子
 
 ```javascript
-    // 服务端使用例子
-    new Response(
-		server.stream((emitter) => {
-			// do stuff
-			// emit simple text message
-			emitter.emit_event("ping", { message: "pong" });
+// 服务端使用例子
+new Response(
+  server.stream((emitter) => {
+    // do stuff
+    // emit simple text message
+    emitter.emit_event('ping', { message: 'pong' })
 
-			// do more stuff
-			// emit complex json data
-			emitter.emit_event("payload", {
-				// type safe data
-				data: [
-					{ id: 1, name: "Alice" },
-					{ id: 2, name: "Bob" },
-				],
-			});
-		}),
-		{
-			// convenience method to set headers for text/event-stream
-			headers:
-				server.headers(
-					// optional, set your headers
-				),
-		},
-	);
+    // do more stuff
+    // emit complex json data
+    emitter.emit_event('payload', {
+      // type safe data
+      data: [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ],
+    })
+  }),
+  {
+    // convenience method to set headers for text/event-stream
+    headers: server
+      .headers
+      // optional, set your headers
+      (),
+  }
+)
 ```
+
 #### server源码解读
+
 ```javascript
     // 服务端源码解读
     // stream方法 通过callback的方式将自身回调给外部 完成了在请求连接时候数据写入的控制 读起来很巧妙
@@ -88,14 +91,17 @@ river.ts基于事件封装了的Server-Sent Events,可以分两部分看它具�
 ```
 
 ### client端消息订阅
+
 clinet端主要在于事件的订阅以及连接的建立
+
 #### client源码解读
+
 ```javascript
 
     /**
 	 * 开启event stream
 	 * 通过EventSource/降级场景使用轮询
-     * 
+     *
 	 */
 	public async stream(): Promise<void> {
         // 不支持EventSource
@@ -154,168 +160,178 @@ clinet端主要在于事件的订阅以及连接的建立
 ## 服务端推送技术
 
 ### Server-Sent Events(SSE)
+
 Server-Sent Events(SSE)是一种实现服务端向客户端单向推送的技术.
 
 #### SSE实现例子
+
 ```javascript
+// 服务端实现
+const express = require('express')
+const app = express()
 
-    // 服务端实现
-    const express = require('express');
-    const app = express();
+app.get('/events', (req, res) => {
+  // Content-Type 必须是text/event-stream
+  res.setHeader('Content-Type', 'text/event-stream')
+  // 不允许缓存
+  res.setHeader('Cache-Control', 'no-cache')
+  // 保持长连接
+  res.setHeader('Connection', 'keep-alive')
 
-    app.get('/events', (req, res) => {
-        // Content-Type 必须是text/event-stream
-        res.setHeader('Content-Type', 'text/event-stream');
-        // 不允许缓存
-        res.setHeader('Cache-Control', 'no-cache');
-        // 保持长连接
-        res.setHeader('Connection', 'keep-alive');
+  setInterval(() => {
+    res.write(`data: ${new Date().toISOString()}\n\n`)
+  }, 1000)
+})
 
-        setInterval(() => {
-            res.write(`data: ${new Date().toISOString()}\n\n`);
-        }, 1000);
-    });
+app.listen(3000, () => {
+  console.log('Server is running on port 3000')
+})
 
-    app.listen(3000, () => {
-        console.log('Server is running on port 3000');
-    });
-
-    // 客户端实现
-    // 客户端通过EventSource管理建立起来的连接
-    const eventSource = new EventSource('xxxx/events');
-    eventSource.onmessage = function(event) {
-        console.log(event.data)
-    };
-
+// 客户端实现
+// 客户端通过EventSource管理建立起来的连接
+const eventSource = new EventSource('xxxx/events')
+eventSource.onmessage = function (event) {
+  console.log(event.data)
+}
 ```
 
 #### SSE注意事项
-* 服务端消息需要以特定的格式发送 消息之间需要用两个换行符分割(\n\n)
-* SSE是有同源限制的, 在跨域场景需要通过设置CROS的相关header实现跨域通信
+
+- 服务端消息需要以特定的格式发送 消息之间需要用两个换行符分割(\n\n)
+- SSE是有同源限制的, 在跨域场景需要通过设置CROS的相关header实现跨域通信
+
 ```javascript
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers":
 				"Origin, X-Requested-With, Content-Type, Accept",
 ```
-* 浏览器对同一域名下并发的HTTP连接数有限制,建议使用HTTP2,可提供最大并发HTTP流数量
-* 可以对EevntSource做一些细粒度的控制,减少服务端连接数
+
+- 浏览器对同一域名下并发的HTTP连接数有限制,建议使用HTTP2,可提供最大并发HTTP流数量
+- 可以对EevntSource做一些细粒度的控制,减少服务端连接数
 
 ### WebSocket
+
 WebSocket是建立在TCP协议之上的双端通信协议.通过协议升级可以升级到WebSocket连接
 
 #### WebSocket实现例子
 
 ```javascript
-    // 服务端实现
-    const WebSocket = require('ws');
-    // 创建一个 WebSocket 服务器实例，监听指定端口
-    const wss = new WebSocket.Server({ port: 8080 });
+// 服务端实现
+const WebSocket = require('ws')
+// 创建一个 WebSocket 服务器实例，监听指定端口
+const wss = new WebSocket.Server({ port: 8080 })
 
-    // 服务器端监听连接事件
-    wss.on('connection', function connection(ws) {
-        console.log('客户端已连接');
+// 服务器端监听连接事件
+wss.on('connection', function connection(ws) {
+  console.log('客户端已连接')
 
-        // 监听客户端发送的消息
-        ws.on('message', function incoming(message) {
-            console.log('接收到消息：', message);
+  // 监听客户端发送的消息
+  ws.on('message', function incoming(message) {
+    console.log('接收到消息：', message)
 
-            // 原样返回接收到的消息给客户端
-            ws.send(`服务器收到消息：${message}`);
-        });
+    // 原样返回接收到的消息给客户端
+    ws.send(`服务器收到消息：${message}`)
+  })
 
-        // 监听客户端断开连接事件
-        ws.on('close', function close() {
-            console.log('客户端已断开连接');
-        });
-    });
+  // 监听客户端断开连接事件
+  ws.on('close', function close() {
+    console.log('客户端已断开连接')
+  })
+})
 
-    // 客户端实现
-    const socket = new WebSocket('ws://localhost:8080/');
-    // 监听连接成功事件
-    socket.onopen = function() {
-        console.log('WebSocket 连接已建立');
-        socket.send('Hello WebSocket Server!');
-    };
-    // 监听服务器发送的消息
-    socket.onmessage = function(event) {
-        console.log('接收到服务器消息：', event.data);
-    };
-    // 监听连接关闭事件
-    socket.onclose = function(event) {
-        if (event.wasClean) {
-            console.log('连接已正常关闭');
-        } else {
-            console.error('连接异常断开');
-        }
-        console.log('关闭码：', event.code, '原因：', event.reason);
-    };
-    // 监听错误事件
-    socket.onerror = function(error) {
-        console.error('WebSocket 错误：', error.message);
-    };
-
+// 客户端实现
+const socket = new WebSocket('ws://localhost:8080/')
+// 监听连接成功事件
+socket.onopen = function () {
+  console.log('WebSocket 连接已建立')
+  socket.send('Hello WebSocket Server!')
+}
+// 监听服务器发送的消息
+socket.onmessage = function (event) {
+  console.log('接收到服务器消息：', event.data)
+}
+// 监听连接关闭事件
+socket.onclose = function (event) {
+  if (event.wasClean) {
+    console.log('连接已正常关闭')
+  } else {
+    console.error('连接异常断开')
+  }
+  console.log('关闭码：', event.code, '原因：', event.reason)
+}
+// 监听错误事件
+socket.onerror = function (error) {
+  console.error('WebSocket 错误：', error.message)
+}
 ```
+
 #### WebSocket注意事项
-* 相比SSE,WebSocket支持双向通信而且对二进制支持更好.相比HTTP协议传输开销小,传输消息的时候头部数据少
-* 需要细粒度的连接管理机制释放服务端资源
+
+- 相比SSE,WebSocket支持双向通信而且对二进制支持更好.相比HTTP协议传输开销小,传输消息的时候头部数据少
+- 需要细粒度的连接管理机制释放服务端资源
 
 ### 长轮询(Long Polling)
+
 长轮训是一种模拟推送方式,客户端向服务器发送请求，服务器在有数据更新时才返回响应
 
 #### 长轮询实现例子
-```javascript
-    // 服务端实现
-    const express = require('express');
-    const app = express();
-    // 模拟数据
-    let latestData = null;
-    // 处理长轮询请求
-    app.get('/long-polling', (req, res) => {
-        // 设置超时时间（例如，30秒）
-        const timeout = 30000;
-        const startTime = Date.now();
 
-        // 模拟异步数据获取
-        function waitForData() {
-            if (latestData !== null) {
-                res.json({ data: latestData });
-            } else if (Date.now() - startTime < timeout) {
-                setTimeout(waitForData, 1000); // 每秒检查一次
-            } else {
-                res.status(503).json({ error: 'No data available within timeout' });
-            }
-        }
-        waitForData();
-    });
-    // 客户端实现
-    function longPolling() {
-        // 发起 HTTP GET 请求到服务器的长轮询接口
-        fetch('/long-polling')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // 处理从服务器收到的数据
-                // 继续进行下一次长轮询
-                longPolling();
-            })
-            .catch(error => {
-                // 处理错误情况，例如重新发起长轮询等
-                setTimeout(longPolling, 2000); // 2秒后重新发起长轮询
-            });
+```javascript
+// 服务端实现
+const express = require('express')
+const app = express()
+// 模拟数据
+let latestData = null
+// 处理长轮询请求
+app.get('/long-polling', (req, res) => {
+  // 设置超时时间（例如，30秒）
+  const timeout = 30000
+  const startTime = Date.now()
+
+  // 模拟异步数据获取
+  function waitForData() {
+    if (latestData !== null) {
+      res.json({ data: latestData })
+    } else if (Date.now() - startTime < timeout) {
+      setTimeout(waitForData, 1000) // 每秒检查一次
+    } else {
+      res.status(503).json({ error: 'No data available within timeout' })
     }
+  }
+  waitForData()
+})
+// 客户端实现
+function longPolling() {
+  // 发起 HTTP GET 请求到服务器的长轮询接口
+  fetch('/long-polling')
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      return response.json()
+    })
+    .then((data) => {
+      // 处理从服务器收到的数据
+      // 继续进行下一次长轮询
+      longPolling()
+    })
+    .catch((error) => {
+      // 处理错误情况，例如重新发起长轮询等
+      setTimeout(longPolling, 2000) // 2秒后重新发起长轮询
+    })
+}
 ```
 
 长训轮占用服务端资源,需要优化超时设置/在服务端处理进程中使用异步处理/限制长轮训并发数/页面对轮询做细粒度控制
 
 ### http2服务端推送
+
 http2的server push在客户端请求资源的时候同时推送相关资源.
 
 #### http2服务端推送
+
 http2服务端推送
+
 ```javascript
     // nginx配置
     server {
@@ -358,7 +374,3 @@ http2服务端推送
 ```
 
 一些资源的推送其实可以通过页面的preload来实现
-
-
-
-

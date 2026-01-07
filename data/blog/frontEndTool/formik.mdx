@@ -1,15 +1,16 @@
 ---
 title: Formik源码解析
-date: "2025-03-17"
-tags: ["JavaScript"]
+date: '2025-03-17'
+tags: ['JavaScript']
 ---
 
 Formik是一个React表单方案,它学习成本和api复杂度相对简单.笔者工作中的项目就有基于Formik封装的表单方案,作为表单方案之旅的
 第二弹,让我们一起看下Formik在表单方案上有哪些特点.
 
 # Formik简单使用
+
 ```javascript
-import { Formik, Form, Field } from 'formik';
+import { Formik, Form, Field } from 'formik'
 
 const Basic = () => (
   <div>
@@ -20,88 +21,95 @@ const Basic = () => (
       </Form>
     </Formik>
   </div>
-);
+)
 ```
+
 # Formik源码解析
+
 Formik在实现上可以分以下三部分看:
-* Formik-入口函数 通过Provider的方式提供全局上下文
-* Field-表单组件 
-* useFormik-Form全局上下文 包括校验逻辑/值更新,这后面的源码解析中也会主要关注值更新相关逻辑
+
+- Formik-入口函数 通过Provider的方式提供全局上下文
+- Field-表单组件
+- useFormik-Form全局上下文 包括校验逻辑/值更新,这后面的源码解析中也会主要关注值更新相关逻辑
 
 ## [Formik入口源码解析](https://github.com/jaredpalmer/formik/blob/0e0cf9ea09ec864dd63c52cf775f862795ef2cf4/packages/formik/src/Formik.tsx#L1003)
+
 ```javascript
 export function Formik(props) {
-  const formikbag = useFormik(props);
-  const { component, children, render, innerRef } = props;
+  const formikbag = useFormik(props)
+  const { component, children, render, innerRef } = props
   // 通过innerRef暴露全局store
-  React.useImperativeHandle(innerRef, () => formikbag);
+  React.useImperativeHandle(innerRef, () => formikbag)
 
   return (
     <FormikProvider value={formikbag}>
       {component
         ? React.createElement(component, formikbag)
         : render
-        ? render(formikbag)
-        : children // children come last, always called
-        ? isFunction(children)
-          ? children(formikbag)
-          : !isEmptyChildren(children)
-          ? React.Children.only(children)
-          : null
-        : null}
+          ? render(formikbag)
+          : children // children come last, always called
+            ? isFunction(children)
+              ? children(formikbag)
+              : !isEmptyChildren(children)
+                ? React.Children.only(children)
+                : null
+            : null}
     </FormikProvider>
-  );
+  )
 }
 ```
+
 Formik入口组件的渲染方式有如下三种方式:
-* 通过component方式渲染
-* 通过render-props方式渲染,这种方式已经被废弃了
-* 渲染chidlren这是常用的方式,这里有当children是函数和非函数的区分.函数式的方式会导致form组件每次都重复渲染,推荐直接使用非函数式的方式渲染
+
+- 通过component方式渲染
+- 通过render-props方式渲染,这种方式已经被废弃了
+- 渲染chidlren这是常用的方式,这里有当children是函数和非函数的区分.函数式的方式会导致form组件每次都重复渲染,推荐直接使用非函数式的方式渲染
+
 ## [Field源码解析](https://github.com/jaredpalmer/formik/blob/0e0cf9ea09ec864dd63c52cf775f862795ef2cf4/packages/formik/src/Field.tsx#L137)
+
 在表单字段上,Filed主要通过name字段实现与Form全局store的关联,从而实现字段更新校验.
+
 ```javascript
 export function Field({
   // xxx props
   validate,
   as: is, // `as` is reserved in typescript lol
 }) {
-  const {
-    ...formik
-  } = useFormikContext();
+  const { ...formik } = useFormikContext()
 
-  const { registerField, unregisterField } = formik;
+  const { registerField, unregisterField } = formik
   // 注册字段
   React.useEffect(() => {
     registerField(name, {
       validate: validate,
-    });
+    })
     return () => {
-      unregisterField(name);
-    };
-  }, [registerField, unregisterField, name, validate]);
+      unregisterField(name)
+    }
+  }, [registerField, unregisterField, name, validate])
   // 获取当前字段相关的属性
-  const field = formik.getFieldProps({ name, ...props });
+  const field = formik.getFieldProps({ name, ...props })
   // 省略若干代码 比如支持component渲染模式/函数式children渲染/render props渲染
 
-  const asElement = is || 'input';
+  const asElement = is || 'input'
   // 默认渲染input,可以传入select等
   if (typeof asElement === 'string') {
-    const { innerRef, ...rest } = props;
-    return React.createElement(
-      asElement,
-      { ref: innerRef, ...field, ...rest, className },
-      children
-    );
+    const { innerRef, ...rest } = props
+    return React.createElement(asElement, { ref: innerRef, ...field, ...rest, className }, children)
   }
   // 渲染自定义组件同时传入field相关属性
-  return React.createElement(asElement, { ...field, ...props, className }, children);
+  return React.createElement(asElement, { ...field, ...props, className }, children)
 }
 ```
+
 Field的代码功能也不多,主要就是注册字段将字段相关的属性传入组件内.字段的值改变的回调函数就是在这个阶段注入的.
+
 ## [useFormik源码解析](https://github.com/jaredpalmer/formik/blob/main/packages/formik/src/Formik.tsx)
+
 useFormik是Formik的全局Store,它提供组件注册/字段更新/校验等能力.这里主要从onChange函数回调入手看下整个表单的更新逻辑.
 
 在Field组件中通过formik.getFieldProps就将handleChange函数传递给组件了.
+
 ```javascript
   const getFieldProps = React.useCallback(
     (nameOrOptions: string | FieldConfig<any>): FieldInputProps<any> => {
@@ -123,22 +131,23 @@ useFormik是Formik的全局Store,它提供组件注册/字段更新/校验等能
     },
     [handleBlur, handleChange, state.values]
   );
-``` 
+```
+
 ```javascript
 // handleChange支持
 // 直接处理事件和代码
 // 直接设置值的方式-handleChange('fieldName')(newValue)
-const handleChange = useEventCallback(
-  (eventOrPath) => {
-    if (isString(eventOrPath)) {
-      return event => executeChange(event, eventOrPath);
-    } else {
-      executeChange(eventOrPath);
-    }
+const handleChange = useEventCallback((eventOrPath) => {
+  if (isString(eventOrPath)) {
+    return (event) => executeChange(event, eventOrPath)
+  } else {
+    executeChange(eventOrPath)
   }
-);
-``` 
+})
+```
+
 handleChange函数触发之后,会调用到setFieldValue,最后会走进dispatch更新函数
+
 ```javascript
 const dispatch = React.useCallback((action: FormikMessage<Values>) => {
     const prev = stateRef.current;
@@ -149,20 +158,6 @@ const dispatch = React.useCallback((action: FormikMessage<Values>) => {
     if (prev !== stateRef.current) setIteration(x => x + 1);
   }, []);
 ```
+
 Formik的代码实现上相当简单,甚至可以把它简单理解为一个useReducer维护的store更新功能.它没有类似rc-filed-form的依赖更新/字段级别更新的能力/Form Group的联动能力等.
 甚至在性能优化上都需要用户去考虑.但是简单也许才是必杀技,在一般性的业务场景似乎Formik的实现已经够用了,在社区上也有一些能跟Formik结合的组件库组件库.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

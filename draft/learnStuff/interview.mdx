@@ -15,7 +15,6 @@ categories:
 ### 防抖函数
 
 ```javascript
-
 // debounce 多次触发只有最后一次执行   当前连续触发轮次等待时间
 // debounce：支持首击立即触发（immediate），且始终有尾随触发；可选最长等待（maxWait）
 function debounce(fn, delay, { immediate = false, maxWait = 0 } = {}) {
@@ -43,14 +42,13 @@ function debounce(fn, delay, { immediate = false, maxWait = 0 } = {}) {
     clearTimeout(timer)
 
     // 尾随触发：总是在最后一次输入后的 delay 执行一次
-    if(!shouldCallNow) {
-        timer = setTimeout(() => {
-          burstStart = 0
-          timer = null
+    if (!shouldCallNow) {
+      timer = setTimeout(() => {
+        burstStart = 0
+        timer = null
         fn.apply(lastThis, lastArgs)
       }, delay)
     }
-    
 
     // 首击立即触发：仅在新一轮开始且 immediate=true 时
     if (shouldCallNow) {
@@ -76,18 +74,21 @@ function throttle(func, t = 50) {
     if (!lastRunTime) {
       lastRunTime = now
     }
-    
+
     clearTimeout(timer)
-    
+
     if (now - lastRunTime >= t) {
       lastRunTime = now
       return func.apply(context, args)
     } else {
       const remaining = lastRunTime + t - now
-      timer = setTimeout(() => {
-        lastRunTime = +new Date()
-        func.apply(context, args)
-      }, Math.max(remaining, 0)) // 确保不为负数
+      timer = setTimeout(
+        () => {
+          lastRunTime = +new Date()
+          func.apply(context, args)
+        },
+        Math.max(remaining, 0)
+      ) // 确保不为负数
     }
   }
 }
@@ -96,12 +97,11 @@ function throttle(func, t = 50) {
 ### 深拷贝
 
 ```javascript
-
 function deepClone(obj, hash = new Map()) {
   if (obj === null || typeof obj !== 'object') return obj
 
   if (hash.get(obj)) return hash.get(obj)
-  
+
   if (obj instanceof Date) return new Date(obj)
   if (obj instanceof RegExp) return new RegExp(obj)
   if (obj instanceof Map) {
@@ -115,20 +115,20 @@ function deepClone(obj, hash = new Map()) {
   if (obj instanceof Set) {
     const cloneSet = new Set()
     hash.set(obj, cloneSet)
-    obj.forEach(value => {
+    obj.forEach((value) => {
       cloneSet.add(deepClone(value, hash))
     })
     return cloneSet
   }
-  
+
   let cloneObj = new obj.constructor()
   hash.set(obj, cloneObj)
-  
+
   // 处理普通属性和 Symbol 属性
-  Reflect.ownKeys(obj).forEach(key => {
+  Reflect.ownKeys(obj).forEach((key) => {
     cloneObj[key] = deepClone(obj[key], hash)
   })
-  
+
   return cloneObj
 }
 ```
@@ -147,11 +147,11 @@ function spawn(genF) {
       } catch (e) {
         return reject(e)
       }
-      
+
       if (next.done) {
         return resolve(next.value)
       }
-      
+
       Promise.resolve(next.value).then(
         function (v) {
           step(function () {
@@ -213,10 +213,10 @@ Function.prototype.myBind = function (context, ...args) {
       return fn.apply(context, args.concat(restArgs))
     }
   }
-  
+
   // 保持原型链  注意
   boundFn.prototype = Object.create(fn.prototype)
-  
+
   return boundFn
 }
 ```
@@ -233,7 +233,7 @@ Function.prototype.myBind = function (context, ...args) {
 function myNew(Con, ...args) {
   const obj = Object.create(Con.prototype)
   const ret = Con.call(obj, ...args)
-  
+
   // 更严格的类型检查：只返回对象或 null/undefined
   if ((typeof ret === 'object' || typeof ret === 'function') && ret !== null) {
     return ret
@@ -449,12 +449,12 @@ function jsonp(url, params, callback) {
     const callbackName = `jsonp_${new Date().getTime()}`
     const searchParams = new URLSearchParams(params)
     searchParams.append('callback', callbackName)
-    
+
     const timeout = setTimeout(() => {
       cleanup()
       reject(new Error(`JSONP request to ${url} timed out`))
     }, 5000)
-    
+
     const cleanup = () => {
       if (script.parentNode) {
         script.parentNode.removeChild(script)
@@ -462,17 +462,17 @@ function jsonp(url, params, callback) {
       delete window[callbackName]
       clearTimeout(timeout)
     }
-    
+
     window[callbackName] = (data) => {
       cleanup()
       resolve(data)
     }
-    
+
     script.onerror = () => {
       cleanup()
       reject(new Error(`JSONP request to ${url} failed`))
     }
-    
+
     script.src = `${url}?${searchParams.toString()}`
     document.head.appendChild(script)
   })
@@ -559,16 +559,16 @@ function add(a, b) {
 // 可以按照路径进行排序 先处理短路径 在处理长路径
 function parseObj(obj) {
   const ret = {}
-  
+
   // 按路径长度排序，短路径优先处理
-  const sortedEntries = Object.entries(obj).sort((a, b) => 
-    a[0].split('.').length - b[0].split('.').length
+  const sortedEntries = Object.entries(obj).sort(
+    (a, b) => a[0].split('.').length - b[0].split('.').length
   )
-  
+
   for (const [key, value] of sortedEntries) {
     const arr = key.split('.')
     let prev = ret
-    
+
     for (let i = 0; i < arr.length; i++) {
       if (i < arr.length - 1) {
         // 检查路径冲突
@@ -576,7 +576,7 @@ function parseObj(obj) {
           console.warn(`路径冲突: ${key} 与已存在的值 ${prev[arr[i]]} 冲突，跳过此路径`)
           break
         }
-        
+
         if (!prev[arr[i]]) {
           prev[arr[i]] = {}
         }
@@ -590,7 +590,7 @@ function parseObj(obj) {
       }
     }
   }
-  
+
   return ret
 }
 ```

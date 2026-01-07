@@ -4,7 +4,6 @@ date: '2025-11-25'
 tags: ['AI']
 ---
 
-
 ## 导航
 
 - [如何启用短期记忆](#如何启用短期记忆)
@@ -12,14 +11,12 @@ tags: ['AI']
   - [压缩消息](#压缩消息)
   - [总结消息](#总结消息)
 
-
 在[AI探秘-LangChain使用不完全指南](https://icantunderstand.github.io/blogNew/blog/ai/langChain)中介绍了LangChain核心组件的基本使用方式.通过对
 基本组件的了解我们知道如何简单构建一个agent.但是我们对构建大模型的一些交互细节还不明确.AI探秘系列会继续在这个方向进行探索,本文将了解在大模型中是如何实现记忆的.
 在大语言模型的上下文窗口有限,对话轮数越多,越容易丢失关键信息.短期记忆(Short-term Memory)的核心是把当前对话历史保存到一份状态里,在下一次调用模型之前再读出来,从而让Agent拥有连贯的对话上下文.
 在LangChain中,这份状态由`AgentState`管理,并通过`checkpointer`持久化.
 
 ![内容汇总](/static/images/aiStatic/aiMemory/summary.png)
-
 
 ## 如何启用短期记忆
 
@@ -32,31 +29,34 @@ tags: ['AI']
 from langchain.messages import SystemMessage, HumanMessage
 from langchain_ollama import OllamaLLM
 from langchain.agents import create_agent
-from langgraph.checkpoint.memory import InMemorySaver  
+from langgraph.checkpoint.memory import InMemorySaver
 
 # 初始化要驱动智能体的本地 Ollama 模型。
+
 llm = OllamaLLM(model="deepseek-r1:1.5b")
 
 # 使用该 LLM创建智能体，并用内存保存对话状态。
+
 agent = create_agent(
-    llm,
-    tools=[],
-    checkpointer=InMemorySaver(),
+llm,
+tools=[],
+checkpointer=InMemorySaver(),
 )
 messages = [
-    SystemMessage("you are a helpful assistant"),
-    HumanMessage("2 plus 2 equals to what?")
+SystemMessage("you are a helpful assistant"),
+HumanMessage("2 plus 2 equals to what?")
 ]
 
 # 在指定配置中执行对话，并输出智能体的最终回答。
+
 response = agent.invoke(
-    {   
-        "messages": messages,
-    },
-    # 指定ID，用于区分不同的对话。
-    {"configurable": {"thread_id": "1"}},  
+{  
+ "messages": messages,
+}, # 指定ID，用于区分不同的对话。
+{"configurable": {"thread_id": "1"}},  
 )
 print(response["messages"][-1].content)
+
 ```
 </CollapsibleCode>
 
@@ -76,6 +76,7 @@ print(response["messages"][-1].content)
 
 <CollapsibleCode title="压缩消息示例" language="python">
 ```
+
 from langchain_ollama import OllamaLLM
 from langchain.agents.middleware import before_model
 from langchain.messages import RemoveMessage
@@ -84,13 +85,16 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph.message import REMOVE_ALL_MESSAGES
 
 # 初始化要驱动智能体的本地 Ollama 模型。
+
 llm = OllamaLLM(model="qwen3:1.7b")
 
 @before_model
+
 # 该中间件会在每次调用模型前执行，用于裁剪消息历史。
+
 def trim_messages(state: AgentState, runtime):
-    """保留首条系统消息 + 最近 3 轮对话"""
-    messages = state["messages"]
+"""保留首条系统消息 + 最近 3 轮对话"""
+messages = state["messages"]
 
     # 消息没有超过 4 条（系统 + 最近 3 轮）时无需处理。
     if len(messages) <= 4:
@@ -112,15 +116,18 @@ def trim_messages(state: AgentState, runtime):
     }
 
 # 创建智能体并挂上裁剪中间件，以防记忆爆炸。
+
 agent = create_agent(
-    llm,
-    tools=[],
-    middleware=[trim_messages],
-    checkpointer=InMemorySaver(),
+llm,
+tools=[],
+middleware=[trim_messages],
+checkpointer=InMemorySaver(),
 )
 
 # 配置里只用到 thread_id，用于标记会话。
+
 config = {"configurable": {"thread_id": "1"}}
+
 ```
 </CollapsibleCode>
 
@@ -129,33 +136,39 @@ config = {"configurable": {"thread_id": "1"}}
 
 <CollapsibleCode title="总结消息的实现" language="python">
 ```
+
 from langchain_ollama import OllamaLLM
 from langchain.agents import create_agent
 from langgraph.checkpoint.memory import InMemorySaver  
 from langchain.agents.middleware import SummarizationMiddleware
 
 # 初始化要驱动智能体的本地 Ollama 模型。
+
 llm = OllamaLLM(model="qwen3:1.7b")
 
 # 使用InMemorySaver来持久化会话状态，便于多轮对话追踪。
+
 checkpointer = InMemorySaver()
 
 # 创建一个不带工具的最简单智能体，并挂载总结中间件用于长对话压缩。
+
 agent = create_agent(
-    llm,
-    tools=[],
-    middleware=[
-        SummarizationMiddleware(
-            llm,
-            max_tokens_before_summary=4000,
-            messages_to_keep=20,
-        )
-    ],
-    checkpointer=checkpointer,
+llm,
+tools=[],
+middleware=[
+SummarizationMiddleware(
+llm,
+max_tokens_before_summary=4000,
+messages_to_keep=20,
+)
+],
+checkpointer=checkpointer,
 )
 
 # 配置里只用到 thread_id，用于标记会话。
+
 config = {"configurable": {"thread_id": "1"}}
+
 ```
 </CollapsibleCode>
 
@@ -169,3 +182,4 @@ config = {"configurable": {"thread_id": "1"}}
 
 
 
+```

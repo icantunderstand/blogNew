@@ -43,27 +43,29 @@ tags: ['JavaScript']
   ![nextTick](/static/images/javascriptBaseStatic/eventloop/nextTick.png)
 
 ```javascript
-    setTimeout(function(){
-        console.log(1);
-        Promise.resolve().then(() => {
-            console.log(7);
-        })
-    }, 0);
-    new Promise(function(resolve){
-      console.log(2)
-      for( var i=100000 ; i>0 ; i-- ){
-          i==1 && resolve()
-      }
-      console.log(3)
-    }).then(function(){
-      console.log(4)
-    });
-    setTimeout(function(){
-      console.log(6);  
-    }, 0);
-    console.log(5);
-    process.nextTick(() => { console.log('nextTick'); })
-    // 2 3 5 nextTick 4 1 7 6
+setTimeout(function () {
+  console.log(1)
+  Promise.resolve().then(() => {
+    console.log(7)
+  })
+}, 0)
+new Promise(function (resolve) {
+  console.log(2)
+  for (var i = 100000; i > 0; i--) {
+    i == 1 && resolve()
+  }
+  console.log(3)
+}).then(function () {
+  console.log(4)
+})
+setTimeout(function () {
+  console.log(6)
+}, 0)
+console.log(5)
+process.nextTick(() => {
+  console.log('nextTick')
+})
+// 2 3 5 nextTick 4 1 7 6
 ```
 
 - requestIdleCallback

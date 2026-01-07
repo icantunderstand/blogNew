@@ -1,80 +1,86 @@
 ---
 title: field-form源码解析
-date: "2025-03-16"
-tags: ["JavaScript"]
+date: '2025-03-16'
+tags: ['JavaScript']
 ---
 
 # [rc-field-form](https://github.com/react-component/field-form)
+
 rc-field-form是一个相对'极简'的form仓库,这里的极简是它并没有实现特别丰富的form能力,但是通过阅读它的源码确能了解form技术方案需要考量的点.
 比如多form更新/字段更新如何触发form更新/字段之间的依赖等,下面就先从rc-field-form开始对form方案的探索之旅
 
 # rc-field-form简单使用
+
 ```javascript
-    import Form, { Field } from 'rc-field-form';
-    const Input = ({ value = '', ...props }) => <input value={value} {...props} />;
-    const Demo = () => {
-        return (
-            <Form
-                onFinish={values => {
-                    console.log('Finish:', values);
-                }}
-            >
-            <Field name="username">
-                <Input placeholder="Username" />
-            </Field>
-            <Field name="password">
-                <Input placeholder="Password" />
-            </Field>
-            <button>Submit</button>
-            </Form>
-        );
-    };
+import Form, { Field } from 'rc-field-form'
+const Input = ({ value = '', ...props }) => <input value={value} {...props} />
+const Demo = () => {
+  return (
+    <Form
+      onFinish={(values) => {
+        console.log('Finish:', values)
+      }}
+    >
+      <Field name="username">
+        <Input placeholder="Username" />
+      </Field>
+      <Field name="password">
+        <Input placeholder="Password" />
+      </Field>
+      <button>Submit</button>
+    </Form>
+  )
+}
 ```
 
 # rc-field-form源码分析
+
 ![代码结构](/static/images/frontEndToolStatic/form/rcFieldForm.jpg)
 在功能实现上主要有
-* FormContext-多Form联动能力/嵌套表单
-* Form 表单模块-与外部props传入函数的调用/FormProvider的联动/初始化FormStore(useForm)
-* Field 字段模块-与FormStore联动实现字段更新通知
-* useForm FormStore-管理字段更新与通知
+
+- FormContext-多Form联动能力/嵌套表单
+- Form 表单模块-与外部props传入函数的调用/FormProvider的联动/初始化FormStore(useForm)
+- Field 字段模块-与FormStore联动实现字段更新通知
+- useForm FormStore-管理字段更新与通知
 
 ## [FormProvider源码解析](https://github.com/react-component/field-form/blob/master/src/FormContext.tsx)
 
 ```javascript
-  // 将当前FormContext的所有Form存储起来
-  const formsRef = React.useRef<Forms>({});
-  // 外层的FormContext 嵌套表单实现
-  const formContext = React.useContext(FormContext); 
-  return (
-    <FormContext.Provider
-      value={{
-        ...formContext,
-        triggerFormChange: (name, changedFields) => {
-          // 触发当前FormProvider传入onFormChange
-          if (onFormChange) {
-            onFormChange(name, {
-              changedFields,
-              forms: formsRef.current,
-            });
-          }
-          // 触发嵌套表单的更新函数
-          formContext.triggerFormChange(name, changedFields);
-        },
-        triggerFormFinish: (name, values) => {},
-        registerForm: (name, form) => {},
-        unregisterForm: name => {},
-      }}
-    >
-      {children}
-    </FormContext.Provider>
-  );
+// 将当前FormContext的所有Form存储起来
+const formsRef = React.useRef < Forms > {}
+// 外层的FormContext 嵌套表单实现
+const formContext = React.useContext(FormContext)
+return (
+  <FormContext.Provider
+    value={{
+      ...formContext,
+      triggerFormChange: (name, changedFields) => {
+        // 触发当前FormProvider传入onFormChange
+        if (onFormChange) {
+          onFormChange(name, {
+            changedFields,
+            forms: formsRef.current,
+          })
+        }
+        // 触发嵌套表单的更新函数
+        formContext.triggerFormChange(name, changedFields)
+      },
+      triggerFormFinish: (name, values) => {},
+      registerForm: (name, form) => {},
+      unregisterForm: (name) => {},
+    }}
+  >
+    {children}
+  </FormContext.Provider>
+)
 ```
+
 ## [Form源码解析](https://github.com/react-component/field-form/blob/master/src/Form.tsx)
+
 ```javascript
   const nativeElementRef = React.useRef<HTMLFormElement>(null);
   const formContext: FormContextProps = React.useContext(FormContext);
-  
+
   // useForm是当前form的store,作为context的value可以供下面的FormField使用
   const [formInstance] = useForm(form);
   const {
@@ -120,8 +126,11 @@ rc-field-form是一个相对'极简'的form仓库,这里的极简是它并没有
   );
   return (xxx)
 ```
+
 ## [Field源码解析](https://github.com/react-component/field-form/blob/master/src/Field.tsx)
+
 Field是Form字段的实现模块,它包含了规则校验/字段更新等,这里主要关注在字段更新上它是如何实现的
+
 ```javascript
    // getControlled在render函数中通过React.cloneElement调用 为clone的元素注入trigger
    public getControlled = (childProps: ChildProps = {}) => {
@@ -141,6 +150,7 @@ Field是Form字段的实现模块,它包含了规则校验/字段更新等,这�
     return control;
   };
 ```
+
 ```javascript
     public onStoreChange: FieldEntity['onStoreChange'] = (prevStore, namePathList, info) => {
         // dependencies是判断dependenciesUpdate更新的条件 用于处理依赖更新
@@ -156,8 +166,11 @@ Field是Form字段的实现模块,它包含了规则校验/字段更新等,这�
         }
   };
 ```
+
 ## [useForm源码解析](https://github.com/react-component/field-form/blob/master/src/useForm.ts)
+
 form相关的值操作逻辑都集中在useForm这个FormStore上实现,它提供了获取Field值/触发Field校验/触发更新等,这里同样主要关注它在更新逻辑上的实现
+
 ```javascript
   // 在Field中通过dispatch更新时会触发useForm上的updateValue
   private updateValue = (name: NamePath, value: StoreValue) => {

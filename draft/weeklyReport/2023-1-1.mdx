@@ -1,43 +1,51 @@
 ---
 title: 2023-1-1-前端快报
-date: "2023-01-04"  
-tags: ["weeklyReport"]
+date: '2023-01-04'
+tags: ['weeklyReport']
 ---
 
+## [New Suspense SSR Architecture in React 18](https://github.com/reactwg/react-18/discussions/37)
 
-## [New Suspense SSR Architecture in React 18](https://github.com/reactwg/react-18/discussions/37)  
 这篇文章介绍react 18中流式渲染和Suspense的结合，实现更好的服务端渲染功能。相关文章还有[浅析React 18 Streaming SSR](https://juejin.cn/post/7064759195710521381)
 
-## [React Libraries for 2022](https://www.robinwieruch.de/react-libraries/)  
+## [React Libraries for 2022](https://www.robinwieruch.de/react-libraries/)
+
 这篇文章介绍2022年热度比较高的React库
 
-## [一文详解 CSS-in-JS](https://developer.aliyun.com/article/781882)  
+## [一文详解 CSS-in-JS](https://developer.aliyun.com/article/781882)
+
 这篇文章从CSS规范、CSS的设计模式说起，逐步覆盖到CSS-in-JS的细节，涉及的相关背景比较多，值得仔细阅读。
 
-## [What is a realm in JavaScript?](https://weizman.github.io/page-what-is-a-realm-in-js/#identity-discontinuity)  
+## [What is a realm in JavaScript?](https://weizman.github.io/page-what-is-a-realm-in-js/#identity-discontinuity)
+
 这篇文章介绍JavaScript中Realm的定义。也可以结合这篇[ShadowRealms – an ECMAScript proposal for a better eval()](https://2ality.com/2022/04/shadow-realms.html)介绍ShadowRealms API提议的文章一起了解。
 
 ## [Developer Roadmaps](https://roadmap.sh/roadmaps/)
+
 Developer Roadmaps收集了各个开发方向的技能路线图
 
-## [How we configured pnpm and Turborepo for our monorepo](https://nhost.io/blog/how-we-configured-pnpm-and-turborepo-for-our-monorepo)  
+## [How we configured pnpm and Turborepo for our monorepo](https://nhost.io/blog/how-we-configured-pnpm-and-turborepo-for-our-monorepo)
+
 一篇比较详细的介绍monorepo技术方案选择工具的文章，从多项目开发的问题开始说起，逐步介绍[pnpm](https://github.com/pnpm/pnpm)(monorepo管理工具)和[Turborepo](https://github.com/vercel/turbo)(打包构建工具)
 
 ## 工具
 
-### [js-code-to-svg-flowchart](https://github.com/Bogdan-Lyashenko/js-code-to-svg-flowchart)  
+### [js-code-to-svg-flowchart](https://github.com/Bogdan-Lyashenko/js-code-to-svg-flowchart)
+
 一个将JavaScript代码转化成svg图片的库。
 
-### [CONSOLE NINJA](https://console-ninja.com/)  
+### [CONSOLE NINJA](https://console-ninja.com/)
+
 一款VSCode插件，可以直接在代码中查看输入的console调试信息
 
 ## 源码解读
 
-### [react-wrap-balancer](https://github.com/shuding/react-wrap-balancer)  
+### [react-wrap-balancer](https://github.com/shuding/react-wrap-balancer)
+
 react-wrap-balancer能使文案比较智能的适应容器，占据容器的空间，达到比较好的展示效果，下面从源码上看它是如何实现的:
-![react-wrap-balancer](/static/images/weeklyReport/blancer.gif) 
+![react-wrap-balancer](/static/images/weeklyReport/blancer.gif)
 通过简单的demo使用可以发现balancer在页面中注入了一段脚本并且为包裹的文本内容绑定的属性标识
-![balancer-show](/static/images/weeklyReport/blancerShow.png) 
+![balancer-show](/static/images/weeklyReport/blancerShow.png)
 
 ```javascript
         // react-wrap-balancer的主体代码逻辑
@@ -99,6 +107,7 @@ react-wrap-balancer能使文案比较智能的适应容器，占据容器的空�
         }
 
 ```
+
 通过上面的源码分析，主要的动态计算逻辑都在relayout函数中
 
 ```javascript
@@ -148,8 +157,3 @@ react-wrap-balancer能使文案比较智能的适应容器，占据容器的空�
             }
         }
 ```
-
-
-
-
-

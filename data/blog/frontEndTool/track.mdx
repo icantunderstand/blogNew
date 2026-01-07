@@ -11,48 +11,55 @@ tags: ['engineering']
 - 明确埋点数据类型和实现
 - 组合不同类型的埋点
 - 埋点业务类型上的技术设计(链路/对业务侵入性考量)
-下面就从这三个方面入手来分析Mixpanel的埋点实现.
+  下面就从这三个方面入手来分析Mixpanel的埋点实现.
 
 ## 前置知识
+
 ### 浏览器事件
+
 事件的触发阶段
-1. 捕获阶段(根元素最先接收到事件) 
+
+1. 捕获阶段(根元素最先接收到事件)
 2. 目标阶段(目标元素捕获事件)
-3. 冒泡阶段(从触发事件的元素向上往根节点传递)  
+3. 冒泡阶段(从触发事件的元素向上往根节点传递)
 
 如果在冒泡阶段通过委托到根节点的方式实现事件上报,需要注意event.stopPropagation()/event.stopImmediatePropagation()的调用
 
-
 ## 埋点类型和实现
+
 在页面访问中,通常需要记录用户的操作.涉及到用户操作可以做如下的数据分类:
-* 点击类数据(click)
-* 页面访问数据(PV)
-* Form表单操作数据(onchange)
-* 操作数据(滚动/缩放等)  
+
+- 点击类数据(click)
+- 页面访问数据(PV)
+- Form表单操作数据(onchange)
+- 操作数据(滚动/缩放等)
 
 下面是click点击类数据Mixpanel的代码实现.其他类型实现大致相似这里只梳理click的收集流程
 ![点击收集触发](/static/images/frontEndToolStatic/trackStatic/clickStruct.jpg)
 
 ## 组合不同类型的埋点
+
 在技术架构上可以通过插件化(配置化)的方式组合不同类型的埋点收集器
 ![插件化](/static/images/frontEndToolStatic/trackStatic/init.jpg)
 
-
 ## 埋点业务类型上的技术设计
+
 在上报的数据类型上:
-* 业务数据- 需要上报的信息
-* 通用数据- 浏览器信息/url等
-* 差异化数据- 唯一标识/节点关系/时间戳
-![数据收集](/static/images/frontEndToolStatic/trackStatic/dataCollect.jpg)
+
+- 业务数据- 需要上报的信息
+- 通用数据- 浏览器信息/url等
+- 差异化数据- 唯一标识/节点关系/时间戳
+  ![数据收集](/static/images/frontEndToolStatic/trackStatic/dataCollect.jpg)
 
 在配置化能力设计上需要设计:
-* 豁免机制 满足某些条件不上报
-* 配置数据字段能力
 
+- 豁免机制 满足某些条件不上报
+- 配置数据字段能力
 
 ## 对埋点的一些思考
 
-### 维护性 
+### 维护性
+
 大多数的场景还是以手动埋点居多,需要关注这些埋点代码的维护性问题.比如一个点是否还需要/如何下线
 
 ## 参考

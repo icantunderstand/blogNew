@@ -1,44 +1,55 @@
 ---
 title: 2022-10-1-前端快报
-date: "2022-10-08"  
-tags: ["weeklyReport"]
+date: '2022-10-08'
+tags: ['weeklyReport']
 ---
 
-## [Making React fast by default and truly reactive](https://legendapp.com/open-source/legend-state/)  
+## [Making React fast by default and truly reactive](https://legendapp.com/open-source/legend-state/)
+
 这篇文章通过介绍React中组件渲染优化的问题引出类mobx的状态库方案[legend-state](https://github.com/LegendApp/legend-state),在底层的技术方案上跟mobx是相似的,通过监听observable值的变化来运行渲染函数。
 
-## [A (Mostly) Complete Guide to React Rendering Behavior](https://blog.isquaredsoftware.com/2020/05/blogged-answers-a-mostly-complete-guide-to-react-rendering-behavior/)  
+## [A (Mostly) Complete Guide to React Rendering Behavior](https://blog.isquaredsoftware.com/2020/05/blogged-answers-a-mostly-complete-guide-to-react-rendering-behavior/)
+
 这篇文章比较详细的介绍了React组件渲染的细节,包括渲染的阶段、Fiber、渲染优化等。
 
-## [The future of rendering in React](https://prateeksurana.me/blog/future-of-rendering-in-react/) 
+## [The future of rendering in React](https://prateeksurana.me/blog/future-of-rendering-in-react/)
+
 这篇文章主要介绍基于react的页面渲染流程和渲染方式的优缺点。
+
 1.  CSR(Client-side rendering)- 客户端渲染。这种渲染方式通过在客户侧的浏览器执行脚本来完成整个页面内容的生成和数据的加载。 这种方式可以通过CDN去优化JS脚本的加载,能有效的提交TTFB(Time To First Byte),但是由于页面和数据都是在客户端组装和渲染会影响用户的首次可交互时间和不方便做SEO优化。
 2.  SSR(Server-side rendering)- 服务端渲染。这种渲染方式通过react提供的api在服务端组装数据和渲染页面内容。服务端渲染的优势在于有利于SEO优化,能有效的提供FCP(First Contentful Paint)和LCP(Largest Contentful Paint),劣势是服务端渲染会降低TTFB,但是可以通过一些手段去优化,比如
-    * SSG(Static site generation)- 静态页面生成  将不依赖数据的页面提前进行预编译,在访问的时候直接将已编译好的页面内容返回
-    * ISR (Incremental static site generation)- 增量式页面生层 ISR为了解决SSG的对动态数据依赖和构建规模问题,可以在运行时动态的生成页面内容并存储
-    * Streaming SSR- 流式服务端渲染 主要使用node中的stream实现流式的返回服务端渲染的内容,能有效的提高TTFB
+    - SSG(Static site generation)- 静态页面生成 将不依赖数据的页面提前进行预编译,在访问的时候直接将已编译好的页面内容返回
+    - ISR (Incremental static site generation)- 增量式页面生层 ISR为了解决SSG的对动态数据依赖和构建规模问题,可以在运行时动态的生成页面内容并存储
+    - Streaming SSR- 流式服务端渲染 主要使用node中的stream实现流式的返回服务端渲染的内容,能有效的提高TTFB
 
-## [A Half-Hour to Learn JavaScript](https://alexkondov.com/half-hour-to-learn-js/)  
+## [A Half-Hour to Learn JavaScript](https://alexkondov.com/half-hour-to-learn-js/)
+
 这篇文章介绍JavaScript中的基础知识点,包括变量声明、闭包、this、new关键字、原型链、继承、异步调用(async await,Promise)、事件循环等,适合复习基础的时候浏览查缺补漏。
 
-## [JavaScript metaprogramming with the 2022-03 decorators API](https://2ality.com/2022/10/javascript-decorators.html)  
+## [JavaScript metaprogramming with the 2022-03 decorators API](https://2ality.com/2022/10/javascript-decorators.html)
+
 这篇文章详细的介绍了JavaScript中装饰器的细节
 
 ## 工具
 
-### [zx](https://github.com/google/zx)  
+### [zx](https://github.com/google/zx)
+
 google的一个脚本工具,可以在脚本中写javascript,值得一试
 
 ## 源码解读
-### [Sortable](https://github.com/SortableJS/Sortable)源码解读 
+
+### [Sortable](https://github.com/SortableJS/Sortable)源码解读
+
 Sortable是一个实现可拖拽列表的库,它提供了丰富的功能比如共享列表的拖拽、多条目的拖拽等。以下主要从两方面对Sortable的源码进行简单的分析,希望对功能库的设计有所思考
+
 1. 插件机制
 2. 拖拽功能实现
 
-#### 插件机制  
-* 插件能很好的实现功能的隔离。插件内功能逻辑自治,
-* 通过统一的接口提供接入和调用能力。便于后续功能的扩展
-* 通过组合插件,可以提供多版本的库
+#### 插件机制
+
+- 插件能很好的实现功能的隔离。插件内功能逻辑自治,
+- 通过统一的接口提供接入和调用能力。便于后续功能的扩展
+- 通过组合插件,可以提供多版本的库
 
 ##### 插件注册
 
@@ -139,3 +150,4 @@ Sortable是一个实现可拖拽列表的库,它提供了丰富的功能比如�
         },
 
 
+```

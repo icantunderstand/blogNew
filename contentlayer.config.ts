@@ -89,7 +89,6 @@ function createSearchIndex(allBlogs) {
   }
 }
 
-
 /**
  * Load blog documents from the JSON output to avoid import assertion issues.
  */

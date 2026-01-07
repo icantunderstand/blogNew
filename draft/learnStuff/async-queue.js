@@ -4,12 +4,12 @@
  */
 class AsyncQueue {
   constructor(maxConcurrency = 3) {
-    this.maxConcurrency = maxConcurrency; // 最大并发数
-    this.running = 0; // 当前正在执行的任务数
-    this.queue = []; // 等待执行的任务队列
-    this.results = []; // 任务执行结果
-    this.errors = []; // 任务执行错误
-    this.isProcessing = false; // 是否正在处理队列
+    this.maxConcurrency = maxConcurrency // 最大并发数
+    this.running = 0 // 当前正在执行的任务数
+    this.queue = [] // 等待执行的任务队列
+    this.results = [] // 任务执行结果
+    this.errors = [] // 任务执行错误
+    this.isProcessing = false // 是否正在处理队列
   }
 
   /**
@@ -25,29 +25,29 @@ class AsyncQueue {
         data,
         resolve,
         reject,
-        id: Date.now() + Math.random() // 简单的任务ID
-      };
+        id: Date.now() + Math.random(), // 简单的任务ID
+      }
 
-      this.queue.push(queueItem);
-      this.process();
-    });
+      this.queue.push(queueItem)
+      this.process()
+    })
   }
 
   /**
    * 处理队列中的任务
    */
   async process() {
-    if (this.isProcessing) return;
-    this.isProcessing = true;
+    if (this.isProcessing) return
+    this.isProcessing = true
 
     while (this.queue.length > 0 && this.running < this.maxConcurrency) {
-      const item = this.queue.shift();
-      this.running++;
-      
-      this.executeTask(item);
+      const item = this.queue.shift()
+      this.running++
+
+      this.executeTask(item)
     }
 
-    this.isProcessing = false;
+    this.isProcessing = false
   }
 
   /**
@@ -56,28 +56,28 @@ class AsyncQueue {
    */
   async executeTask(item) {
     try {
-      const result = await item.task(item.data);
+      const result = await item.task(item.data)
       this.results.push({
         id: item.id,
         data: item.data,
         result,
         success: true,
-        timestamp: Date.now()
-      });
-      item.resolve(result);
+        timestamp: Date.now(),
+      })
+      item.resolve(result)
     } catch (error) {
       this.errors.push({
         id: item.id,
         data: item.data,
         error,
         success: false,
-        timestamp: Date.now()
-      });
-      item.reject(error);
+        timestamp: Date.now(),
+      })
+      item.reject(error)
     } finally {
-      this.running--;
+      this.running--
       // 继续处理队列中的其他任务
-      this.process();
+      this.process()
     }
   }
 
@@ -94,23 +94,23 @@ class AsyncQueue {
             errors: this.errors,
             total: this.results.length + this.errors.length,
             success: this.results.length,
-            failed: this.errors.length
-          });
+            failed: this.errors.length,
+          })
         } else {
-          setTimeout(checkComplete, 10);
+          setTimeout(checkComplete, 10)
         }
-      };
-      checkComplete();
-    });
+      }
+      checkComplete()
+    })
   }
 
   /**
    * 清空队列
    */
   clear() {
-    this.queue = [];
-    this.results = [];
-    this.errors = [];
+    this.queue = []
+    this.results = []
+    this.errors = []
   }
 
   /**
@@ -118,10 +118,10 @@ class AsyncQueue {
    * @param {number} maxConcurrency - 新的最大并发数
    */
   setMaxConcurrency(maxConcurrency) {
-    this.maxConcurrency = maxConcurrency;
+    this.maxConcurrency = maxConcurrency
     // 如果当前运行的任务数小于新的最大并发数，继续处理队列
     if (this.running < this.maxConcurrency) {
-      this.process();
+      this.process()
     }
   }
 
@@ -136,22 +136,22 @@ class AsyncQueue {
       queued: this.queue.length,
       completed: this.results.length,
       failed: this.errors.length,
-      total: this.results.length + this.errors.length
-    };
+      total: this.results.length + this.errors.length,
+    }
   }
 
   /**
    * 暂停队列处理
    */
   pause() {
-    this.isProcessing = true;
+    this.isProcessing = true
   }
 
   /**
    * 恢复队列处理
    */
   resume() {
-    this.isProcessing = false;
-    this.process();
+    this.isProcessing = false
+    this.process()
   }
 }

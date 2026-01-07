@@ -1,7 +1,7 @@
 ---
 title: AI探秘-MCP我懂你!
-date: "2025-12-02"
-tags: ["AI"]
+date: '2025-12-02'
+tags: ['AI']
 ---
 
 - [MCP实现](#mcp实现)
@@ -16,21 +16,22 @@ tags: ["AI"]
 ## MCP实现
 
 ### 使用已有的MCP Server
-* 在cursor中可以直接查找已有的[MCP Server列表](https://cursor.com/cn/docs/context/mcp/directory),然后直接使用.
-* [MCP.so](https://mcp.so/)提供了丰富的MCP Server列表,可以参考使用.
+
+- 在cursor中可以直接查找已有的[MCP Server列表](https://cursor.com/cn/docs/context/mcp/directory),然后直接使用.
+- [MCP.so](https://mcp.so/)提供了丰富的MCP Server列表,可以参考使用.
 
 ### 实现一个MCP Server
+
 实现MCP Server需要实现MCP的交互协议.在[Model Context Protocol](https://github.com/modelcontextprotocol)主页上提供了不同语言SDK实现MCP Server的SDK.
 以下以javascript SDK为例实现一个MCP Server.
 
-| 概念            | 作用说明                                                                 |
-|-----------------|--------------------------------------------------------------------------|
-| 传输方式        | **Streamable HTTP**：远程服务交互；**stdio**：本地进程交互               |
-| `registerTool`  | 注册工具，定义 MCP Server 提供的可调用工具（带输入输出 schema 和逻辑）  |
-| `registerResource` | 注册资源，定义 MCP Server 暴露的只读数据或文档                        |
-| `registerPrompt`   | 在 MCP Server 上注册可复用的提示词模板，供客户端/人类选择和填写参数   |
-| `createMessage`    | 在工具/服务内部发起一次对大模型的调用，使用宿主提供的 sampling 能力   |
-
+| 概念               | 作用说明                                                               |
+| ------------------ | ---------------------------------------------------------------------- |
+| 传输方式           | **Streamable HTTP**：远程服务交互；**stdio**：本地进程交互             |
+| `registerTool`     | 注册工具，定义 MCP Server 提供的可调用工具（带输入输出 schema 和逻辑） |
+| `registerResource` | 注册资源，定义 MCP Server 暴露的只读数据或文档                         |
+| `registerPrompt`   | 在 MCP Server 上注册可复用的提示词模板，供客户端/人类选择和填写参数    |
+| `createMessage`    | 在工具/服务内部发起一次对大模型的调用，使用宿主提供的 sampling 能力    |
 
 <CollapsibleCode title="MCP Server例子" language="javascript">
 ```javascript
@@ -43,51 +44,51 @@ import * as z from 'zod/v4';
 // 创建一个 MCP Server 实例
 // name 会在客户端中显示为 server 名称
 const mcpServer = new McpServer({
-  name: 'echo-server',
-  version: '1.0.0'
+name: 'echo-server',
+version: '1.0.0'
 });
 
 // 注册一个名为 echo 的工具
 // - description 会出现在工具列表中，帮助用户理解用途
 // - inputSchema 使用 zod 定义工具的入参结构，MCP 客户端会据此做校验 / 生成表单
 mcpServer.registerTool(
-  'echo',
-  {
-    description: 'Send a message back to the user',
-    inputSchema: z.object({
-      // 工具需要一个 text 字段，表示要发给用户的内容
-      text: z.string().describe('Text to send to the user'),
-    }),
-  },
-  // MCP 会把解析后的参数对象传进来，这里我们只用到了 text
-  async ({ text }: { text: string }) => {
-    return {
-      // MCP 协议要求返回一个 content 数组，这里只返回一条文本内容
-      content: [
-        {
-          type: 'text' as const,
-          text: `send message to user: ${text}`,
-        },
-      ],
-    };
-  },
+'echo',
+{
+description: 'Send a message back to the user',
+inputSchema: z.object({
+// 工具需要一个 text 字段，表示要发给用户的内容
+text: z.string().describe('Text to send to the user'),
+}),
+},
+// MCP 会把解析后的参数对象传进来，这里我们只用到了 text
+async ({ text }: { text: string }) => {
+return {
+// MCP 协议要求返回一个 content 数组，这里只返回一条文本内容
+content: [
+{
+type: 'text' as const,
+text: `send message to user: ${text}`,
+},
+],
+};
+},
 );
 
 // 通过 stdio 启动 MCP Server
 // 注意：MCP 协议的 JSON-RPC 数据走的是 stdout，所以普通日志要打到 stderr
 async function main() {
-  const transport = new StdioServerTransport();
-  await mcpServer.connect(transport);
-  console.error('MCP echo server is running...');
+const transport = new StdioServerTransport();
+await mcpServer.connect(transport);
+console.error('MCP echo server is running...');
 }
 
 // 入口 & 错误兜底
 main().catch(error => {
-  console.error('Server error:', error);
-  process.exit(1);
+console.error('Server error:', error);
+process.exit(1);
 });
 
-```
+````
 </CollapsibleCode>
 
 
@@ -105,15 +106,13 @@ main().catch(error => {
     }
   }
 }
-```
+````
+
 本地使用stdio方式,command + args是执行的命令和参数.里面需要的指令需要本地安装好.
-![配置成功](/static/images/aiStatic/aiMCP/config.png) 
- 
+![配置成功](/static/images/aiStatic/aiMCP/config.png)
 
 ![使用MCP](/static/images/aiStatic/aiMCP/useMCP.png)
 
 ### 在自建agent中使用MCP
+
 这部分可以参考[AI探秘-LangChain使用不完全指南](https://icantunderstand.github.io/blogNew/blog/ai/langChain#%E5%B7%A5%E5%85%B7%E8%B0%83%E7%94%A8)
-
-
-

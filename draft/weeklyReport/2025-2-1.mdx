@@ -1,114 +1,101 @@
 ---
 title: 2025-2-第一期
-date: "2025-2-06"  
-tags: ["weeklyReport"]
+date: '2025-2-06'
+tags: ['weeklyReport']
 ---
 
-
 ## [solid-start](https://github.com/solidjs/solid-start)
+
 solidjs的starter模版,可以方便的体验solidjs
 
 ## [Bridging React Native and Rust via JSI](https://ditto.live/blog/bridging-react-native-and-rust-via-jsi)
+
 这篇文章介绍通过JSI实现React Native和Rust的结合
 
 ## [Optimizing SPA load times with async chunks preloading](https://mmazzarolo.com/blog/2024-08-13-async-chunk-preloading-on-load/)
+
 在优化单页应用的加载时间上,常用的手段就是路由或者组件的异步加载或者动态加载,但是这样在用户体验上有时候会存在延迟的问题,这篇文章介绍通过工具的方式
 构建出单页应用的路由组件信息和路由组件关联的文件信息实现预加载,是一个不错的思路.
 
 ## [Integrate Go Library into a JavaScript Webpage with WebAssembly](https://tderflinger.com/en/how-to-integrate-go-library-js-webpage-webassembly)
-这篇文章介绍如何在web应用中通过WebAssembly的方式集成Go语言库
 
+这篇文章介绍如何在web应用中通过WebAssembly的方式集成Go语言库
 
 ## 工具
 
-### [tinykeys](https://github.com/jamiebuilds/tinykeys)  
+### [tinykeys](https://github.com/jamiebuilds/tinykeys)
+
 一个实现JavaScript键盘时间绑定的库,只有大约650B.
 
 ### [oclif](https://github.com/oclif/oclif)
+
 一个生成命令行工具的库
 
 ### [style-observer](https://github.com/LeaVerou/style-observer)
-一个可以监听CSS样式变化的库,原理上是通过监听transitionstart/transitionend事件实现的.可以实现一些细粒度的CSS + js的联动效果.
 
+一个可以监听CSS样式变化的库,原理上是通过监听transitionstart/transitionend事件实现的.可以实现一些细粒度的CSS + js的联动效果.
 
 ## 代码片段
 
 ### 通过Promise.withResolvers()/AbortController实现控制Promise执行
 
 #### Promise.withResolvers()
+
 ```javascript
+function withResolvers() {
+  let resolve, reject
+  const promise = new Promise((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+  return { promise, resolve, reject }
+}
 
-    function withResolvers() {
-        let resolve, reject;
-        const promise = new Promise((res, rej) => {
-            resolve = res;
-            reject = rej;
-        });
-        return { promise, resolve, reject };
-    }
+const buildCancelableTask = (asyncFn) => {
+  let rejected = false
+  const { promise, resolve, reject } = withResolvers()
+  return {
+    run: () => {
+      if (!rejected) {
+        asyncFn().then(resolve, reject)
+      }
+      // 这里需要将withResolvers返回的Promise返回
+      return promise
+    },
 
-    const buildCancelableTask = (asyncFn) => {
-        let rejected = false;
-        const { promise, resolve, reject } = withResolvers();
-        return {
-            run: () => {
-                if (!rejected) {
-                    asyncFn().then(resolve, reject);
-                }
-                // 这里需要将withResolvers返回的Promise返回
-                return promise;
-            },
-
-            cancel: () => {
-                rejected = true;
-                reject(new Error('CanceledError'));
-            },
-        };
-    };
-    // 创建一个task
-    const task = buildCancelableTask(() => new Promise((res) => setTimeout(() => res('Task completed'), 3000)));
-    task.run().then(console.log).catch(console.error);
-    // 取消任务
-    setTimeout(() => {
-        task.cancel();
-    }, 1000);
+    cancel: () => {
+      rejected = true
+      reject(new Error('CanceledError'))
+    },
+  }
+}
+// 创建一个task
+const task = buildCancelableTask(
+  () => new Promise((res) => setTimeout(() => res('Task completed'), 3000))
+)
+task.run().then(console.log).catch(console.error)
+// 取消任务
+setTimeout(() => {
+  task.cancel()
+}, 1000)
 ```
+
 #### AbortController
+
 ```javascript
-    const buildCancelableTask = (signal, asyncFunc) => {
-        return new Promise((resolve, reject) => {
-            asyncFunc().then(resolve).catch(reject);
-            signal.addEventListener("abort", () => { reject("Task was canceled"); });
-        });
-    }
-    const ac = new AbortController();
-    const signal = ac.signal;
-    const task = buildCancelableTask(signal, async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-        console.log("Task completed");
-    });
-    ac.abort();
+const buildCancelableTask = (signal, asyncFunc) => {
+  return new Promise((resolve, reject) => {
+    asyncFunc().then(resolve).catch(reject)
+    signal.addEventListener('abort', () => {
+      reject('Task was canceled')
+    })
+  })
+}
+const ac = new AbortController()
+const signal = ac.signal
+const task = buildCancelableTask(signal, async () => {
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+  console.log('Task completed')
+})
+ac.abort()
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

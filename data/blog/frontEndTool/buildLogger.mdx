@@ -1,18 +1,20 @@
 ---
 title: 如何设计一个前端监控上报工具
-date: "2024-06-04"  
-tags: ["engineering"]
+date: '2024-06-04'
+tags: ['engineering']
 ---
 
 又是一个老生常谈的话题-前端监控工具的实现.在业务中一直有对应的工具在使用,一直没有仔细的去了解相关的实现。下面结合使用的监控工具管中窥豹了解下一些实现上的思考点.
 
 首先从监控数据的角度去思考,需要上报数据类型:
-* js异常/unhandledrejection未捕获异常
-* 资源加载情况/异常
-* api访问情况/异常
-* 自定义事件
-* 应用运行时数据(例如FPS 卡顿等)  
-有了需要监控上报的数据分类,接下来就从以下的两方面来展开监控工具的实现:
+
+- js异常/unhandledrejection未捕获异常
+- 资源加载情况/异常
+- api访问情况/异常
+- 自定义事件
+- 应用运行时数据(例如FPS 卡顿等)  
+  有了需要监控上报的数据分类,接下来就从以下的两方面来展开监控工具的实现:
+
 1. 不同类型数据的监控方式
 2. 组合不同类型的监控逻辑
 
@@ -23,158 +25,170 @@ tags: ["engineering"]
 #### js异常/unhandledrejection未捕获异常监控
 
 ```javascript
-    window.addEventListener('error', (event) => {  
-        // 错误处理上报逻辑
-        // event.message 是错误信息
-        // event.filename 是发生错误的文件
-        // event.lineno 是错误发生的行号
-        // event.colno 是错误发生的列号
-        // event.error 是一个 Error 对象（如果可用）
-
-        // 监听error事件当资源加载异常的时候，也会走到这个回调处理函数中 这里需要将资源加载相关信息隔离
-        // 有event.message或者event.lineno可以当js异常处理
-        
-   }, true)
-   window.addEventListener('unhandledrejection', (event) => {
-      // 错误处理上报逻辑
-      // event.promise 是被拒绝的 Promise
-      // event.reason 是被拒绝的原因（通常是一个 Error 对象）
-   })
+window.addEventListener(
+  'error',
+  (event) => {
+    // 错误处理上报逻辑
+    // event.message 是错误信息
+    // event.filename 是发生错误的文件
+    // event.lineno 是错误发生的行号
+    // event.colno 是错误发生的列号
+    // event.error 是一个 Error 对象（如果可用）
+    // 监听error事件当资源加载异常的时候，也会走到这个回调处理函数中 这里需要将资源加载相关信息隔离
+    // 有event.message或者event.lineno可以当js异常处理
+  },
+  true
+)
+window.addEventListener('unhandledrejection', (event) => {
+  // 错误处理上报逻辑
+  // event.promise 是被拒绝的 Promise
+  // event.reason 是被拒绝的原因（通常是一个 Error 对象）
+})
 ```
 
 在监听error上报的时候,需要将资源加载异常进行隔离,资源加载异常由处理加载异常的收集器来处理.
 在进行上报的时候,可以进行一个简单的去重处理,比如一个时间间隔内相同的错误只上报一次.
 
 ```javascript
-   const errorQueue = []
-      // 清除历史上报消息的时间
-   const clearInterval = 2000;
+const errorQueue = []
+// 清除历史上报消息的时间
+const clearInterval = 2000
 
-   function errorHandler(event) {
-      // 监测当前event是否存在errorQueue里面 如果存在 不进行后续操作
+function errorHandler(event) {
+  // 监测当前event是否存在errorQueue里面 如果存在 不进行后续操作
 
-      // 可以结合event.filename/event.lineno/event.colno/event.message/event.error.stack来判断是否是同一错误
+  // 可以结合event.filename/event.lineno/event.colno/event.message/event.error.stack来判断是否是同一错误
 
-      // 不在errorQueue里面
-      errorQueue.push(event)
-      setTimeout(() => {
-         // 在errorQueue中找到对应event进行剔除
-      }, clearInterval)
-      
-      // 上报逻辑
-   }
+  // 不在errorQueue里面
+  errorQueue.push(event)
+  setTimeout(() => {
+    // 在errorQueue中找到对应event进行剔除
+  }, clearInterval)
 
+  // 上报逻辑
+}
 ```
 
 #### 资源加载监控
 
 ```javascript
-   function processResourcePerformance(perf) {
-        perf.getEntriesByType('resource').forEach(entry => {
-            // 这里可以做过滤逻辑 过滤第三方资源控制上报
-
-            // 判断是资源加载 用于统计资源加载情况  进行上报
-            // entry上有initiatorType属性,可以区分不同资源
-        });
-   }
-   window.addEventListener('error', (event) => {
-      // 判断是资源加载异常 比如event上存在tagName
-      // 进行上报
-   }, true)
-   // 创建一个PerformanceObserver并指定处理函数processResourcePerformance
-   const observer = new PerformanceObserver(r => processResourcePerformance(r));
-   // PerformanceObserver指定监听resource 资源
-   observer.observe({ entryTypes: ['resource'] });
+function processResourcePerformance(perf) {
+  perf.getEntriesByType('resource').forEach((entry) => {
+    // 这里可以做过滤逻辑 过滤第三方资源控制上报
+    // 判断是资源加载 用于统计资源加载情况  进行上报
+    // entry上有initiatorType属性,可以区分不同资源
+  })
+}
+window.addEventListener(
+  'error',
+  (event) => {
+    // 判断是资源加载异常 比如event上存在tagName
+    // 进行上报
+  },
+  true
+)
+// 创建一个PerformanceObserver并指定处理函数processResourcePerformance
+const observer = new PerformanceObserver((r) => processResourcePerformance(r))
+// PerformanceObserver指定监听resource 资源
+observer.observe({ entryTypes: ['resource'] })
 ```
+
 在进行资源加载监控的时候
-* 通过PerformanceObserver上报资源加载数据
-* 通过监听error事件上报资源加载异常
+
+- 通过PerformanceObserver上报资源加载数据
+- 通过监听error事件上报资源加载异常
 
 #### api监控
+
 在之前的文章中[前端月报5月刊](https://icantunderstand.github.io/blogNew/blog/weeklyReport/2024-5-1)中,对[xhook](https://www.npmjs.com/package/xhook)
 的源码进行了解读.在进行api请求监控的时候,其实就可以通过xhook来实现.但这样似乎不是一种好的方案,对全局对象的hack行为容易出现不可预期的问题.推荐在全局的请求实例中进行统一
 的错误拦截上报.
 
 ```javascript
-    // 这里使用的是axios
-   import axios from 'axios';
+// 这里使用的是axios
+import axios from 'axios'
 
-   // 创建 Axios 实例
-   const axiosInstance = axios.create({
-      baseURL: 'https://api.example.com', // 替换为你的 API 基础 URL
-      timeout: 10000, // 设置请求超时时间
-      headers: { 'Content-Type': 'application/json' } // 设置默认请求头
-   });
-   // 响应拦截器
-   axiosInstance.interceptors.response.use(
-      response => {
-         return response;
-      },
-      error => {
-         // 统一上报逻辑
-         // 
-         return Promise.reject(error);
-      }
-   );
+// 创建 Axios 实例
+const axiosInstance = axios.create({
+  baseURL: 'https://api.example.com', // 替换为你的 API 基础 URL
+  timeout: 10000, // 设置请求超时时间
+  headers: { 'Content-Type': 'application/json' }, // 设置默认请求头
+})
+// 响应拦截器
+axiosInstance.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error) => {
+    // 统一上报逻辑
+    //
+    return Promise.reject(error)
+  }
+)
 
-   const observer = new PerformanceObserver(r => () => {  
-      // 上报api请求数据
-    });
-   observer.observe({ entryTypes: ['resource'] });
-
+const observer = new PerformanceObserver((r) => () => {
+  // 上报api请求数据
+})
+observer.observe({ entryTypes: ['resource'] })
 ```
 
 api监控通过PerformanceObserver和请求异常的统一上报入口进行上报.在上报的时候可以按照初始化的seesionid做api的访问时序展示
 
-
 #### 自定义事件上报
+
 在自定义事件上报,就是用户主动调用实现的上报.这部分实现相对简单,这里略去。
 
 #### 应用运行时数据监控
+
 这里以计算FPS举例
+
 ```javascript
+let lastFrameTime = performance.now()
+let frameCount = 0
+let fps = 0
+function calculateFPS(currentTime) {
+  frameCount++
+  const deltaTime = currentTime - lastFrameTime
 
-   let lastFrameTime = performance.now();
-   let frameCount = 0;
-   let fps = 0;
-   function calculateFPS(currentTime) {
-      frameCount++;
-      const deltaTime = currentTime - lastFrameTime;
+  if (deltaTime >= 1000) {
+    fps = frameCount
+    frameCount = 0
+    lastFrameTime = currentTime
+    // 如果fps帧率过高 进行上报
+  }
+  requestAnimationFrame(calculateFPS)
+}
 
-      if (deltaTime >= 1000) {
-         fps = frameCount;
-         frameCount = 0;
-         lastFrameTime = currentTime;
-         // 如果fps帧率过高 进行上报
-      }
-      requestAnimationFrame(calculateFPS);
-   }
-
-   requestAnimationFrame(calculateFPS);
-
+requestAnimationFrame(calculateFPS)
 ```
 
 ### 数据上报需要注意的点
 
 #### 数据丢失
+
 数据丢失有两种情况:
-* 加载时机导致监控包未初始化,这部分数据丢失.这部分可以通过种子包实现,在种子包种封装主包极简逻辑并且能做到上报队列的共享.
-* 数据传输过程的丢包 可以通过在上报过程中的自增id来对比服务端存储的数据
+
+- 加载时机导致监控包未初始化,这部分数据丢失.这部分可以通过种子包实现,在种子包种封装主包极简逻辑并且能做到上报队列的共享.
+- 数据传输过程的丢包 可以通过在上报过程中的自增id来对比服务端存储的数据
 
 #### 上报性能
-大量的数据上报会占用浏览器和服务端的资源,这部分可以通过以下方式进行优化:
-* 批量上报 通过队列的方式,在满足一定时间或者时机将队列中的数据统一上报
-* 采样上报 通过设置采样率,用户在访问应用的时候每次都可能落到采样区间或者针对每次上报都进行采样判断
 
+大量的数据上报会占用浏览器和服务端的资源,这部分可以通过以下方式进行优化:
+
+- 批量上报 通过队列的方式,在满足一定时间或者时机将队列中的数据统一上报
+- 采样上报 通过设置采样率,用户在访问应用的时候每次都可能落到采样区间或者针对每次上报都进行采样判断
 
 ## 组合不同类型监控逻辑
-![聚合逻辑](/static/images/frontEndToolStatic/buildLogger/logger.jpg)  
+
+![聚合逻辑](/static/images/frontEndToolStatic/buildLogger/logger.jpg)
 
 在组合逻辑的时候，通过插件的机制组合不同的收集器,在功能划分上:
-* 主包实现插件的注册、数据的存储上报、通用参数的处理
-* 收集器基类封装与主包的联动逻辑
+
+- 主包实现插件的注册、数据的存储上报、通用参数的处理
+- 收集器基类封装与主包的联动逻辑
 
 这样就梳理了一个简单的监控工具的实现逻辑.可以看到在实现细节上还有许多细节值得考量.
 
 ## 参考
+
 [字节前端监控实践](https://juejin.cn/post/7195496297150709821)

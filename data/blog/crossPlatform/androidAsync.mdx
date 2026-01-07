@@ -1,7 +1,7 @@
 ---
 title: 一起学Android-异步消息处理
-date: "2021-07-09" 
-tags: ["crossPlatform"]
+date: '2021-07-09'
+tags: ['crossPlatform']
 ---
 
 Android中可以使用异步消息处理机制来完成主线程和子线程任务调度，本文主要介绍使用Handler实现消息通信的过程。
@@ -9,25 +9,30 @@ Android中可以使用异步消息处理机制来完成主线程和子线程任�
 ## Handler
 
 ### 基本概念
+
 使用Handler实现异步消息需要以下的组件:
-* Message
+
+- Message
   发送消息传递的数据对象
-* Handler
+- Handler
   负责消息的传递和处理
-* MessageQueue
+- MessageQueue
   负责保存当前线程中的发送的Message，每个线程只能有一个MessageQueue
-* Looper
-  负责管理线程中的MessageQueue，将MessageQueue中的Message不停的取出给Handler处理。每个线程只有一个Looper  
+- Looper
+  负责管理线程中的MessageQueue，将MessageQueue中的Message不停的取出给Handler处理。每个线程只有一个Looper
 
 ![Handler实现结构](/static/images/crossPlatformStatic/androidStatic/androidAsync/Handler.jpg)
 
 ### 例子实现
+
 下面的例子中布局文件中定义了一个TextView和Button，在Button点击的时候通过发送Message来实现TextView内容的更新。 使用Handler处理异步消息主要有如下的步骤:
-* 初始化Looper(Looper.prepare)和MessageQueue(Looper.loop)
-* 根据当前的Looper创建Handler并重写handleMessage方法
-* 在子线程中通过Handler发送Message传递数据
-* 主线程处理数据(UI显示)
-* 主线程退出后清除Handler的任务/关闭Looper  
+
+- 初始化Looper(Looper.prepare)和MessageQueue(Looper.loop)
+- 根据当前的Looper创建Handler并重写handleMessage方法
+- 在子线程中通过Handler发送Message传递数据
+- 主线程处理数据(UI显示)
+- 主线程退出后清除Handler的任务/关闭Looper
+
 ```java
       public class MainActivity extends AppCompatActivity {
         // 定义更新按钮文旦的标识
@@ -91,4 +96,5 @@ Android中可以使用异步消息处理机制来完成主线程和子线程任�
         }
       }
 ```
-![使用Handler](/static/images/crossPlatformStatic/androidStatic/androidAsync/showHandler.gif)  
+
+![使用Handler](/static/images/crossPlatformStatic/androidStatic/androidAsync/showHandler.gif)
