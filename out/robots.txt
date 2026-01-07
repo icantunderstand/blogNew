@@ -1,5 +1,0 @@
-User-Agent: *
-Allow: /
-
-Host: https://icantunderstand.github.io/blogNew/
-Sitemap: https://icantunderstand.github.io/blogNew//sitemap.xml
