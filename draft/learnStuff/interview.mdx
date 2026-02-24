@@ -391,9 +391,9 @@ function compose(...funcs) {
     return (arg) => arg
   }
   if (funcs.length === 1) {
-    return func[0]
+    return funcs[0]
   }
-  return funcs.reduce(
+  return funcs.reduceRight(
     (a, b) =>
       (...args) =>
         a(b(...args))
@@ -408,16 +408,9 @@ function pipe(...funcs) {
   if (funcs.length === 1) {
     return funcs[0]
   }
-
-  return function (...args) {
-    let result = funcs[0](...args)
-
-    for (let i = 1; i < funcs.length; i++) {
-      result = funcs[i](result)
-    }
-
-    return result
-  }
+  return (...args) =>
+    funcs.reduce((acc, fn, idx) => (idx === 0 ? fn(...acc) : fn(acc)), args)
+  
 }
 ```
 
@@ -427,13 +420,17 @@ function pipe(...funcs) {
 function curry(fn) {
   return function curried(...args) {
     // 如果参数够了，直接执行
+    const that = this
     if (args.length >= fn.length) {
-      return fn.apply(this, args)
+      return fn.apply(that, args)
     }
 
     // 参数不够，返回新函数 这里需要理解下
     return function (...moreArgs) {
       // apply
+      if(moreArgs.length === 0) {
+        return curried.apply(this, args)
+      } 
       return curried.apply(this, args.concat(moreArgs))
     }
   }
@@ -556,9 +553,9 @@ function add(a, b) {
 ## 相关题
 
 ```javascript
-// 可以按照路径进行排序 先处理短路径 在处理长路径
 function parseObj(obj) {
   const ret = {}
+  const skipped = [] // 记录跳过的键
 
   // 按路径长度排序，短路径优先处理
   const sortedEntries = Object.entries(obj).sort(
@@ -566,29 +563,65 @@ function parseObj(obj) {
   )
 
   for (const [key, value] of sortedEntries) {
-    const arr = key.split('.')
+    // 过滤空字符串（处理 '.a' 或 'a..b' 这种情况）
+    const arr = key.split('.').filter(k => k !== '')
+    
+    // 空键处理
+    if (arr.length === 0) {
+      console.warn(`无效的键: "${key}"，跳过`)
+      skipped.push(key)
+      continue
+    }
+
     let prev = ret
+    let isConflict = false
 
     for (let i = 0; i < arr.length; i++) {
       if (i < arr.length - 1) {
-        // 检查路径冲突
-        if (prev[arr[i]] !== undefined && typeof prev[arr[i]] !== 'object') {
-          console.warn(`路径冲突: ${key} 与已存在的值 ${prev[arr[i]]} 冲突，跳过此路径`)
+        // 中间路径节点
+        const current = prev[arr[i]]
+        
+        // 检查路径冲突（包括 null 检查）
+        if (current !== undefined && (current === null || typeof current !== 'object')) {
+          console.warn(`路径冲突: "${key}" 与已存在的值 ${JSON.stringify(current)} 冲突，跳过此路径`)
+          skipped.push(key)
+          isConflict = true
           break
         }
 
+        // 创建中间对象
         if (!prev[arr[i]]) {
           prev[arr[i]] = {}
         }
         prev = prev[arr[i]]
       } else {
         // 最后一个键
-        if (prev[arr[i]] !== undefined && typeof prev[arr[i]] === 'object') {
-          console.warn(`路径冲突: ${key} 会覆盖已存在的对象`)
+        const current = prev[arr[i]]
+        
+        // 检查是否会覆盖已存在的对象
+        if (current !== undefined && typeof current === 'object' && current !== null) {
+          console.warn(`路径冲突: "${key}" 会覆盖已存在的对象 ${JSON.stringify(current)}`)
         }
-        prev[arr[i]] = value
+        
+        // 深拷贝对象/数组，避免引用问题
+        if (typeof value === 'object' && value !== null) {
+          try {
+            prev[arr[i]] = JSON.parse(JSON.stringify(value))
+          } catch (e) {
+            // JSON 无法序列化的对象（如函数、循环引用等）
+            console.warn(`无法深拷贝值: "${key}"，使用浅拷贝`)
+            prev[arr[i]] = Array.isArray(value) ? [...value] : { ...value }
+          }
+        } else {
+          prev[arr[i]] = value
+        }
       }
     }
+  }
+
+  // 可选：返回跳过的键信息
+  if (skipped.length > 0) {
+    console.log(`共跳过 ${skipped.length} 个键:`, skipped)
   }
 
   return ret
