@@ -19,7 +19,7 @@ React为了实现时间切片,将页面的组件节点都进行了新的抽象-F
 
 fiber单链表结构的一些优点:
 
-- 可中断和恢复的任务 单链表结构允许React在多个帧中中断和恢复渲染任务,通过将任务切分小的单元实现时间切盼,这样有助于提高用户界面响应性和避免出现卡顿
+- 可中断和恢复的任务 单链表结构允许React在多个帧中中断和恢复渲染任务,通过将任务切分小的单元实现时间切片,这样有助于提高用户界面响应性和避免出现卡顿
 - 优先级控制 可以通过链表实现高优先级任务的优先执行
 - 轻量化和内存管理 单链表对比双链表相对轻量，降低内存的占用
 - 独立性 每个节点的处理相对独立，不影响其他节点
@@ -65,7 +65,7 @@ render阶段主要根据已有的Fiber节点构造对应的workInProgress节点 
 Hooks在组件初次挂载和组件更新阶段是调用的不同的[实现逻辑](https://github.com/facebook/react/blob/1d1e49cfa453b58769e87c3c8d321024d58c948f/packages/react-reconciler/src/ReactFiberHooks.new.js#L389)  
 ![挂载不同的hook](/static/images/reactStatic/reactHooks/differentHook.png)
 
-![mount阶段hook](/static/images/reactStatic/reactHooks/mountHookCodeExample.png)
+![mount阶段hook](/static/images/reactStatic/reactHooks/mountHookCode.png)
 
 ![update阶段hook](/static/images/reactStatic/reactHooks/updateHookCode.png)
 下面先整体的介绍不同阶段Hooks的实现过程然后在深入到源码中看具体的实现.

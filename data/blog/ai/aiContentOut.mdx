@@ -16,11 +16,14 @@ tags: ['AI']
 - Server-Sent Events(SSE)
 - WebSocket
 - Long polling
-- http2服务端推送
-  大模型在生成内容的时候,需要有服务端的推送能力将内容反馈给请求方,这里就需要使用一些服务端推送技术.在上面的方案中只有Server-Sent Events(SSE)和
-  WebSocket可以实现这样的功能.但是Server-Sent Events(SSE)似乎更加轻量,笔者在使用豆包网页版的时候发现它就是基于SSE实现的内容交互.  
-  ![豆包](/static/images/aiStatic/doubao.png)  
-  下面就通过demo的方式来实现一个基于SSE的流式输出展示
+- http2服务端推送  
+
+大模型在生成内容的时候,需要有服务端的推送能力将内容反馈给请求方,这里就需要使用一些服务端推送技术.在上面的方案中只有Server-Sent Events(SSE)和
+WebSocket可以实现这样的功能.但是Server-Sent Events(SSE)似乎更加轻量,笔者在使用豆包网页版的时候发现它就是基于SSE实现的内容交互.  
+
+![豆包](/static/images/aiStatic/doubao.png)  
+
+下面就通过demo的方式来实现一个基于SSE的流式输出展示
 
 ## 服务端实现
 

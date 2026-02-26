@@ -581,7 +581,7 @@ function parseObj(obj) {
         // 中间路径节点
         const current = prev[arr[i]]
         
-        // 检查路径冲突（包括 null 检查）
+        // 检查路径冲突（包括 null 检查） 有值且不是对象 就无法扩展
         if (current !== undefined && (current === null || typeof current !== 'object')) {
           console.warn(`路径冲突: "${key}" 与已存在的值 ${JSON.stringify(current)} 冲突，跳过此路径`)
           skipped.push(key)
@@ -598,7 +598,7 @@ function parseObj(obj) {
         // 最后一个键
         const current = prev[arr[i]]
         
-        // 检查是否会覆盖已存在的对象
+        // 检查是否会覆盖已存在的对象  有值且是一个对象
         if (current !== undefined && typeof current === 'object' && current !== null) {
           console.warn(`路径冲突: "${key}" 会覆盖已存在的对象 ${JSON.stringify(current)}`)
         }
@@ -682,7 +682,7 @@ const foo = (function () {
   }
 })()
 
-// 函数属性
+// 函数属性 不大好这种
 function foo() {
   foo.count = (foo.count || 0) + 1
   return foo.count % 2 === 1 ? 1 : 2

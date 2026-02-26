@@ -207,7 +207,7 @@ eventSource.onmessage = function (event) {
 ```
 
 - 浏览器对同一域名下并发的HTTP连接数有限制,建议使用HTTP2,可提供最大并发HTTP流数量
-- 可以对EevntSource做一些细粒度的控制,减少服务端连接数
+- 可以对EevntSource做一些细粒度的控制(断连),减少服务端连接数
 
 ### WebSocket
 

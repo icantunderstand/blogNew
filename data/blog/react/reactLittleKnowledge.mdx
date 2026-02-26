@@ -20,7 +20,7 @@ tags: ['React']
 import { useRef } from 'react'
 
 function MyComponent() {
-  const inputRef = useRef < HTMLInputElement > null
+  const inputRef = useRef < HTMLInputElement >(null)
 
   const focusInput = () => {
     inputRef.current?.focus()

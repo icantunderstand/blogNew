@@ -22,16 +22,18 @@ Box是CSS布局的基本单位.元素的类型和display共同决定着这个Box
 - block-level: display属性为 block, table, list-item.
 - inline-level: display属性为 inline-block, inline-table,inline
 
-### 布局模式
+### 浏览器布局Dirty机制
 
-在进行布局的时候,浏览器采用一种dirty位系统,如果某个呈现器（需要渲染布局的元素）发生了更改,将其自身或者子代标记为dirty,则需要布局,在进行布局的时候,元素会确认自己宽度和高度.
+Dirty（脏标记） 是浏览器用来标识 DOM 元素或渲染对象状态已改变、需要重新计算的标志位，通过标记需要重新计算的元素来避免不必要的全局重排。
 
-1. 父呈现器确认自己的宽度
-2. 父呈现器依次处理子呈现器
-   1. 放置子呈现器设置x y 坐标
-   2. 如果有必要,调用子呈现器的布局
-3. 父呈现器根据子呈现器的累加高度以及边距和补白的高度来设置自身高度,此值也可供父呈现器的父呈现器使用
-4. 将dirty设置为false
+1. JavaScript 修改 DOM/CSS
+2. 标记相关节点为 Dirty
+3. 浏览器调度布局任务
+4. 遍历 Dirty 节点
+5. 重新计算布局（Reflow）
+6. 重新绘制（Repaint）
+7. 合成显示（Composite）
+8. 清除 Dirty 标记
 
 ### 布局上下文
 
@@ -155,8 +157,7 @@ width: xxxpx;
 
 ```css
     display: -webkit-box;
-    -webkit-box-orient: vertical;
-    // 行数
+    -webkit-box-orient: vertical; // 行数
     -webkit-line-clamp: 2;
     overflow: hidden;
 ```
@@ -214,7 +215,10 @@ width: xxxpx;
 
 #### rem方案
 
-rem是相对单位,以HTML元素的font-size为比例进行计算
+rem = root em（根元素的 em）
+
+* rem 是相对单位，它的基准是根元素html的 font-size
+* 1rem 永远等于根元素 font-size 的值
 
 ```javascript
 function setRem() {
