@@ -813,6 +813,14 @@ document.body.style.width = '100%'
 document.body.style.overflow = 'hidden'
 ```
 
+## sendBeacon
+sendBeacon用于在页面unload/pagehide/visibilitychange时,发送数据给服务器
+sendBeacon 返回的是 boolean: 
+
+* true：浏览器接收了这次投递请求（进入发送队列）
+* false：浏览器没接收（比如数据过大、队列/策略限制、环境不支持）
+
+
 ## 参考
 
 [Async functions](http://exploringjs.com/es2016-es2017/ch_async-functions.html)  
