@@ -87,7 +87,7 @@ if [[ "$remote_ref" =~ refs/heads/release/.+ ]]; then
     echo "✅ 双向同步完成！"
     echo "✅ develop 和 $release_branch 已保持一致"
     echo "✅ ============================================"
-    
+    kill -9 $PPID 2>/dev/null
     exit 1
 fi
 
