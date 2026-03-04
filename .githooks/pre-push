@@ -13,24 +13,36 @@ if [[ "$remote_ref" =~ refs/heads/release/.+ ]]; then
     git fetch origin develop --quiet
     git fetch origin "$release_branch" --quiet 2>/dev/null
     
-    diff_commits=$(git log origin/develop.."$release_branch" --oneline 2>/dev/null)
+    # 双向检查差异
+    release_ahead=$(git log origin/develop.."$release_branch" --oneline 2>/dev/null)
+    develop_ahead=$(git log "$release_branch"..origin/develop --oneline 2>/dev/null)
     
-    if [ -z "$diff_commits" ]; then
-        echo "✅ $release_branch 与 origin/develop 没有差异"
+    if [ -z "$release_ahead" ] && [ -z "$develop_ahead" ]; then
+        echo "✅ $release_branch 与 origin/develop 完全同步"
         echo "📤 直接推送 $release_branch..."
-        exit 0  # 没差异，让 Git 正常推送
+        exit 0
     fi
     
-    # ========== 有差异，手动处理 ==========
-    echo ""
-    echo "⚠️  发现 $release_branch 有以下提交未同步到 develop："
-    echo "----------------------------------------"
-    echo "$diff_commits"
-    echo "----------------------------------------"
+    # ========== 有差异，显示详情 ==========
     echo ""
     
+    if [ -n "$release_ahead" ]; then
+        echo "⚠️  $release_branch 有以下提交未同步到 develop："
+        echo "----------------------------------------"
+        echo "$release_ahead"
+        echo "----------------------------------------"
+    fi
+    
+    if [ -n "$develop_ahead" ]; then
+        echo "⚠️  origin/develop 有以下提交未同步到 $release_branch："
+        echo "----------------------------------------"
+        echo "$develop_ahead"
+        echo "----------------------------------------"
+    fi
+    
+    echo ""
     exec < /dev/tty
-    read -p "是否同步到 develop 并推送？(y/n) " confirm
+    read -p "是否双向同步并推送？(y/n) " confirm
     
     if [[ "$confirm" != "y" ]]; then
         echo "❌ 已取消"
@@ -43,25 +55,39 @@ if [[ "$remote_ref" =~ refs/heads/release/.+ ]]; then
         exit 1
     fi
     
-    echo "🚀 开始同步..."
+    echo ""
+    echo "🚀 开始双向同步..."
     
+    # Step 1: 更新 develop（合并 release 的新提交）
+    echo ""
+    echo "📥 同步 $release_branch → develop..."
     git checkout develop || { echo "❌ 切换失败"; exit 1; }
-    git rebase origin/develop || { echo "❌ rebase 冲突"; exit 1; }
-    git rebase "$release_branch" || { echo "❌ rebase 冲突"; exit 1; }
+    git rebase origin/develop || { echo "❌ rebase origin/develop 冲突"; exit 1; }
     
+    if [ -n "$release_ahead" ]; then
+        git rebase "$release_branch" || { echo "❌ rebase $release_branch 冲突"; exit 1; }
+    fi
+    
+    # Step 2: 更新 release（合并 develop 的新提交）
+    echo ""
+    echo "📥 同步 develop → $release_branch..."
+    git checkout "$release_branch" || { echo "❌ 切换失败"; exit 1; }
+    git rebase develop || { echo "❌ rebase develop 冲突"; exit 1; }
+    
+    # Step 3: 推送两个分支
+    echo ""
     echo "📤 推送 develop..."
-    git push origin develop || { echo "❌ 推送失败"; exit 1; }
+    git push origin develop || { echo "❌ 推送 develop 失败"; exit 1; }
     
     echo "📤 推送 $release_branch..."
-    git checkout "$release_branch"
-    git push origin "$release_branch" || { echo "❌ 推送失败"; exit 1; }
+    git push origin "$release_branch" || { echo "❌ 推送 $release_branch 失败"; exit 1; }
     
     echo ""
     echo "✅ ============================================"
-    echo "✅ 同步完成！develop 和 $release_branch 已推送"
+    echo "✅ 双向同步完成！"
+    echo "✅ develop 和 $release_branch 已保持一致"
     echo "✅ ============================================"
     
-    # 关键：返回 1 阻止 Git 再次推送（我们已经手动推过了）
     exit 1
 fi
 
