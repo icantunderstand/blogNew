@@ -737,3 +737,107 @@ function LazyMan(name) {
 
 LazyMan('John').sleep(3).eat('dinner')
 ```
+
+```javascript
+
+// 玩家背包（全局状态）
+const playerBag = {
+  gold: 0,
+  skin: 0,
+};
+
+const MAX_SKIN = 10;
+
+/**
+ * 递归统计一个 Treasure（或 Email）节点下所有的 gold 和 skin 总量
+ * @param {object} node - 含有 gold, skin, treasure[] 的节点
+ * @returns {{ totalGold: number, totalSkin: number }}
+ */
+function collectStats(node) {
+  let totalGold = node.gold || 0;
+  let totalSkin = node.skin || 0;
+
+  if (node.treasure && node.treasure.length > 0) {
+    for (const child of node.treasure) {
+      const childStats = collectStats(child);
+      totalGold += childStats.totalGold;
+      totalSkin += childStats.totalSkin;
+    }
+  }
+
+  return { totalGold, totalSkin };
+}
+
+/**
+ * 处理邮件列表，将符合条件的邮件宝藏加入背包
+ * @param {Email[]} emailList
+ */
+function ReadEmailList(emailList) {
+  for (const email of emailList) {
+    // 跳过已读邮件
+    if (email.isRead) continue;
+
+    // 递归统计这封邮件的全部 gold 和 skin
+    const { totalGold, totalSkin } = collectStats(email);
+
+    // 判断皮肤是否超出背包上限
+    if (playerBag.skin + totalSkin > MAX_SKIN) {
+      // 皮肤放不下，跳过，不标记已读
+      continue;
+    }
+
+    // 放得下：加入背包，标记已读
+    playerBag.gold += totalGold;
+    playerBag.skin += totalSkin;
+    email.isRead = true;
+  }
+}
+
+```
+
+```javascript
+function calculate(s) {
+  const stack = [];
+  let result = 0;   // 当前层的累计结果
+  let num = 0;      // 当前正在读取的数字
+  let sign = 1;     // 当前符号，+1 或 -1
+
+  for (const ch of s) {
+    if (ch >= '0' && ch <= '9') {
+      // 累积多位数字 如果一直是数字的情况
+      num = num * 10 + parseInt(ch);
+
+    } else if (ch === '+') {
+      result += sign * num;
+      num = 0;
+      sign = 1;
+
+    } else if (ch === '-') {
+      result += sign * num;
+      num = 0;
+      sign = -1;
+
+    } else if (ch === '(') {
+      // 把外层状态压栈，重新开始计算括号内
+      stack.push(result);
+      stack.push(sign);
+      result = 0;
+      sign = 1;
+
+    } else if (ch === ')') {
+      // 括号结束：先把最后一个数加进来
+      result += sign * num;
+      num = 0;
+      // 弹栈还原外层：括号结果 * 外层符号 + 外层累计
+      result *= stack.pop(); // 外层 sign
+      result += stack.pop(); // 外层 result
+    }
+  }
+
+  // 处理末尾最后一个数字
+  result += sign * num;
+
+  return result;
+}
+
+```
