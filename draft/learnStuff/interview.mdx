@@ -841,3 +841,29 @@ function calculate(s) {
 }
 
 ```
+
+```javascript
+// 使用Promise实现红绿灯
+function trafficLight(color, duration) {
+  return new Promise((resolve) => {
+    // 等待指定时间后解决Promise
+    // 这里设置颜色
+
+    setTimeout(() => {
+      resolve()
+    }, duration)
+  })
+}
+async function showLightWithCountdown(color, duration) {
+  while (true) {
+    // 红灯10秒
+    await trafficLight('red', 10000)
+
+    // 绿灯10秒
+    await trafficLight('green', 10000)
+
+    // 黄灯3秒
+    await trafficLight('yellow', 3000)
+  }
+}
+```
