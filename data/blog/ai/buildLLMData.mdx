@@ -44,6 +44,6 @@ tags: ['AI']
      ![生成输入–目标对](/static/images/aiStatic/buildLLMData/samping.png)
 
 3. 向量化（Embeddings）
-   - **Token embeddings（词元嵌入）**：把每个 token 的 ID 映射为 d 维稠密向量，表达内容语义。
-   - **Positional embeddings（位置嵌入）**：为序列中第 i 个位置提供位置信息的向量，弥补自注意力对顺序不敏感的问题。
+   - **Token embeddings（词元嵌入）**：将文本中的每个词元（token）转换为一个固定维度的稠密向量。每个 token 的 ID（索引值）通过查找嵌入矩阵（embedding matrix）映射到一个d维的向量空间表达内容语义。
+   - **Positional embeddings（位置嵌入）**：由于 Transformer 模型的自注意力机制（Self-Attention）对序列中的位置不敏感，因此需要额外的位置信息来帮助模型区分词元的顺序。Positional embeddings 是为序列中每个位置生成的固定维度向量，表示该位置的位置信息。
    - **合成输入向量（Input embeddings）**：通常为 Token embeddings 与 Positional embeddings 逐元素相加后的结果，输入到模型中。
