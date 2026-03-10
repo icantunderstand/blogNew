@@ -4,6 +4,16 @@ date: '2026-03-10'
 tags: ['AI']
 ---
 
+- [什么是 Skills](#什么是-skills)
+- [Skills 的工作原理](#skills-的工作原理)
+- [Skills 的优点](#skills-的优点)
+- [Skills 编写建议（通用模板）](#skills-编写建议通用模板)
+- [Skills 使用（在通用 API 中模拟“技能包注入”）](#skills-使用在通用-api-中模拟技能包注入)
+  - [示例代码（JavaScript）](#示例代码javascript)
+- [Skills 和 MCP 对比](#skills和mcp对比)
+  - [Skills（技能）](#skills技能)
+  - [MCP（协议/连接层）](#mcp协议连接层)
+
 ### 什么是 Skills
 
 **Skills** 可以理解为一组可复用的“技能包”：把**指令（prompt）**、**步骤模板**、以及可选的**脚本/资源**（如规范文档、示例、工具说明）打包在一起，用来让模型在某类任务上表现更稳定、更专业。
@@ -104,11 +114,11 @@ async function runWithSkillPrompt(skillContent, userQuery) {
 
 ## Skills和MCP对比
 
-## Skills（技能）
+### Skills（技能）
 - **面向任务/用户意图**的能力封装：例如“生成周报”“报销审核”“查库存并下单”
 - 重点是：**输入输出、触发方式、业务流程与体验**
 
-## MCP（协议/连接层）
+### MCP（协议/连接层）
 - **面向接入与标准化**：把外部的工具、数据源、服务用统一方式暴露给模型
 - 重点是：**工具/资源描述、上下文传递、权限与调用规范**
 
