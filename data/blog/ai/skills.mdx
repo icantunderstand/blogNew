@@ -1,0 +1,119 @@
+---
+title: AI探秘：Skills 我懂你！
+date: '2026-03-10'
+tags: ['AI']
+---
+
+### 什么是 Skills
+
+**Skills** 可以理解为一组可复用的“技能包”：把**指令（prompt）**、**步骤模板**、以及可选的**脚本/资源**（如规范文档、示例、工具说明）打包在一起，用来让模型在某类任务上表现更稳定、更专业。
+
+在一些平台（例如 Claude 的相关能力形态）里，Skills 可能支持**被检索/选择并按需注入上下文**；而在通用的 API 场景中，你也可以通过“**Skill 索引 + 路由选择 + 注入 system/developer 指令**”来模拟同样的效果。
+
+---
+
+### Skills 的工作原理
+
+把 Skills 当成“可检索的说明书库”会更贴近工程实现。常见流程是：
+
+1. **建立 Skill 索引（摘要/标签）**  
+   - 每个 Skill 提供：名称、适用场景、输入输出格式、关键限制、示例问题等（尽量短）。
+2. **模型选择（选择最相关的 Skill）**  
+   - 根据用户任务，从索引中挑选 0～N 个相关 Skill。
+3. **按需注入（渐进加载）**  
+   - 先注入 Skill 的精简版指令；必要时再追加更完整的模板/资源片段。
+4. **执行与校验**  
+   - 模型根据当前上下文中“可见”的 Skill 内容完成输出；缺少关键信息时先澄清。
+
+> 关键限制：模型**只能依据当前上下文中可见的信息**行动。Skill 没被注入，就等于“不会用”。
+
+![skills执行](/static/images/aiStatic/skill/skills.png)
+
+---
+
+### Skills 的优点
+
+- **提升特定任务表现**：为文档写作、数据分析、客服话术等提供更稳定的结构与标准，弥补通用模型的“随性发挥”。
+- **组织知识沉淀**：把团队流程、最佳实践、制度规范封装成技能包，实现标准化与复用。
+- **易于定制**：多数情况下用 Markdown/文本就能编写与迭代，不一定需要复杂工程。
+- **减少上下文占用**：通过“索引→命中→再加载详情”的方式，只在需要时注入内容，节省 token 与成本。
+
+---
+
+### Skills 编写建议（通用模板）
+
+一个好用的 Skill 通常包含这些字段（可以写成 Markdown 文件）：
+
+- **Skill 名称 / 角色定位**
+- **目标（要解决什么问题）**
+- **适用范围 / 不适用范围**（避免被滥用）
+- **输入要求**（需要哪些字段/上下文）
+- **输出格式**（固定结构，便于复核与下游消费）
+- **规则与边界**
+  - 不确定就先问最少必要问题
+  - 不要编造数据/列名/来源
+  - 步骤要可执行、可检查（编号、检查点）
+- **示例（1～3 条）**
+
+---
+
+### Skills 使用（在通用 API 中模拟“技能包注入”）
+
+下面示例演示一种最小实现：把某个 Skill 内容作为 `system` 指令注入，让模型按该 Skill 的规范输出。实际项目里通常会在此之前加一层“路由选择”（根据用户问题挑选合适 Skill）。
+
+```javascript
+const OpenAI = require("openai");
+
+// 示例 Skill：把用户的筛选条件转换为 Excel 可执行步骤（也可替换成你的 Skill 内容）
+const excelSkill = `
+你是“Excel 数据筛选助手”这个 Skill。
+目标：把用户的筛选条件转换成可执行步骤（或公式 / PowerQuery 思路），并给出清晰操作路径。
+
+规则：
+1) 先复述筛选条件（避免误解）
+2) 给出 Excel UI 操作步骤（筛选、数字筛选、大于...）
+3) 再给一个可选方案：用公式/高级筛选/PowerQuery 的思路（不要求一定有数据表）
+4) 若缺少关键信息（列名、表头行、数据范围），先提出最少必要的澄清项
+5) 不要编造列名或数据；无法确定时明确说明并提问
+
+输出格式：
+- 条件确认：
+- 方案A（界面操作）：
+- 方案B（公式/高级筛选/PowerQuery，可选）：
+- 需要你补充的信息（如有）：
+`.trim();
+
+async function runWithSkillPrompt(skillContent, userQuery) {
+  const client = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
+  const completion = await client.chat.completions.create({
+    model: "gpt-4o-mini", // 替换为你账号可用的模型
+    temperature: 0.2,
+    messages: [
+      { role: "system", content: skillContent },
+      { role: "user", content: userQuery },
+    ],
+  });
+
+  // 不同 SDK/版本返回结构可能不同；核心取 message.content
+  return completion.choices?.[0]?.message?.content ?? "";
+}
+```
+
+## Skills和MCP对比
+
+## Skills（技能）
+- **面向任务/用户意图**的能力封装：例如“生成周报”“报销审核”“查库存并下单”
+- 重点是：**输入输出、触发方式、业务流程与体验**
+
+## MCP（协议/连接层）
+- **面向接入与标准化**：把外部的工具、数据源、服务用统一方式暴露给模型
+- 重点是：**工具/资源描述、上下文传递、权限与调用规范**
+
+
+## 参考
+[What are Skills?](https://support.claude.com/en/articles/12512176-what-are-skills) 
+[Skills compares to prompts, Projects, MCP, and subagents](https://claude.com/blog/skills-explained)
+

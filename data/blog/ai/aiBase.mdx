@@ -131,6 +131,15 @@ MCP Server提供具体工具和服务的组件
 
 ![MCP架构](/static/images/aiStatic/aiMCP/mcpStruct.jpg)
 
+
+MCP可以理解为连接大模型与外部世界的标准协议/接口层。
+
+- 它定义“客户端（如 IDE/应用）↔ MCP Server ↔ 各类资源/工具”的通信方式。
+- 让模型能以统一格式访问外部能力：工具（tools）、资源（resources）、提示模板（prompts）等。
+- 重点是标准化：同一个 MCP Server 可被不同客户端/模型接入（取决于实现）。
+
+## Skills
+
 ## A2A
 
 A2A(Agent-to-Agent)是一种专门用于AI Agent之间进行通信、协作和协调的协议标准，它定义了多个Agent如何相互理解、协作和协调行动。
@@ -233,6 +242,7 @@ Agent A ←→ 竞争 ←→ Agent B
 - **资源竞争**:竞争有限的资源
 - **任务竞争**:竞争任务执行权
 - **冲突解决**:通过协商解决冲突
+
 
 ## 附录
 
