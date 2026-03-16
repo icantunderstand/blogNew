@@ -867,3 +867,30 @@ async function showLightWithCountdown(color, duration) {
   }
 }
 ```
+
+```javascript
+
+Array.prototype.myReduce = function (callback, initialValue) {
+  const arr = this
+
+  if (typeof callback !== 'function') {
+    throw new TypeError(callback + ' is not a function')
+  }
+
+  const hasInitialValue = arguments.length > 1
+  let accumulator = hasInitialValue ? initialValue : arr[0]
+  let startIndex = hasInitialValue ? 0 : 1
+
+  if (arr.length === 0 && !hasInitialValue) {
+    throw new TypeError('Reduce of empty array with no initial value')
+  }
+
+  for (let i = startIndex; i < arr.length; i++) {
+    accumulator = callback(accumulator, arr[i], i, arr)
+  }
+
+  return accumulator
+}
+
+```
+
