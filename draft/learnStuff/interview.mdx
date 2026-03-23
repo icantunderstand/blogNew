@@ -135,6 +135,8 @@ function deepClone(obj, hash = new Map()) {
 
 ## 模拟async await的实现过程
 
+**async/await 是 Generator 的语法糖 + Promise 作为异步载体** 
+
 ```javascript
 // 通过Promise Generator来实现
 function spawn(genF) {
@@ -893,4 +895,54 @@ Array.prototype.myReduce = function (callback, initialValue) {
 }
 
 ```
+
+## ts基础
+
+
+### type & interface
+
+* interface：专门用于描述对象的结构，是面向对象风格的类型声明。
+
+* type：更通用的类型别名，可以描述任何类型，包括联合类型、元组、基础类型等
+
+#### 相同&差异
+* interface支持声明合并  type 支持
+* 都支持扩展
+
+```javascript
+
+  interface Animal { name: string }
+  interface Dog extends Animal { breed: string }
+
+  // type 用交叉类型 &
+  type Animal = { name: string }
+  type Dog = Animal & { breed: string }
+
+```
+
+* type 可以声明联合类型、元组、条件类型、映射类型
+
+* 都可以implements 
+
+```javascript
+
+  interface Flyable { fly(): void }
+  type Swimmable = { swim(): void }
+
+  class Duck implements Flyable, Swimmable {
+    fly() {}
+    swim() {}
+  }
+
+
+| **工具类型** | **作用** |
+|--------------|----------|
+| `Partial<T>` | 所有属性变 optional |
+| `Required<T>` | 所有属性变必填 |
+| `Pick<T, K>` | 只保留指定的 key |
+| `Omit<T, K>` | 排除指定的 key |
+
+
+
+
 
