@@ -83,6 +83,29 @@ channel.port1.onmessage = (message) => {
 port.postMessage(111)
 ```
 
+### 立即执行任务和延迟任务的作用
+通过两个任务队列可以实现优先级的控制
+
+```
+scheduleCallback(priority, cb, { delay? })
+         │
+         ├── delay > 0 ──→ timerQueue（等待 → 到期后移入 taskQueue）
+         │
+         └── delay = 0 ──→ taskQueue（通过 MessageChannel 异步执行）
+                                │
+                          每帧 5ms 时间切片
+                          超时任务会被"插队"优先执行
+```
+
+### react与Scheduler包结合实现任务中断恢复
+
+#### 任务恢复
+通过workInProgress记录当前执行的fiber节点，当任务被中断恢复的时候从中断的地方继续执行
+
+#### 任务中断
+用过shouldYield判断是否需要中断，当返回true的时候说明需要中断任务的执行
+
+
 ## 对scheduler包的理解
 
 Scheduler是一个实现任务调度的库，它里面实现了多种环境的任务调度能力。可以理解它赋予了JavaScript'多线程'的能力，可以完成当前执行任务的上下文切换和恢复执行。在一些细节考量上也非常细致，比如每帧任务最大的执行时间是5ms/setTimeout的使用等。
