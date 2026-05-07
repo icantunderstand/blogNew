@@ -1,0 +1,89 @@
+---
+title: AI探秘-大模型推理我懂你了！！！
+date: '2026-05-07'
+tags: ['AI']
+---
+
+在AI探秘系列文章中，逐步展开了大模型的基础概念:
+
+| 文章                                     | 内容                                      |
+|------------------------------------------|-------------------------------------------|
+| [大模型基础概念](https://icantunderstand.github.io/blogNew/blog/ai/aiBase) | 主要介绍大模型基础概念术语。               |
+| [构建大模型数据准备流程](https://icantunderstand.github.io/blogNew/blog/ai/buildLLMData) | 介绍数据向量化的过程，涉及分词、词表等。    |
+| [理解大模型注意力机制](https://icantunderstand.github.io/blogNew/blog/ai/buildLLMAttention) | 介绍注意力机制。                          |
+| [理解GPT模型架构](https://icantunderstand.github.io/blogNew/blog/ai/buildLLMStruct) | 介绍GPT模型的功能模块，比如FFN、激活函数等。 |
+| [理解模型预训练](https://icantunderstand.github.io/blogNew/blog/ai/buildLLMTrain) | 介绍模型预训练的过程，包括损失计算等。      |
+| [模型微调我懂你了！！！](https://icantunderstand.github.io/blogNew/blog/ai/buildLLMTune) | 介绍模型微调方法。                         |
+
+本文在串联前文相关概念基础上，介绍大模型推理过程的实现。
+
+## KV Cache
+Transformer的自注意力机制中，每个 token 都需要和之前所有 token 的 Key、Value 做计算，KV Cache 是按层保存的，每一层 Transformer 都会缓存历史 token 对应的 Key 和 Value。
+通过 KV Cache 技术，可以将之前计算的 Key、Value缓存到显存中，避免重复计算，提高推理效率。
+* 新 token 进来：需要完整经过所有 Transformer 层，只是对于每一层的 Attention 来说，历史 token 的 K、V 已经缓存，不需要重复计算，只需要计算当前 token 的 Q、K、V
+* 把新的 K、V 追加（append） 到 Cache 末尾
+* 用新的 Q 和"全部历史 K、V"做 Attention
+
+## 模型采样
+采样参数	作用	直观理解
+Temperature	调整分布平滑程度	越高越随机，越低越保守
+Top-k	只从概率最高的 k 个 token 中选	控制候选范围
+Top-p	从累计概率达到 p 的 token 集合中选	动态控制候选范围
+Greedy	每次选概率最高的 token	稳定但容易死板
+
+## 模型权重
+
+推理时需要加载模型权重和模型配置。模型权重包含注意力层、FFN 层、Embedding 层等参数。推理过程中，模型权重被加载到内存中，供计算使用。
+
+## 推理阶段
+
+大模型推理本质是自回归的生成过程: 每次只预测下一个 token，再把它拼回输入，循环往复，直到生成结束。推理阶段的核心步骤包括：
+
+1. Tokenize：文本 → token id 序列 [123, 456, 789]
+2. Embedding：token id → 高维向量
+3. Prefill：将 prompt 中的所有 token 一次性输入模型，经过 N 层 Transformer 完成完整前向计算，并在每一层生成对应的 KV Cache。最终模型会根据最后一个 token 位置的 logits，预测第一个输出 token。
+4. 采样：根据最后一个位置的 logits，用 Top-k / Top-p / Temperature 采样出下一个 token，比如"很"
+5. Decode 循环：把"很"作为新输入，只算它一个 token，复用之前的 K、V → 输出"好"→ 继续循环
+6. 终止：遇到 EOS 或达到 max_tokens 时停止
+7. Detokenize：token 序列 → 文本返回
+
+可以将推理的过程分为两个阶段:
+
+| 阶段名称      | 特点                              | 计算瓶颈               |
+|---------------|-----------------------------------|-----------------------|
+| 第 1 阶段 Prefill（预填充） | 一次性处理用户输入的全部 prompt | 计算密集型（Compute-bound） 并行计算出输入token的注意力 |
+| 第 2 阶段 Decode（解码）    | 逐个 token 生成输出              | 访存密集型（Memory-bound）瓶颈主要来自模型权重读取、KV Cache 读取与写入，以及多请求调度下的显存管理 |
+
+
+## 推理引擎
+
+推理引擎是把"模型权重 + 用户请求"高效转化为输出 token 的系统级工程。它需要优化内存管理、计算调度、并行化等多个方面。推理引擎需要关注:
+
+* 吞吐量：如何同时服务成百上千用户？
+* 延迟：如何让首个 token 尽快返回（TTFT）？
+* 显存利用率：如何把 GPU 显存榨干又不 OOM？
+* 请求调度：长请求和短请求如何混合处理？
+
+![推理架构](/static/images/aiStatic/llmReasoning/struct.png)
+
+### Attention Kernel
+Attention Kernel 是推理引擎中最核心的计算模块，负责执行 Transformer 中的自注意力机制。
+
+以 FlashAttention 为例，它的核心优化思路是减少 HBM 显存读写：
+
+1. 将 Q、K、V 按 block 分块；
+2. 尽量在 GPU 的 SRAM 中完成局部 Attention 计算；
+3. 避免显式生成和保存完整的 Attention 矩阵；
+4. 通过在线 softmax 等技巧保证计算结果仍然精确。
+
+因此，在模型本身支持长上下文的前提下，FlashAttention 可以让长序列计算更加高效，也让更长上下文的推理更容易落地。
+
+### P/D分离架构
+
+![PD分离架构](/static/images/aiStatic/llmReasoning/pd.png)
+
+P/D 分离是指将推理过程中的 Prefill 阶段 和 Decode 阶段 拆分到不同的资源池或调度队列中执行，让两类任务使用不同的 batch 策略和资源配置.
+
+在 Decode 集群中，优化重点通常是降低单 token 延迟和提升 KV Cache 管理效率。对于 Dense 模型，常见并行方式包括 TP、PP、DP；对于 MoE 模型，则可能结合 EP 与 DP 来提升吞吐。
+
+
