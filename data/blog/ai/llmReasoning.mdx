@@ -88,4 +88,11 @@ P/D 分离是指将推理过程中的 Prefill 阶段 和 Decode 阶段 拆分到
 
 在 Decode 集群中，优化重点通常是降低单 token 延迟和提升 KV Cache 管理效率。对于 Dense 模型，常见并行方式包括 TP、PP、DP；对于 MoE 模型，则可能结合 EP 与 DP 来提升吞吐。
 
+### 相关优化
+
+* Prefix caching: 把公共prompt前缀对应的 KV Cache 保存下来，下次遇到相同 token 前缀时直接复用，只计算新增 suffix 和后续生成 token
+* MTP(Multi-Token Prediction): 每次预测多个 token，减少 decode 循环次数，但需要更复杂的采样策略和更大的显存
+* Speculative Decoding: 通过让一个“小模型”先快速猜出一串后续token，再让“大模型”一次性验证这些token 是否可以接受。这样可以减少大模型逐 token 生成的次数，从而提高输出速度
+
+
 
